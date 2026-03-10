@@ -39,8 +39,8 @@ export const useTransactions = () => {
   return useQuery({
     queryKey: ["transactions"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
+      const { data, error } = await (supabase
+        .from("transactions" as any) as any)
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);

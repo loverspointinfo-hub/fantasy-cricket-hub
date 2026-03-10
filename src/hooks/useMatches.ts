@@ -34,7 +34,7 @@ export const useMatch = (matchId: string) => {
   return useQuery({
     queryKey: ["match", matchId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("matches").select("*").eq("id", matchId).single();
+      const { data, error } = await (supabase.from("matches" as any) as any).select("*").eq("id", matchId).single();
       if (error) throw error;
       return data as Match;
     },

@@ -22,8 +22,8 @@ export const useMatchPlayers = (matchId: string) => {
   return useQuery({
     queryKey: ["match-players", matchId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("match_players")
+      const { data, error } = await (supabase
+        .from("match_players" as any) as any)
         .select("*, player:players(*)")
         .eq("match_id", matchId)
         .eq("is_playing", true);
