@@ -373,9 +373,14 @@ const CreateTeam = () => {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      if (viceCaptainId === mp.player_id) setViceCaptainId(null);
-                      setCaptainId(isCaptain ? null : mp.player_id);
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isCaptain) {
+                        setCaptainId(null);
+                      } else {
+                        if (viceCaptainId === mp.player_id) setViceCaptainId(null);
+                        setCaptainId(mp.player_id);
+                      }
                     }}
                     className={cn(
                       "h-9 w-9 rounded-xl flex items-center justify-center text-[10px] font-bold transition-all border",
