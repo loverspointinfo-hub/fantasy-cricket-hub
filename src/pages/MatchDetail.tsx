@@ -111,6 +111,10 @@ const MatchDetail = () => {
       onError: (err: any) => toast.error(err.message || "Failed to delete team"),
     });
   };
+
+  const handleEditTeam = (teamId: string) => {
+    navigate(`/match/${matchId}/edit-team/${teamId}`);
+  };
   if (matchLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
