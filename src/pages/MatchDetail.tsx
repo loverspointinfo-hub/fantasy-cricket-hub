@@ -233,6 +233,7 @@ const MatchDetail = () => {
         <motion.div variants={item}>
           <h2 className="font-display text-lg font-bold mb-3">Contests ({contests.length})</h2>
         </motion.div>
+        {contestsLoading ? (
           <div className="flex justify-center py-8">
             <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
           </div>
