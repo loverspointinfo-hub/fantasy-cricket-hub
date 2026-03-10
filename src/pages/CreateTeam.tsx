@@ -22,7 +22,7 @@ const ROLE_CONSTRAINTS: Record<string, { min: number; max: number }> = {
 };
 const ROLE_ORDER = ["WK", "BAT", "AR", "BOWL"];
 
-type Step = "select" | "captain";
+type Step = "select" | "captain" | "preview";
 
 const CreateTeam = () => {
   const { matchId } = useParams();
