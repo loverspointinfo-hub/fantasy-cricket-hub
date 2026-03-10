@@ -21,7 +21,7 @@ export const useMatches = (status?: string) => {
   return useQuery({
     queryKey: ["matches", status],
     queryFn: async () => {
-      let query = supabase.from("matches").select("*").order("match_time", { ascending: true });
+      let query = (supabase.from("matches" as any) as any).select("*").order("match_time", { ascending: true });
       if (status) query = query.eq("status", status);
       const { data, error } = await query;
       if (error) throw error;
