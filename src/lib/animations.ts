@@ -16,3 +16,6 @@ export const fadeInUp: Variants = {
     transition: { type: "spring" as const, stiffness: 300, damping: 24 },
   },
 };
+
+// Alias for convenience
+export const item = fadeInUp;
