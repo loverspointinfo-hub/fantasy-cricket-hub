@@ -155,7 +155,7 @@ const CreateTeam = () => {
       }}>
         <div className="mx-auto max-w-lg px-4 py-3 flex items-center gap-3">
           <button
-            onClick={() => step === "captain" ? setStep("select") : navigate(-1)}
+            onClick={() => step === "preview" ? setStep("captain") : step === "captain" ? setStep("select") : navigate(-1)}
             className="p-1.5 rounded-xl hover:bg-secondary transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
