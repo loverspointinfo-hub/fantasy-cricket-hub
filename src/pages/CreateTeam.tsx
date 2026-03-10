@@ -102,15 +102,15 @@ const CreateTeam = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error("Please login first"); navigate("/login"); return; }
 
-      const { data: team, error: teamError } = await supabase
-        .from("user_teams")
+      const { data: team, error: teamError } = await (supabase
+        .from("user_teams" as any)
         .insert({
           user_id: user.id,
           match_id: matchId!,
           captain_id: captainId,
           vice_captain_id: viceCaptainId,
           total_credits: usedCredits,
-        })
+        }) as any)
         .select()
         .single();
 
@@ -121,7 +121,7 @@ const CreateTeam = () => {
         player_id: playerId,
       }));
 
-      const { error: tpError } = await supabase.from("team_players").insert(teamPlayers);
+      const { error: tpError } = await (supabase.from("team_players" as any) as any).insert(teamPlayers);
       if (tpError) throw tpError;
 
       toast.success("Team created successfully!");
