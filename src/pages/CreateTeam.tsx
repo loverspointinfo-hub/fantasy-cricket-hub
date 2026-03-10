@@ -448,16 +448,16 @@ const CreateTeam = () => {
             );
           })}
 
-          {/* Save CTA */}
-          <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pb-3">
+          {/* Preview CTA */}
+          <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-3">
             <div className="mx-auto max-w-lg">
               <Button
-                onClick={handleSave}
-                disabled={!captainId || !viceCaptainId || saving}
+                onClick={() => { if (captainId && viceCaptainId) setStep("preview"); else toast.error("Select both Captain and Vice-Captain"); }}
+                disabled={!captainId || !viceCaptainId}
                 className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
               >
                 <span className="shimmer absolute inset-0" />
-                <span className="relative z-10">{saving ? "Saving..." : "Save Team"}</span>
+                <span className="relative z-10">Preview Team</span>
               </Button>
             </div>
           </div>
