@@ -32,6 +32,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/match/:matchId" element={<MatchDetail />} />
             <Route path="/match/:matchId/create-team" element={<CreateTeam />} />
+            <Route path="/match/:matchId/edit-team/:teamId" element={<CreateTeam />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
