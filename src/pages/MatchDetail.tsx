@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
+import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { ArrowLeft, Clock, MapPin, Trophy, Users, ChevronRight, Zap, Shield, Crown, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import SavedTeamCard from "@/components/team/SavedTeamCard";
 
 const typeConfig: Record<string, { label: string; color: string; icon: typeof Trophy }> = {
   mega: { label: "Mega", color: "text-neon-green", icon: Crown },
@@ -99,7 +102,15 @@ const MatchDetail = () => {
   const navigate = useNavigate();
   const { data: match, isLoading: matchLoading } = useMatch(matchId || "");
   const { data: contests = [], isLoading: contestsLoading } = useContests(matchId || "");
+  const { data: userTeams = [], isLoading: teamsLoading } = useUserTeams(matchId || "");
+  const deleteTeam = useDeleteTeam();
 
+  const handleDeleteTeam = (teamId: string) => {
+    deleteTeam.mutate(teamId, {
+      onSuccess: () => toast.success("Team deleted"),
+      onError: (err: any) => toast.error(err.message || "Failed to delete team"),
+    });
+  };
   if (matchLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -200,11 +211,28 @@ const MatchDetail = () => {
           </Button>
         </motion.div>
 
+        {/* My Teams */}
+        {userTeams.length > 0 && (
+          <>
+            <motion.div variants={item}>
+              <h2 className="font-display text-lg font-bold mb-3">My Teams ({userTeams.length})</h2>
+            </motion.div>
+            {userTeams.map((team) => (
+              <motion.div key={team.id} variants={item}>
+                <SavedTeamCard
+                  team={team}
+                  onDelete={handleDeleteTeam}
+                  deleting={deleteTeam.isPending}
+                />
+              </motion.div>
+            ))}
+          </>
+        )}
+
         {/* Contests */}
         <motion.div variants={item}>
           <h2 className="font-display text-lg font-bold mb-3">Contests ({contests.length})</h2>
         </motion.div>
-
         {contestsLoading ? (
           <div className="flex justify-center py-8">
             <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />

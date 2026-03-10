@@ -179,7 +179,25 @@ const CreateTeam = () => {
 
       {step === "preview" ? (
         /* Team Preview */
-        <div className="flex-1 mx-auto max-w-lg w-full px-4 py-5 space-y-3 overflow-y-auto pb-24">
+        <div className="flex-1 mx-auto max-w-lg w-full px-4 py-5 space-y-3 overflow-y-auto pb-32">
+          {/* Edit buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setStep("select")}
+              className="flex-1 rounded-xl h-10 text-xs font-semibold border-border/50 hover:border-primary/50 hover:bg-primary/5"
+            >
+              <Users className="h-4 w-4 mr-1.5" /> Edit Players
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setStep("captain")}
+              className="flex-1 rounded-xl h-10 text-xs font-semibold border-border/50 hover:border-primary/50 hover:bg-primary/5"
+            >
+              <Crown className="h-4 w-4 mr-1.5" /> Edit C / VC
+            </Button>
+          </div>
+
           <TeamPreview
             players={selectedPlayers}
             captainId={captainId!}
