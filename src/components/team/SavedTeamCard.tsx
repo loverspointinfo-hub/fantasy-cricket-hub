@@ -1,4 +1,4 @@
-import { Crown, Star, Trash2, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { Crown, Star, Trash2, Edit3, ChevronDown, ChevronUp } from "lucide-react";
 import { UserTeam } from "@/hooks/useUserTeams";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -12,10 +12,11 @@ const ROLE_LABELS: Record<string, string> = {
 interface SavedTeamCardProps {
   team: UserTeam;
   onDelete: (teamId: string) => void;
+  onEdit?: (teamId: string) => void;
   deleting: boolean;
 }
 
-const SavedTeamCard = ({ team, onDelete, deleting }: SavedTeamCardProps) => {
+const SavedTeamCard = ({ team, onDelete, onEdit, deleting }: SavedTeamCardProps) => {
   const [expanded, setExpanded] = useState(false);
 
   const roleGroups = team.team_players.reduce<Record<string, typeof team.team_players>>((acc, tp) => {
@@ -54,7 +55,17 @@ const SavedTeamCard = ({ team, onDelete, deleting }: SavedTeamCardProps) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
+          {onEdit && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.stopPropagation(); onEdit(team.id); }}
+              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10"
+            >
+              <Edit3 className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
