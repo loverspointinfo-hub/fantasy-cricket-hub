@@ -206,7 +206,7 @@ const CreateTeam = () => {
           </button>
           <div className="flex-1">
             <p className="font-display text-sm font-bold">
-              {step === "select" ? "Create Team" : step === "captain" ? "Select Captain" : "Team Preview"}
+              {step === "select" ? (isEditing ? "Edit Team" : "Create Team") : step === "captain" ? "Select Captain" : "Team Preview"}
             </p>
             <p className="text-[10px] text-muted-foreground">
               {match ? `${match.team1_short} vs ${match.team2_short}` : ""}
