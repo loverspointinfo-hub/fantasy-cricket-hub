@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { item } from "@/lib/animations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import TeamPreview from "@/components/team/TeamPreview";
 
 const MAX_CREDITS = 100;
 const ROLE_LABELS: Record<string, string> = { BAT: "Batsman", BOWL: "Bowler", AR: "All-Rounder", WK: "Wicket-Keeper" };
