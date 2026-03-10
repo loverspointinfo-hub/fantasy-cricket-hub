@@ -2,14 +2,7 @@ import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, History, TrendingUp } from "
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
-};
+import { staggerContainer, fadeInUp } from "@/lib/animations";
 
 const WalletPage = () => (
   <div className="min-h-screen relative overflow-hidden">

@@ -7,14 +7,7 @@ import { User, LogOut, Shield, ChevronRight, Fingerprint, History, Users, HelpCi
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
-};
+import { staggerContainer, fadeInUp } from "@/lib/animations";
 
 const Profile = () => {
   const navigate = useNavigate();
