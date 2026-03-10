@@ -102,7 +102,15 @@ const MatchDetail = () => {
   const navigate = useNavigate();
   const { data: match, isLoading: matchLoading } = useMatch(matchId || "");
   const { data: contests = [], isLoading: contestsLoading } = useContests(matchId || "");
+  const { data: userTeams = [], isLoading: teamsLoading } = useUserTeams(matchId || "");
+  const deleteTeam = useDeleteTeam();
 
+  const handleDeleteTeam = (teamId: string) => {
+    deleteTeam.mutate(teamId, {
+      onSuccess: () => toast.success("Team deleted"),
+      onError: (err: any) => toast.error(err.message || "Failed to delete team"),
+    });
+  };
   if (matchLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
