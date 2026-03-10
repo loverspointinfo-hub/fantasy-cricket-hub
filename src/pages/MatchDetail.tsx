@@ -226,6 +226,7 @@ const MatchDetail = () => {
                 <SavedTeamCard
                   team={team}
                   onDelete={handleDeleteTeam}
+                  onEdit={handleEditTeam}
                   deleting={deleteTeam.isPending}
                 />
               </motion.div>
