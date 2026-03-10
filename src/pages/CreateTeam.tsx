@@ -320,8 +320,18 @@ const CreateTeam = () => {
           </div>
 
           {/* Bottom CTA */}
-          <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pb-3">
+          <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-3">
             <div className="mx-auto max-w-lg">
+              {selected.size === 11 && !isValidTeam() && (
+                <p className="text-[11px] text-center mb-2 text-destructive font-medium">
+                  Fix role requirements: {ROLE_ORDER.filter(r => roleCount[r] < ROLE_CONSTRAINTS[r].min).map(r => `${ROLE_LABELS[r]} (need ${ROLE_CONSTRAINTS[r].min - roleCount[r]} more)`).join(", ")}
+                </p>
+              )}
+              {selected.size < 11 && (
+                <p className="text-[11px] text-center mb-2 text-muted-foreground">
+                  Select {11 - selected.size} more player{11 - selected.size > 1 ? "s" : ""}
+                </p>
+              )}
               <Button
                 onClick={handleContinue}
                 disabled={!isValidTeam()}
