@@ -260,7 +260,7 @@ const CreateTeam = () => {
                 className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
               >
                 <span className="shimmer absolute inset-0" />
-                <span className="relative z-10">{saving ? "Saving..." : "Confirm & Save Team"}</span>
+                <span className="relative z-10">{saving ? "Saving..." : isEditing ? "Update Team" : "Confirm & Save Team"}</span>
               </Button>
             </div>
           </div>
