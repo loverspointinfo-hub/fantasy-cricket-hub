@@ -390,9 +390,14 @@ const CreateTeam = () => {
                     {isCaptain ? <Crown className="h-4 w-4" /> : "C"}
                   </button>
                   <button
-                    onClick={() => {
-                      if (captainId === mp.player_id) setCaptainId(null);
-                      setViceCaptainId(isVC ? null : mp.player_id);
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isVC) {
+                        setViceCaptainId(null);
+                      } else {
+                        if (captainId === mp.player_id) setCaptainId(null);
+                        setViceCaptainId(mp.player_id);
+                      }
                     }}
                     className={cn(
                       "h-9 w-9 rounded-xl flex items-center justify-center text-[10px] font-bold transition-all border",
