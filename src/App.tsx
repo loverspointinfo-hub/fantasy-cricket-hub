@@ -10,6 +10,8 @@ import WalletPage from "./pages/WalletPage";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import MatchDetail from "./pages/MatchDetail";
+import CreateTeam from "./pages/CreateTeam";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/my-matches" element={<MyMatches />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/match/:matchId" element={<MatchDetail />} />
+            <Route path="/match/:matchId/create-team" element={<CreateTeam />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
