@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Trophy, Mail, Lock, User, Eye, EyeOff, Gift } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -42,96 +43,103 @@ const Signup = () => {
     }
   };
 
+  const fields = [
+    { id: "username", label: "Username", icon: User, type: "text", placeholder: "CricketKing99", value: username, onChange: setUsername, required: true },
+    { id: "email", label: "Email Address", icon: Mail, type: "email", placeholder: "your@email.com", value: email, onChange: setEmail, required: true },
+    { id: "referral", label: "Referral Code (Optional)", icon: Gift, type: "text", placeholder: "Enter code for bonus", value: referralCode, onChange: setReferralCode, required: false },
+  ];
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <div className="mb-8 flex flex-col items-center gap-2">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary">
-          <Trophy className="h-8 w-8 text-primary-foreground" />
-        </div>
-        <h1 className="font-display text-2xl font-bold tracking-wider neon-glow">
-          FANTASY<span className="text-accent">11</span>
-        </h1>
-        <p className="text-sm text-muted-foreground">Create your account</p>
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10 relative overflow-hidden">
+      <div className="floating-orb w-72 h-72 bg-neon-purple -top-10 -left-10" />
+      <div className="floating-orb w-80 h-80 bg-neon-green bottom-10 -right-20" style={{ animationDelay: "3s" }} />
+      <div className="gradient-mesh absolute inset-0" />
 
-      <form onSubmit={handleSignup} className="w-full max-w-sm space-y-4">
-        <div className="glass-card p-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username" className="text-muted-foreground text-xs uppercase tracking-wider">Username</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="username"
-                placeholder="CricketKing99"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
-                required
-              />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 w-full max-w-sm"
+      >
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="relative"
+          >
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl gradient-primary shadow-lg">
+              <Trophy className="h-10 w-10 text-primary-foreground" />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-muted-foreground text-xs uppercase tracking-wider">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
-                required
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-muted-foreground text-xs uppercase tracking-wider">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Min 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 bg-secondary/50 border-border/50 focus:border-primary"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="referral" className="text-muted-foreground text-xs uppercase tracking-wider">Referral Code (Optional)</Label>
-            <div className="relative">
-              <Gift className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="referral"
-                placeholder="Enter code"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
-              />
-            </div>
-          </div>
-          <Button type="submit" className="w-full gradient-primary font-semibold" disabled={loading}>
-            {loading ? "Creating account..." : "Create Account"}
-          </Button>
+            <div className="absolute inset-0 rounded-3xl gradient-primary opacity-30 blur-xl" />
+          </motion.div>
+          <h1 className="font-display text-3xl font-bold">
+            FANTASY<span className="text-gradient">11</span>
+          </h1>
+          <p className="text-sm text-muted-foreground">Create your account</p>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline font-medium">
-            Sign In
-          </Link>
-        </p>
-      </form>
+        <form onSubmit={handleSignup} className="space-y-5">
+          <div className="glass-card-premium p-6 space-y-4">
+            {fields.map((f) => (
+              <div key={f.id} className="space-y-1.5">
+                <Label htmlFor={f.id} className="text-muted-foreground text-[10px] uppercase tracking-[0.2em] font-semibold">
+                  {f.label}
+                </Label>
+                <div className="relative group">
+                  <f.icon className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                  <Input
+                    id={f.id}
+                    type={f.type}
+                    placeholder={f.placeholder}
+                    value={f.value}
+                    onChange={(e) => f.onChange(e.target.value)}
+                    className="pl-11 h-11 bg-secondary/50 border-border/50 focus:border-primary/50 rounded-xl"
+                    required={f.required}
+                  />
+                </div>
+              </div>
+            ))}
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-muted-foreground text-[10px] uppercase tracking-[0.2em] font-semibold">
+                Password
+              </Label>
+              <div className="relative group">
+                <Lock className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Min 6 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-11 pr-11 h-11 bg-secondary/50 border-border/50 focus:border-primary/50 rounded-xl"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button type="submit" className="w-full h-12 gradient-primary font-bold text-sm rounded-xl relative overflow-hidden" disabled={loading}>
+                <span className="shimmer absolute inset-0" />
+                <span className="relative z-10">{loading ? "Creating account..." : "Create Account"}</span>
+              </Button>
+            </motion.div>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline font-semibold">
+              Sign In
+            </Link>
+          </p>
+        </form>
+      </motion.div>
     </div>
   );
 };
