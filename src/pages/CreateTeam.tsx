@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useMatchPlayers, MatchPlayer } from "@/hooks/useMatchPlayers";
+import { useUserTeams } from "@/hooks/useUserTeams";
 import { ArrowLeft, Check, Star, Crown, Users, Minus, Plus, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,10 +26,14 @@ const ROLE_ORDER = ["WK", "BAT", "AR", "BOWL"];
 type Step = "select" | "captain" | "preview";
 
 const CreateTeam = () => {
-  const { matchId } = useParams();
+  const { matchId, teamId } = useParams();
   const navigate = useNavigate();
   const { data: match } = useMatch(matchId || "");
   const { data: matchPlayers = [], isLoading } = useMatchPlayers(matchId || "");
+  const { data: userTeams = [] } = useUserTeams(matchId || "");
+
+  const isEditing = !!teamId;
+  const editingTeam = useMemo(() => userTeams.find(t => t.id === teamId), [userTeams, teamId]);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [captainId, setCaptainId] = useState<string | null>(null);
@@ -36,6 +41,18 @@ const CreateTeam = () => {
   const [step, setStep] = useState<Step>("select");
   const [activeRole, setActiveRole] = useState("WK");
   const [saving, setSaving] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load existing team data when editing
+  useEffect(() => {
+    if (isEditing && editingTeam && !initialized) {
+      const playerIds = new Set(editingTeam.team_players.map(tp => tp.player_id));
+      setSelected(playerIds);
+      setCaptainId(editingTeam.captain_id);
+      setViceCaptainId(editingTeam.vice_captain_id);
+      setInitialized(true);
+    }
+  }, [isEditing, editingTeam, initialized]);
 
   const selectedPlayers = useMemo(() =>
     matchPlayers.filter(mp => selected.has(mp.player_id)),
