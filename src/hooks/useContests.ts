@@ -20,8 +20,8 @@ export const useContests = (matchId: string) => {
   return useQuery({
     queryKey: ["contests", matchId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contests")
+      const { data, error } = await (supabase
+        .from("contests" as any) as any)
         .select("*")
         .eq("match_id", matchId)
         .order("prize_pool", { ascending: false });
