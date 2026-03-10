@@ -120,29 +120,56 @@ const CreateTeam = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error("Please login first"); navigate("/login"); return; }
 
-      const { data: team, error: teamError } = await (supabase
-        .from("user_teams" as any)
-        .insert({
-          user_id: user.id,
-          match_id: matchId!,
-          captain_id: captainId,
-          vice_captain_id: viceCaptainId,
-          total_credits: usedCredits,
-        }) as any)
-        .select()
-        .single();
+      if (isEditing && teamId) {
+        // Update existing team
+        const { error: updateError } = await (supabase
+          .from("user_teams" as any) as any)
+          .update({
+            captain_id: captainId,
+            vice_captain_id: viceCaptainId,
+            total_credits: usedCredits,
+          })
+          .eq("id", teamId);
+        if (updateError) throw updateError;
 
-      if (teamError) throw teamError;
+        // Delete old team_players and insert new ones
+        const { error: delError } = await (supabase.from("team_players" as any) as any).delete().eq("team_id", teamId);
+        if (delError) throw delError;
 
-      const teamPlayers = Array.from(selected).map(playerId => ({
-        team_id: team.id,
-        player_id: playerId,
-      }));
+        const teamPlayers = Array.from(selected).map(playerId => ({
+          team_id: teamId,
+          player_id: playerId,
+        }));
+        const { error: tpError } = await (supabase.from("team_players" as any) as any).insert(teamPlayers);
+        if (tpError) throw tpError;
 
-      const { error: tpError } = await (supabase.from("team_players" as any) as any).insert(teamPlayers);
-      if (tpError) throw tpError;
+        toast.success("Team updated successfully!");
+      } else {
+        // Create new team
+        const { data: team, error: teamError } = await (supabase
+          .from("user_teams" as any)
+          .insert({
+            user_id: user.id,
+            match_id: matchId!,
+            captain_id: captainId,
+            vice_captain_id: viceCaptainId,
+            total_credits: usedCredits,
+          }) as any)
+          .select()
+          .single();
 
-      toast.success("Team created successfully!");
+        if (teamError) throw teamError;
+
+        const teamPlayers = Array.from(selected).map(playerId => ({
+          team_id: team.id,
+          player_id: playerId,
+        }));
+        const { error: tpError } = await (supabase.from("team_players" as any) as any).insert(teamPlayers);
+        if (tpError) throw tpError;
+
+        toast.success("Team created successfully!");
+      }
+
       navigate(`/match/${matchId}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to save team");
