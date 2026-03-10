@@ -189,7 +189,7 @@ const Index = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            variants={container}
+            variants={staggerContainer}
             initial="hidden"
             animate="show"
             className="space-y-3"

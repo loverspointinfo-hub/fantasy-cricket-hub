@@ -23,7 +23,7 @@ const MyMatches = () => {
       </header>
 
       <motion.div
-        variants={container}
+        variants={staggerContainer}
         initial="hidden"
         animate="show"
         className="mx-auto max-w-lg flex flex-col items-center justify-center py-24 px-4 relative z-10"

@@ -77,7 +77,7 @@ const Profile = () => {
       </header>
 
       <motion.div
-        variants={container}
+        variants={staggerContainer}
         initial="hidden"
         animate="show"
         className="mx-auto max-w-lg px-4 py-6 space-y-4 relative z-10"
