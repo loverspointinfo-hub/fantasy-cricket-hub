@@ -177,7 +177,33 @@ const CreateTeam = () => {
         </div>
       </header>
 
-      {step === "select" ? (
+      {step === "preview" ? (
+        /* Team Preview */
+        <div className="flex-1 mx-auto max-w-lg w-full px-4 py-5 space-y-3 overflow-y-auto pb-24">
+          <TeamPreview
+            players={selectedPlayers}
+            captainId={captainId!}
+            viceCaptainId={viceCaptainId!}
+            totalCredits={usedCredits}
+            team1Short={match?.team1_short}
+            team2Short={match?.team2_short}
+          />
+
+          {/* Save CTA */}
+          <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-3">
+            <div className="mx-auto max-w-lg">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
+              >
+                <span className="shimmer absolute inset-0" />
+                <span className="relative z-10">{saving ? "Saving..." : "Confirm & Save Team"}</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : step === "select" ? (
         <>
           {/* Credit bar */}
           <div className="mx-auto max-w-lg w-full px-4 py-3 border-b border-border/20" style={{
