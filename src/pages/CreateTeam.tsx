@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { item } from "@/lib/animations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import TeamPreview from "@/components/team/TeamPreview";
 
 const MAX_CREDITS = 100;
 const ROLE_LABELS: Record<string, string> = { BAT: "Batsman", BOWL: "Bowler", AR: "All-Rounder", WK: "Wicket-Keeper" };
@@ -21,7 +22,7 @@ const ROLE_CONSTRAINTS: Record<string, { min: number; max: number }> = {
 };
 const ROLE_ORDER = ["WK", "BAT", "AR", "BOWL"];
 
-type Step = "select" | "captain";
+type Step = "select" | "captain" | "preview";
 
 const CreateTeam = () => {
   const { matchId } = useParams();
@@ -154,14 +155,14 @@ const CreateTeam = () => {
       }}>
         <div className="mx-auto max-w-lg px-4 py-3 flex items-center gap-3">
           <button
-            onClick={() => step === "captain" ? setStep("select") : navigate(-1)}
+            onClick={() => step === "preview" ? setStep("captain") : step === "captain" ? setStep("select") : navigate(-1)}
             className="p-1.5 rounded-xl hover:bg-secondary transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1">
             <p className="font-display text-sm font-bold">
-              {step === "select" ? "Create Team" : "Select Captain"}
+              {step === "select" ? "Create Team" : step === "captain" ? "Select Captain" : "Team Preview"}
             </p>
             <p className="text-[10px] text-muted-foreground">
               {match ? `${match.team1_short} vs ${match.team2_short}` : ""}
@@ -176,7 +177,33 @@ const CreateTeam = () => {
         </div>
       </header>
 
-      {step === "select" ? (
+      {step === "preview" ? (
+        /* Team Preview */
+        <div className="flex-1 mx-auto max-w-lg w-full px-4 py-5 space-y-3 overflow-y-auto pb-24">
+          <TeamPreview
+            players={selectedPlayers}
+            captainId={captainId!}
+            viceCaptainId={viceCaptainId!}
+            totalCredits={usedCredits}
+            team1Short={match?.team1_short}
+            team2Short={match?.team2_short}
+          />
+
+          {/* Save CTA */}
+          <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-3">
+            <div className="mx-auto max-w-lg">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
+              >
+                <span className="shimmer absolute inset-0" />
+                <span className="relative z-10">{saving ? "Saving..." : "Confirm & Save Team"}</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : step === "select" ? (
         <>
           {/* Credit bar */}
           <div className="mx-auto max-w-lg w-full px-4 py-3 border-b border-border/20" style={{
@@ -421,16 +448,16 @@ const CreateTeam = () => {
             );
           })}
 
-          {/* Save CTA */}
-          <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pb-3">
+          {/* Preview CTA */}
+          <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-3">
             <div className="mx-auto max-w-lg">
               <Button
-                onClick={handleSave}
-                disabled={!captainId || !viceCaptainId || saving}
+                onClick={() => { if (captainId && viceCaptainId) setStep("preview"); else toast.error("Select both Captain and Vice-Captain"); }}
+                disabled={!captainId || !viceCaptainId}
                 className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
               >
                 <span className="shimmer absolute inset-0" />
-                <span className="relative z-10">{saving ? "Saving..." : "Save Team"}</span>
+                <span className="relative z-10">Preview Team</span>
               </Button>
             </div>
           </div>
