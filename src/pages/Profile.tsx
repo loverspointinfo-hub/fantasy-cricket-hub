@@ -7,7 +7,7 @@ import { User, LogOut, Shield, ChevronRight, Fingerprint, History, Users, HelpCi
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-import { staggerContainer, fadeInUp } from "@/lib/animations";
+import { staggerContainer, item } from "@/lib/animations";
 
 const Profile = () => {
   const navigate = useNavigate();

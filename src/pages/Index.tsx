@@ -53,7 +53,7 @@ const BANNERS = [
   },
 ];
 
-import { staggerContainer, fadeInUp } from "@/lib/animations";
+import { staggerContainer, item } from "@/lib/animations";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<MatchStatus>("upcoming");

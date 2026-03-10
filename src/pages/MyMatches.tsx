@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-import { staggerContainer, fadeInUp } from "@/lib/animations";
+import { staggerContainer, item } from "@/lib/animations";
 
 const MyMatches = () => {
   const navigate = useNavigate();
