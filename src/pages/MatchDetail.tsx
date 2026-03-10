@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
+import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { ArrowLeft, Clock, MapPin, Trophy, Users, ChevronRight, Zap, Shield, Crown, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import SavedTeamCard from "@/components/team/SavedTeamCard";
 
 const typeConfig: Record<string, { label: string; color: string; icon: typeof Trophy }> = {
   mega: { label: "Mega", color: "text-neon-green", icon: Crown },
