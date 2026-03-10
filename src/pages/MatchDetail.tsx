@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
-import { ArrowLeft, Clock, MapPin, Trophy, Users, ChevronRight, Zap, Shield, Crown, Swords } from "lucide-react";
+import { useMyContestEntries } from "@/hooks/useContestEntries";
+import { ArrowLeft, Clock, MapPin, Trophy, Users, ChevronRight, Zap, Shield, Crown, Swords, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -11,6 +13,7 @@ import { staggerContainer, item } from "@/lib/animations";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
+import JoinContestSheet from "@/components/contest/JoinContestSheet";
 
 const typeConfig: Record<string, { label: string; color: string; icon: typeof Trophy }> = {
   mega: { label: "Mega", color: "text-neon-green", icon: Crown },
@@ -20,7 +23,7 @@ const typeConfig: Record<string, { label: string; color: string; icon: typeof Tr
   private: { label: "Private", color: "text-neon-purple", icon: Users },
 };
 
-const ContestCard = ({ contest, onJoin }: { contest: Contest; onJoin: () => void }) => {
+const ContestCard = ({ contest, onJoin, isJoined }: { contest: Contest; onJoin: () => void; isJoined: boolean }) => {
   const config = typeConfig[contest.type] || typeConfig.mega;
   const fillPercent = Math.round((contest.current_entries / contest.max_entries) * 100);
 
@@ -31,11 +34,18 @@ const ContestCard = ({ contest, onJoin }: { contest: Contest; onJoin: () => void
           <config.icon className={cn("h-4 w-4", config.color)} />
           <span className={cn("text-xs font-bold uppercase tracking-wider", config.color)}>{config.label}</span>
         </div>
-        {contest.is_guaranteed && (
-          <Badge className="bg-neon-green/15 text-neon-green border-neon-green/25 text-[9px] font-bold">
-            Guaranteed
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {isJoined && (
+            <Badge className="bg-primary/15 text-primary border-primary/25 text-[9px] font-bold gap-1">
+              <CheckCircle2 className="h-3 w-3" /> Joined
+            </Badge>
+          )}
+          {contest.is_guaranteed && (
+            <Badge className="bg-neon-green/15 text-neon-green border-neon-green/25 text-[9px] font-bold">
+              Guaranteed
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="px-4 pb-3">
@@ -90,7 +100,7 @@ const ContestCard = ({ contest, onJoin }: { contest: Contest; onJoin: () => void
           </span>
         </div>
         <div className="flex items-center gap-1 text-primary text-xs font-semibold group-hover:gap-2 transition-all">
-          Join <ChevronRight className="h-3.5 w-3.5" />
+          {isJoined ? "View" : "Join"} <ChevronRight className="h-3.5 w-3.5" />
         </div>
       </div>
     </motion.div>
@@ -102,8 +112,16 @@ const MatchDetail = () => {
   const navigate = useNavigate();
   const { data: match, isLoading: matchLoading } = useMatch(matchId || "");
   const { data: contests = [], isLoading: contestsLoading } = useContests(matchId || "");
-  const { data: userTeams = [], isLoading: teamsLoading } = useUserTeams(matchId || "");
+  const { data: userTeams = [] } = useUserTeams(matchId || "");
+  const { data: myEntries = [] } = useMyContestEntries(matchId || "");
   const deleteTeam = useDeleteTeam();
+
+  const [joinSheetOpen, setJoinSheetOpen] = useState(false);
+  const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+
+  const joinedContestIds = new Set(myEntries.map((e: any) => e.contest_id));
+  const joinedTeamIdsForContest = (contestId: string) =>
+    myEntries.filter((e: any) => e.contest_id === contestId).map((e: any) => e.team_id);
 
   const handleDeleteTeam = (teamId: string) => {
     deleteTeam.mutate(teamId, {
@@ -115,6 +133,12 @@ const MatchDetail = () => {
   const handleEditTeam = (teamId: string) => {
     navigate(`/match/${matchId}/edit-team/${teamId}`);
   };
+
+  const handleJoinContest = (contest: Contest) => {
+    setSelectedContest(contest);
+    setJoinSheetOpen(true);
+  };
+
   if (matchLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -253,11 +277,22 @@ const MatchDetail = () => {
             <ContestCard
               key={contest.id}
               contest={contest}
-              onJoin={() => navigate(`/match/${matchId}/create-team`)}
+              isJoined={joinedContestIds.has(contest.id)}
+              onJoin={() => handleJoinContest(contest)}
             />
           ))
         )}
       </motion.div>
+
+      {/* Join Contest Sheet */}
+      <JoinContestSheet
+        open={joinSheetOpen}
+        onOpenChange={setJoinSheetOpen}
+        contest={selectedContest}
+        teams={userTeams}
+        joinedTeamIds={selectedContest ? joinedTeamIdsForContest(selectedContest.id) : []}
+        onCreateTeam={() => navigate(`/match/${matchId}/create-team`)}
+      />
     </div>
   );
 };
