@@ -149,11 +149,30 @@ const MatchDetail = () => {
             </p>
             <p className="text-[10px] text-muted-foreground tracking-wide">{match.league}</p>
           </div>
-          {isLive && (
+          {isLive ? (
             <Badge className="bg-[hsl(var(--neon-red)/0.15)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.25)] text-[10px] font-bold gap-1 animate-pulse">
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))]" /> LIVE
             </Badge>
-          )}
+          ) : match.status === "upcoming" && !countdown.isExpired ? (
+            <div className={cn(
+              "flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-bold",
+              isUrgent ? "text-[hsl(var(--neon-red))]" : "text-primary"
+            )}
+              style={{
+                background: isUrgent ? "hsl(var(--neon-red) / 0.08)" : "hsl(var(--primary) / 0.08)",
+                border: `1px solid ${isUrgent ? "hsl(var(--neon-red) / 0.15)" : "hsl(var(--primary) / 0.15)"}`,
+              }}
+            >
+              <Timer className={cn("h-3 w-3", isUrgent && "animate-pulse")} />
+              <span className="font-display tracking-wide">
+                {countdown.days > 0
+                  ? `${countdown.days}d ${countdown.hours}h`
+                  : countdown.hours > 0
+                  ? `${countdown.hours}h ${String(countdown.minutes).padStart(2, "0")}m`
+                  : `${String(countdown.minutes).padStart(2, "0")}m ${String(countdown.seconds).padStart(2, "0")}s`}
+              </span>
+            </div>
+          ) : null}
         </div>
       </header>
 
