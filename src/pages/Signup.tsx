@@ -131,7 +131,20 @@ const Signup = () => {
                     className="pl-11 h-11 bg-secondary/50 border-border/50 focus:border-primary/50 rounded-xl"
                     required={f.required}
                   />
+                  {f.id === "username" && username.length >= 3 && (
+                    <div className="absolute right-3.5 top-3">
+                      {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                      {usernameStatus === "available" && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                      {usernameStatus === "taken" && <XCircle className="h-4 w-4 text-destructive" />}
+                    </div>
+                  )}
                 </div>
+                {f.id === "username" && usernameStatus === "taken" && (
+                  <p className="text-[11px] text-destructive font-medium">This username is already taken. Try another one!</p>
+                )}
+                {f.id === "username" && usernameStatus === "available" && (
+                  <p className="text-[11px] text-green-500 font-medium">Username is available ✓</p>
+                )}
               </div>
             ))}
             <div className="space-y-1.5">
