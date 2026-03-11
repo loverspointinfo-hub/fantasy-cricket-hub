@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Crown, Star, Check, Trophy, AlertCircle } from "lucide-react";
+import { Crown, Star, Check, Trophy, AlertCircle, Wallet } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { UserTeam } from "@/hooks/useUserTeams";
 import { Contest } from "@/hooks/useContests";
 import { useJoinContest } from "@/hooks/useContestEntries";
+import { useWallet } from "@/hooks/useWallet";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { item } from "@/lib/animations";
