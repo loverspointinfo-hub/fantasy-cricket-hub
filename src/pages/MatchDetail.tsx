@@ -295,8 +295,9 @@ const MatchDetail = () => {
         </motion.div>
 
         {contestsLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-7 w-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <div className="space-y-3">
+            <ContestCardSkeleton />
+            <ContestCardSkeleton />
           </div>
         ) : contests.length === 0 ? (
           <motion.div variants={item} className="glass-card flex flex-col items-center py-14 text-muted-foreground">
