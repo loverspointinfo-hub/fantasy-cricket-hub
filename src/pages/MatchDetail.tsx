@@ -5,7 +5,7 @@ import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Zap, Plus, Sparkles,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
 import ContestCard from "@/components/contest/ContestCard";
+import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 const MatchDetail = () => {
   const { matchId } = useParams();
