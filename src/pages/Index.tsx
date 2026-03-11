@@ -160,6 +160,7 @@ const Index = () => {
   const { data: matches = [], isLoading } = useMatches(activeTab);
   const { data: liveMatches = [] } = useMatches("live");
   const { data: wallet } = useWallet();
+  const { data: playerCounts = {} } = useMatchPlayerCounts();
   const navigate = useNavigate();
 
   const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
