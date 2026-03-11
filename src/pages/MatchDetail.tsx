@@ -19,6 +19,7 @@ import JoinContestSheet from "@/components/contest/JoinContestSheet";
 import ContestCard from "@/components/contest/ContestCard";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useCountdown } from "@/hooks/useCountdown";
 
 const MatchDetail = () => {
   const { matchId } = useParams();
