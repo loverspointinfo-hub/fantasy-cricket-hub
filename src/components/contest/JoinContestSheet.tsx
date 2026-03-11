@@ -30,6 +30,11 @@ const JoinContestSheet = ({
 }: JoinContestSheetProps) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const joinContest = useJoinContest();
+  const { data: wallet } = useWallet();
+
+  const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
+  const entryFee = contest?.entry_fee ?? 0;
+  const hasInsufficientBalance = entryFee > 0 && totalBalance < entryFee;
 
   const handleJoin = () => {
     if (!contest || !selectedTeamId) return;
