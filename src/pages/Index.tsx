@@ -371,7 +371,7 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground/50 mt-1">Check back soon!</p>
               </motion.div>
             ) : (
-              matches.map(match => <MatchCard key={match.id} match={match} />)
+              matches.map(match => <MatchCard key={match.id} match={match} playerCount={playerCounts[match.id]} />)
             )}
           </motion.div>
         </AnimatePresence>
