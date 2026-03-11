@@ -45,6 +45,14 @@ const Signup = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (username.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+    if (usernameStatus === "taken") {
+      toast.error("That username is already taken");
+      return;
+    }
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
@@ -70,7 +78,7 @@ const Signup = () => {
   };
 
   const fields = [
-    { id: "username", label: "Username", icon: User, type: "text", placeholder: "CricketKing99", value: username, onChange: setUsername, required: true },
+    { id: "username", label: "Username", icon: User, type: "text", placeholder: "CricketKing99", value: username, onChange: handleUsernameChange, required: true },
     { id: "email", label: "Email Address", icon: Mail, type: "email", placeholder: "your@email.com", value: email, onChange: setEmail, required: true },
     { id: "referral", label: "Referral Code (Optional)", icon: Gift, type: "text", placeholder: "Enter code for bonus", value: referralCode, onChange: setReferralCode, required: false },
   ];
