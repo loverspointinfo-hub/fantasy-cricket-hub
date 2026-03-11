@@ -248,6 +248,7 @@ const Index = () => {
 
             {/* Notification bell */}
             <button
+              onClick={() => navigate("/notifications")}
               className="relative h-9 w-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
               style={{
                 background: "hsl(228 16% 11%)",
@@ -255,12 +256,19 @@ const Index = () => {
               }}
             >
               <Bell className="h-4 w-4 text-muted-foreground" />
-              <div className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full"
-                style={{
-                  background: "linear-gradient(135deg, hsl(var(--neon-green)), hsl(var(--neon-cyan)))",
-                  boxShadow: "0 0 6px hsl(152 100% 50% / 0.5)",
-                }}
-              />
+              {unreadCount > 0 && (
+                <div className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full flex items-center justify-center px-1"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(var(--neon-red)), hsl(var(--neon-orange)))",
+                    boxShadow: "0 0 8px hsl(var(--neon-red) / 0.5)",
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    color: "white",
+                  }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </div>
+              )}
             </button>
           </div>
         </div>
