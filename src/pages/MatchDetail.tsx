@@ -123,6 +123,12 @@ const MatchDetail = () => {
         </div>
       </div>
 
+      {/* Background effects */}
+      <div className="fixed inset-0 pointer-events-none gradient-mesh opacity-60" />
+      <div className="floating-orb w-80 h-80 bg-[hsl(var(--neon-green))] -top-32 -left-24" />
+      <div className="floating-orb w-60 h-60 bg-[hsl(var(--neon-cyan))] top-1/3 -right-16" style={{ animationDelay: "3s" }} />
+      <div className="floating-orb w-40 h-40 bg-[hsl(var(--neon-purple))] bottom-32 left-1/4" style={{ animationDelay: "5s" }} />
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/20"
         style={{
