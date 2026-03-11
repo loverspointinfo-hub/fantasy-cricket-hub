@@ -26,12 +26,8 @@ const Signup = () => {
         if (val.length < 3) { setUsernameStatus("idle"); return; }
         setUsernameStatus("checking");
         timer = setTimeout(async () => {
-          const { data } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("username", val)
-            .maybeSingle();
-          setUsernameStatus(data ? "taken" : "available");
+          const { data } = await supabase.rpc("check_username_available" as any, { desired_username: val });
+          setUsernameStatus(data ? "available" : "taken");
         }, 500);
       };
     })(),
