@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useMatches, Match } from "@/hooks/useMatches";
+import { useMatchPlayerCounts } from "@/hooks/useMatchPlayerCounts";
 import { useWallet } from "@/hooks/useWallet";
 import { useUnreadCount } from "@/hooks/useNotifications";
 import { format, isToday, isTomorrow } from "date-fns";
