@@ -65,7 +65,7 @@ const JoinContestSheet = ({
         </SheetHeader>
 
         {/* Contest summary */}
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-2">
           <div className="glass-card p-4 flex items-center justify-between">
             <div>
               <p className="font-display font-bold text-sm">{contest.name}</p>
@@ -85,6 +85,35 @@ const JoinContestSheet = ({
             </div>
           </div>
         </div>
+
+        {/* Wallet balance */}
+        {entryFee > 0 && (
+          <div className="px-5 pb-4">
+            <div className={cn(
+              "rounded-xl p-3 flex items-center justify-between border",
+              hasInsufficientBalance
+                ? "bg-destructive/10 border-destructive/30"
+                : "bg-primary/5 border-primary/20"
+            )}>
+              <div className="flex items-center gap-2">
+                <Wallet className={cn("h-4 w-4", hasInsufficientBalance ? "text-destructive" : "text-primary")} />
+                <span className="text-xs font-medium">Wallet Balance</span>
+              </div>
+              <span className={cn(
+                "font-display font-bold text-sm",
+                hasInsufficientBalance ? "text-destructive" : "text-foreground"
+              )}>
+                ₹{totalBalance.toFixed(2)}
+              </span>
+            </div>
+            {hasInsufficientBalance && (
+              <p className="text-[11px] text-destructive mt-1.5 px-1 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Insufficient balance. Add ₹{(entryFee - totalBalance).toFixed(2)} more to join.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Team selection */}
         <div className="px-5 overflow-y-auto flex-1" style={{ maxHeight: "calc(85vh - 260px)" }}>
