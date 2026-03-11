@@ -21,12 +21,37 @@ export const useMatches = (status?: string) => {
   return useQuery({
     queryKey: ["matches", status],
     queryFn: async () => {
+      // Fetch upcoming + live from DB, then re-classify client-side
       let query = (supabase.from("matches" as any) as any).select("*").order("match_time", { ascending: true });
-      if (status) query = query.eq("status", status);
+
+      // When requesting "upcoming" or "live", fetch both so we can reclassify
+      if (status === "upcoming" || status === "live") {
+        query = query.in("status", ["upcoming", "live"]);
+      } else if (status) {
+        query = query.eq("status", status);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
-      return (data as Match[]) ?? [];
+
+      const now = Date.now();
+      const matches = (data as Match[]) ?? [];
+
+      if (status === "upcoming") {
+        // Only show matches whose match_time is still in the future
+        return matches.filter((m) => new Date(m.match_time).getTime() > now);
+      }
+      if (status === "live") {
+        // Show DB-live matches + upcoming matches whose match_time has passed
+        return matches.filter(
+          (m) => m.status === "live" || (m.status === "upcoming" && new Date(m.match_time).getTime() <= now)
+        );
+      }
+
+      return matches;
     },
+    // Refetch every 30s so matches transition automatically
+    refetchInterval: 30_000,
   });
 };
 
