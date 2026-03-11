@@ -16,6 +16,32 @@ const Signup = () => {
   const [referralCode, setReferralCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+
+  const checkUsername = useCallback(
+    (() => {
+      let timer: ReturnType<typeof setTimeout>;
+      return (val: string) => {
+        clearTimeout(timer);
+        if (val.length < 3) { setUsernameStatus("idle"); return; }
+        setUsernameStatus("checking");
+        timer = setTimeout(async () => {
+          const { data } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("username", val)
+            .maybeSingle();
+          setUsernameStatus(data ? "taken" : "available");
+        }, 500);
+      };
+    })(),
+    []
+  );
+
+  const handleUsernameChange = (val: string) => {
+    setUsername(val);
+    checkUsername(val);
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
