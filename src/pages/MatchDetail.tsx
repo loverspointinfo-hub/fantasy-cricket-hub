@@ -63,11 +63,21 @@ const MatchDetail = () => {
 
   if (matchLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <span className="text-xs text-muted-foreground">Loading match…</span>
-        </div>
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b border-border/20 px-4 py-3"
+          style={{ background: "hsl(228 18% 5% / 0.97)", backdropFilter: "blur(24px)" }}
+        >
+          <div className="mx-auto max-w-lg flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="p-2 -ml-1 rounded-xl hover:bg-secondary/80">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="flex-1">
+              <div className="h-4 w-28 rounded bg-secondary animate-pulse" />
+              <div className="h-2.5 w-16 rounded bg-secondary/60 animate-pulse mt-1.5" />
+            </div>
+          </div>
+        </header>
+        <MatchDetailSkeleton />
       </div>
     );
   }
