@@ -4,7 +4,9 @@ import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
-import { ArrowLeft, Clock, MapPin, Trophy, Users, ChevronRight, Zap, Shield, Crown, Swords, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeft, Clock, MapPin, Trophy, Zap, Plus, Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -14,98 +16,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
-
-const typeConfig: Record<string, { label: string; color: string; icon: typeof Trophy }> = {
-  mega: { label: "Mega", color: "text-neon-green", icon: Crown },
-  h2h: { label: "Head to Head", color: "text-neon-cyan", icon: Swords },
-  practice: { label: "Practice", color: "text-muted-foreground", icon: Shield },
-  winner_takes_all: { label: "Winner Takes All", color: "text-neon-orange", icon: Trophy },
-  private: { label: "Private", color: "text-neon-purple", icon: Users },
-};
-
-const ContestCard = ({ contest, onJoin, isJoined }: { contest: Contest; onJoin: () => void; isJoined: boolean }) => {
-  const config = typeConfig[contest.type] || typeConfig.mega;
-  const fillPercent = Math.round((contest.current_entries / contest.max_entries) * 100);
-
-  return (
-    <motion.div variants={item} className="glass-card-hover p-0 overflow-hidden cursor-pointer group" onClick={onJoin}>
-      <div className="px-4 pt-3.5 pb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <config.icon className={cn("h-4 w-4", config.color)} />
-          <span className={cn("text-xs font-bold uppercase tracking-wider", config.color)}>{config.label}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {isJoined && (
-            <Badge className="bg-primary/15 text-primary border-primary/25 text-[9px] font-bold gap-1">
-              <CheckCircle2 className="h-3 w-3" /> Joined
-            </Badge>
-          )}
-          {contest.is_guaranteed && (
-            <Badge className="bg-neon-green/15 text-neon-green border-neon-green/25 text-[9px] font-bold">
-              Guaranteed
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      <div className="px-4 pb-3">
-        <p className="font-display text-lg font-bold">{contest.name}</p>
-        <div className="flex items-center justify-between mt-2">
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Prize Pool</p>
-            <p className="font-display text-xl font-bold text-gradient">
-              ₹{contest.prize_pool.toLocaleString()}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Entry</p>
-            <p className="font-display text-lg font-bold">
-              {contest.entry_fee === 0 ? (
-                <span className="text-neon-green">FREE</span>
-              ) : (
-                `₹${contest.entry_fee}`
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="px-4 pb-3">
-        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-          <motion.div
-            className="h-full rounded-full gradient-primary"
-            initial={{ width: 0 }}
-            animate={{ width: `${fillPercent}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          />
-        </div>
-        <div className="flex justify-between mt-1.5">
-          <span className="text-[10px] text-muted-foreground">
-            {contest.current_entries} joined
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            {contest.max_entries - contest.current_entries} spots left
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-border/20 px-4 py-2.5 bg-secondary/20">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Users className="h-3 w-3" /> {contest.max_entries} spots
-          </span>
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Trophy className="h-3 w-3" /> {contest.prize_breakdown?.length || 1} winners
-          </span>
-        </div>
-        <div className="flex items-center gap-1 text-primary text-xs font-semibold group-hover:gap-2 transition-all">
-          {isJoined ? "View" : "Join"} <ChevronRight className="h-3.5 w-3.5" />
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+import ContestCard from "@/components/contest/ContestCard";
 
 const MatchDetail = () => {
   const { matchId } = useParams();
@@ -141,42 +52,55 @@ const MatchDetail = () => {
 
   if (matchLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <span className="text-xs text-muted-foreground">Loading match…</span>
+        </div>
       </div>
     );
   }
 
   if (!match) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
         <p className="text-muted-foreground">Match not found</p>
         <Button onClick={() => navigate("/")} variant="outline" className="rounded-xl">Go Back</Button>
       </div>
     );
   }
 
+  const matchDate = new Date(match.match_time);
+  const isLive = match.status === "live";
+
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="floating-orb w-72 h-72 bg-neon-green -top-20 -left-20" />
-      <div className="floating-orb w-64 h-64 bg-neon-cyan bottom-20 -right-10" style={{ animationDelay: "3s" }} />
+    <div className="min-h-screen relative overflow-hidden bg-background">
+      {/* Background effects */}
+      <div className="fixed inset-0 pointer-events-none gradient-mesh opacity-60" />
+      <div className="floating-orb w-80 h-80 bg-[hsl(var(--neon-green))] -top-32 -left-24" />
+      <div className="floating-orb w-60 h-60 bg-[hsl(var(--neon-cyan))] top-1/3 -right-16" style={{ animationDelay: "3s" }} />
+      <div className="floating-orb w-40 h-40 bg-[hsl(var(--neon-purple))] bottom-32 left-1/4" style={{ animationDelay: "5s" }} />
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border/30" style={{
-        background: "linear-gradient(180deg, hsl(228 18% 5% / 0.95), hsl(228 18% 5% / 0.8))",
-        backdropFilter: "blur(20px)",
-      }}>
+      <header className="sticky top-0 z-50 border-b border-border/20"
+        style={{
+          background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.85))",
+          backdropFilter: "blur(24px) saturate(1.5)",
+        }}
+      >
         <div className="mx-auto max-w-lg px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1.5 rounded-xl hover:bg-secondary transition-colors">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-1 rounded-xl hover:bg-secondary/80 active:scale-95 transition-all">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="font-display text-sm font-bold truncate">{match.team1_short} vs {match.team2_short}</p>
-            <p className="text-[10px] text-muted-foreground">{match.league}</p>
+            <p className="font-display text-base font-bold truncate">
+              {match.team1_short} <span className="text-muted-foreground/40 mx-1">vs</span> {match.team2_short}
+            </p>
+            <p className="text-[10px] text-muted-foreground tracking-wide">{match.league}</p>
           </div>
-          {match.status === "live" && (
-            <Badge className="bg-neon-red/15 text-neon-red border-neon-red/25 text-[10px] font-bold animate-pulse-neon gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-red" /> LIVE
+          {isLive && (
+            <Badge className="bg-[hsl(var(--neon-red)/0.15)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.25)] text-[10px] font-bold gap-1 animate-pulse">
+              <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))]" /> LIVE
             </Badge>
           )}
         </div>
@@ -186,101 +110,165 @@ const MatchDetail = () => {
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="mx-auto max-w-lg px-4 py-5 space-y-4 relative z-10"
+        className="mx-auto max-w-lg px-4 pt-5 pb-24 space-y-5 relative z-10"
       >
-        {/* Match Card */}
-        <motion.div variants={item} className="glass-card-premium p-5 relative overflow-hidden">
+        {/* ─── Match Card ─── */}
+        <motion.div variants={item} className="relative rounded-3xl overflow-hidden"
+          style={{
+            background: "linear-gradient(160deg, hsl(228 16% 12% / 0.95), hsl(228 20% 6% / 0.9))",
+            border: "1px solid hsl(152 100% 50% / 0.12)",
+            boxShadow: "0 0 60px hsl(152 100% 50% / 0.04), 0 16px 48px hsl(228 18% 3% / 0.6)",
+          }}
+        >
+          {/* Decorative mesh inside card */}
+          <div className="absolute inset-0 pointer-events-none opacity-30"
+            style={{
+              background: "radial-gradient(ellipse at 20% 0%, hsl(152 100% 50% / 0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, hsl(195 100% 55% / 0.06) 0%, transparent 60%)",
+            }}
+          />
           <div className="shimmer absolute inset-0" />
-          <div className="relative z-10">
+
+          <div className="relative z-10 p-5">
+            {/* Teams */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
-                <div className={cn("flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-xs font-bold font-display text-white shadow-lg", match.team1_color)}>
+              <div className="flex flex-col items-center flex-1 gap-2">
+                <div className={cn(
+                  "h-16 w-16 rounded-2xl flex items-center justify-center text-sm font-bold font-display text-white shadow-xl bg-gradient-to-br",
+                  match.team1_color
+                )}>
                   {match.team1_short}
                 </div>
-                <div>
-                  <p className="font-display font-bold text-lg">{match.team1_name}</p>
-                </div>
+                <p className="font-display font-bold text-sm text-center leading-tight max-w-[80px]">
+                  {match.team1_name}
+                </p>
               </div>
-              <div className="flex flex-col items-center mx-3">
-                <span className="text-xs font-bold text-muted-foreground/60 tracking-wider">VS</span>
-              </div>
-              <div className="flex items-center gap-3 flex-1 justify-end">
-                <div className="text-right">
-                  <p className="font-display font-bold text-lg">{match.team2_name}</p>
+
+              <div className="flex flex-col items-center gap-1.5 mx-2">
+                <div className="h-12 w-12 rounded-full flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(228 16% 14%), hsl(228 16% 10%))",
+                    border: "1px solid hsl(228 12% 20%)",
+                  }}
+                >
+                  <span className="text-[10px] font-bold text-muted-foreground tracking-wider">VS</span>
                 </div>
-                <div className={cn("flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-xs font-bold font-display text-white shadow-lg", match.team2_color)}>
+                {isLive ? (
+                  <Badge className="bg-[hsl(var(--neon-red)/0.15)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.25)] text-[8px] font-bold gap-0.5">
+                    <span className="h-1 w-1 rounded-full bg-[hsl(var(--neon-red))]" /> LIVE
+                  </Badge>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    {format(matchDate, "h:mm a")}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col items-center flex-1 gap-2">
+                <div className={cn(
+                  "h-16 w-16 rounded-2xl flex items-center justify-center text-sm font-bold font-display text-white shadow-xl bg-gradient-to-br",
+                  match.team2_color
+                )}>
                   {match.team2_short}
                 </div>
+                <p className="font-display font-bold text-sm text-center leading-tight max-w-[80px]">
+                  {match.team2_name}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> {format(new Date(match.match_time), "dd MMM, h:mm a")}
+            {/* Meta info */}
+            <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-border/10">
+              <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <Clock className="h-3 w-3 text-primary/60" />
+                {format(matchDate, "dd MMM, h:mm a")}
               </span>
               {match.venue && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> {match.venue}
+                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                  <MapPin className="h-3 w-3 text-[hsl(var(--neon-cyan)/0.6)]" />
+                  {match.venue}
                 </span>
               )}
             </div>
           </div>
         </motion.div>
 
-        {/* Create Team CTA */}
+        {/* ─── Create Team CTA ─── */}
         <motion.div variants={item}>
           <Button
             onClick={() => navigate(`/match/${matchId}/create-team`)}
-            className="w-full gradient-primary font-bold rounded-xl h-12 text-base relative overflow-hidden"
+            className="w-full font-bold rounded-2xl h-14 text-base relative overflow-hidden group border-0"
+            style={{
+              background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
+              boxShadow: "0 4px 24px hsl(152 100% 50% / 0.25), 0 0 0 1px hsl(152 100% 50% / 0.3) inset",
+            }}
           >
             <span className="shimmer absolute inset-0" />
-            <Zap className="h-5 w-5 mr-2 relative z-10" />
-            <span className="relative z-10">Create Your Team</span>
+            <span className="relative z-10 flex items-center gap-2 text-primary-foreground">
+              <Plus className="h-5 w-5" />
+              Create Your Team
+            </span>
           </Button>
         </motion.div>
 
-        {/* My Teams */}
+        {/* ─── My Teams ─── */}
         {userTeams.length > 0 && (
-          <>
-            <motion.div variants={item}>
-              <h2 className="font-display text-lg font-bold mb-3">My Teams ({userTeams.length})</h2>
-            </motion.div>
-            {userTeams.map((team) => (
-              <motion.div key={team.id} variants={item}>
-                <SavedTeamCard
-                  team={team}
-                  onDelete={handleDeleteTeam}
-                  onEdit={handleEditTeam}
-                  deleting={deleteTeam.isPending}
-                />
-              </motion.div>
-            ))}
-          </>
+          <motion.div variants={item}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-lg font-bold flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[hsl(var(--gold))]" />
+                My Teams
+                <span className="text-sm font-normal text-muted-foreground">({userTeams.length})</span>
+              </h2>
+            </div>
+            <div className="space-y-2.5">
+              {userTeams.map((team) => (
+                <motion.div key={team.id} variants={item}>
+                  <SavedTeamCard
+                    team={team}
+                    onDelete={handleDeleteTeam}
+                    onEdit={handleEditTeam}
+                    deleting={deleteTeam.isPending}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         )}
 
-        {/* Contests */}
+        {/* ─── Contests ─── */}
         <motion.div variants={item}>
-          <h2 className="font-display text-lg font-bold mb-3">Contests ({contests.length})</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg font-bold flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-primary" />
+              Contests
+              <span className="text-sm font-normal text-muted-foreground">({contests.length})</span>
+            </h2>
+          </div>
         </motion.div>
+
         {contestsLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <div className="flex justify-center py-12">
+            <div className="h-7 w-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
           </div>
         ) : contests.length === 0 ? (
-          <motion.div variants={item} className="glass-card flex flex-col items-center py-12 text-muted-foreground">
-            <Trophy className="h-10 w-10 opacity-20 mb-3" />
-            <p className="text-sm font-medium">No contests yet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Contests will be available soon</p>
+          <motion.div variants={item} className="glass-card flex flex-col items-center py-14 text-muted-foreground">
+            <div className="h-16 w-16 rounded-2xl bg-secondary/60 flex items-center justify-center mb-4">
+              <Trophy className="h-7 w-7 opacity-30" />
+            </div>
+            <p className="text-sm font-semibold">No contests available</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Contests will appear here soon</p>
           </motion.div>
         ) : (
-          contests.map((contest) => (
-            <ContestCard
-              key={contest.id}
-              contest={contest}
-              isJoined={joinedContestIds.has(contest.id)}
-              onJoin={() => handleJoinContest(contest)}
-            />
-          ))
+          <div className="space-y-3">
+            {contests.map((contest) => (
+              <ContestCard
+                key={contest.id}
+                contest={contest}
+                isJoined={joinedContestIds.has(contest.id)}
+                onJoin={() => handleJoinContest(contest)}
+              />
+            ))}
+          </div>
         )}
       </motion.div>
 
