@@ -66,6 +66,16 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Space Grotesk', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: manipulation;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input, select, textarea {
+    font-size: 16px !important;
   }
 
   h1, h2, h3, h4, h5, h6 {
