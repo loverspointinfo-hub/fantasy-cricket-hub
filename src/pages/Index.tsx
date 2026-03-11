@@ -56,10 +56,16 @@ const MatchCard = ({ match }: { match: Match }) => {
             <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))] animate-pulse" /> Live
           </Badge>
         )}
-        {match.status === "upcoming" && (
-          <Badge variant="outline" className="border-primary/15 text-primary/70 text-[9px] gap-1 bg-primary/5">
-            <Clock className="h-2.5 w-2.5" /> {formatMatchTime(match.match_time)}
-          </Badge>
+        {match.status === "upcoming" && !countdown.isExpired && (
+          <div className={cn(
+            "flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] font-bold",
+            isUrgent ? "text-[hsl(var(--neon-red))] bg-[hsl(var(--neon-red)/0.08)]" : "text-primary bg-primary/5"
+          )}
+            style={{ border: `1px solid ${isUrgent ? "hsl(var(--neon-red) / 0.15)" : "hsl(var(--primary) / 0.12)"}` }}
+          >
+            <Timer className={cn("h-2.5 w-2.5", isUrgent && "animate-pulse")} />
+            <span className="font-display tracking-wide">{countdown.label}</span>
+          </div>
         )}
       </div>
 
