@@ -95,12 +95,33 @@ const MatchDetail = () => {
   const isLive = match.status === "live";
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
-      {/* Background effects */}
-      <div className="fixed inset-0 pointer-events-none gradient-mesh opacity-60" />
-      <div className="floating-orb w-80 h-80 bg-[hsl(var(--neon-green))] -top-32 -left-24" />
-      <div className="floating-orb w-60 h-60 bg-[hsl(var(--neon-cyan))] top-1/3 -right-16" style={{ animationDelay: "3s" }} />
-      <div className="floating-orb w-40 h-40 bg-[hsl(var(--neon-purple))] bottom-32 left-1/4" style={{ animationDelay: "5s" }} />
+    <div
+      className="min-h-screen relative overflow-hidden bg-background"
+      {...handlers}
+    >
+      {/* Pull to refresh indicator */}
+      <div
+        className="absolute left-0 right-0 z-[60] flex justify-center pointer-events-none transition-opacity duration-200"
+        style={{
+          top: 56,
+          transform: `translateY(${pullDistance}px)`,
+          opacity: pullDistance > 10 ? 1 : 0,
+        }}
+      >
+        <div className={cn(
+          "h-9 w-9 rounded-full flex items-center justify-center shadow-lg",
+          "border border-border/30"
+        )}
+          style={{ background: "hsl(228 16% 10%)" }}
+        >
+          <RefreshCw className={cn(
+            "h-4 w-4 text-primary transition-transform duration-300",
+            isRefreshing && "animate-spin"
+          )}
+            style={{ transform: isRefreshing ? undefined : `rotate(${pullDistance * 3}deg)` }}
+          />
+        </div>
+      </div>
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/20"
