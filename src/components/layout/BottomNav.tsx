@@ -25,8 +25,9 @@ const BottomNav = () => {
           }}
         />
         <div
-          className="mx-3 mb-3 flex items-center justify-around rounded-[20px] py-1 px-1 relative overflow-hidden"
+          className="mx-3 flex items-center justify-around rounded-[20px] py-1 px-1 relative overflow-hidden"
           style={{
+            marginBottom: `max(12px, env(safe-area-inset-bottom, 12px))`,
             background: "linear-gradient(145deg, hsl(228 16% 9% / 0.95), hsl(228 18% 6% / 0.92))",
             backdropFilter: "blur(30px) saturate(1.8)",
             border: "1px solid hsl(228 12% 16% / 0.6)",
