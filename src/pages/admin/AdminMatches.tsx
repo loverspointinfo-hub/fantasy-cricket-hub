@@ -127,6 +127,7 @@ const AdminMatches = () => {
               </div>
               <Badge variant={m.status === "live" ? "destructive" : m.status === "completed" ? "secondary" : "default"} className="text-[10px]">{m.status}</Badge>
               <div className="flex gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setLineupMatch(m)} title="Manage Lineup"><Users className="h-3.5 w-3.5" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => del.mutate(m.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
@@ -134,6 +135,12 @@ const AdminMatches = () => {
           ))}
         </div>
       )}
+
+      <MatchLineupManager
+        match={lineupMatch}
+        open={!!lineupMatch}
+        onOpenChange={(o) => { if (!o) setLineupMatch(null); }}
+      />
     </div>
   );
 };
