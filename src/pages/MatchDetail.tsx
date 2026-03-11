@@ -94,6 +94,8 @@ const MatchDetail = () => {
 
   const matchDate = new Date(match.match_time);
   const isLive = match.status === "live";
+  const countdown = useCountdown(match.entry_deadline);
+  const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
 
   return (
     <div
