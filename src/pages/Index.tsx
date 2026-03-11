@@ -51,9 +51,14 @@ const MatchCard = ({ match }: { match: Match }) => {
 
       <div className="flex items-center justify-between px-4 pt-3.5 pb-1.5">
         <span className="text-[10px] text-muted-foreground/70 font-semibold uppercase tracking-[0.15em]">{match.league}</span>
-        {match.status === "live" && (
+        {(match.status === "live" || (match.status === "upcoming" && countdown.isExpired)) && (
           <Badge className="bg-[hsl(var(--neon-red)/0.12)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.2)] text-[9px] font-bold uppercase gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))] animate-pulse" /> Live
+          </Badge>
+        )}
+        {match.status === "completed" && (
+          <Badge className="bg-muted/50 text-muted-foreground border-border/30 text-[9px] font-bold uppercase gap-1">
+            Completed
           </Badge>
         )}
         {match.status === "upcoming" && !countdown.isExpired && (
