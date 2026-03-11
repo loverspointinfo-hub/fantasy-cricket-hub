@@ -5,7 +5,7 @@ import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
