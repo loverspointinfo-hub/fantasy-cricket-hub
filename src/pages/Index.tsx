@@ -27,7 +27,7 @@ const formatMatchTime = (dateStr: string) => {
   return format(d, "dd MMM, h:mm a");
 };
 
-const MatchCard = ({ match }: { match: Match }) => {
+const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number }) => {
   const navigate = useNavigate();
   const countdown = useCountdown(match.match_time);
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
