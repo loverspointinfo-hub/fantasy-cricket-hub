@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, BellOff, Trophy, Wallet, Zap, Info, CheckCheck, Circle } from "lucide-react";
+import { Bell, BellOff, Trophy, Wallet, Zap, Info, CheckCheck, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
