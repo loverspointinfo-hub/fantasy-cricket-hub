@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useMatches, Match } from "@/hooks/useMatches";
 import { useWallet } from "@/hooks/useWallet";
+import { useUnreadCount } from "@/hooks/useNotifications";
 import { format, isToday, isTomorrow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
