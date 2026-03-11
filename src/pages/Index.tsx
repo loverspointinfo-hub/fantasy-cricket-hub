@@ -8,9 +8,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useMatches, Match } from "@/hooks/useMatches";
-import { useWallet } from "@/hooks/useWallet";
-import { useUnreadCount } from "@/hooks/useNotifications";
 import { format, isToday, isTomorrow } from "date-fns";
+import AppHeader from "@/components/layout/AppHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const BANNERS = [
