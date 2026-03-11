@@ -28,6 +28,7 @@ const AdminMatches = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<MatchForm>(empty);
   const [editId, setEditId] = useState<string | null>(null);
+  const [lineupMatch, setLineupMatch] = useState<any>(null);
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["admin-matches"],
