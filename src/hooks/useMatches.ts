@@ -38,13 +38,13 @@ export const useMatches = (status?: string) => {
       const matches = (data as Match[]) ?? [];
 
       if (status === "upcoming") {
-        // Only show matches whose match_time is still in the future
-        return matches.filter((m) => new Date(m.match_time).getTime() > now);
+        // Only show matches whose entry_deadline is still in the future
+        return matches.filter((m) => new Date(m.entry_deadline).getTime() > now);
       }
       if (status === "live") {
-        // Show DB-live matches + upcoming matches whose match_time has passed
+        // Show DB-live matches + upcoming matches whose entry_deadline has passed
         return matches.filter(
-          (m) => m.status === "live" || (m.status === "upcoming" && new Date(m.match_time).getTime() <= now)
+          (m) => m.status === "live" || (m.status === "upcoming" && new Date(m.entry_deadline).getTime() <= now)
         );
       }
 
