@@ -149,12 +149,7 @@ type TabKey = "upcoming" | "live" | "completed";
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
   const { data: matches = [], isLoading } = useMatches(activeTab);
-  const { data: liveMatches = [] } = useMatches("live");
-  const { data: wallet } = useWallet();
   const navigate = useNavigate();
-
-  const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
-  const unreadCount = useUnreadCount();
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
