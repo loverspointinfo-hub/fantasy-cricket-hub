@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import MatchLineupManager from "@/components/admin/MatchLineupManager";
 
 interface MatchForm {
   team1_name: string; team1_short: string; team2_name: string; team2_short: string;
@@ -27,6 +28,7 @@ const AdminMatches = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<MatchForm>(empty);
   const [editId, setEditId] = useState<string | null>(null);
+  const [lineupMatch, setLineupMatch] = useState<any>(null);
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["admin-matches"],
@@ -125,6 +127,7 @@ const AdminMatches = () => {
               </div>
               <Badge variant={m.status === "live" ? "destructive" : m.status === "completed" ? "secondary" : "default"} className="text-[10px]">{m.status}</Badge>
               <div className="flex gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setLineupMatch(m)} title="Manage Lineup"><Users className="h-3.5 w-3.5" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => del.mutate(m.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
@@ -132,6 +135,12 @@ const AdminMatches = () => {
           ))}
         </div>
       )}
+
+      <MatchLineupManager
+        match={lineupMatch}
+        open={!!lineupMatch}
+        onOpenChange={(o) => { if (!o) setLineupMatch(null); }}
+      />
     </div>
   );
 };
