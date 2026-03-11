@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Trophy, Mail, Lock, User, Eye, EyeOff, Gift } from "lucide-react";
+import { Trophy, Mail, Lock, User, Eye, EyeOff, Gift, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Signup = () => {
@@ -16,9 +16,39 @@ const Signup = () => {
   const [referralCode, setReferralCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+
+  const checkUsername = useCallback(
+    (() => {
+      let timer: ReturnType<typeof setTimeout>;
+      return (val: string) => {
+        clearTimeout(timer);
+        if (val.length < 3) { setUsernameStatus("idle"); return; }
+        setUsernameStatus("checking");
+        timer = setTimeout(async () => {
+          const { data } = await supabase.rpc("check_username_available" as any, { desired_username: val });
+          setUsernameStatus(data ? "available" : "taken");
+        }, 500);
+      };
+    })(),
+    []
+  );
+
+  const handleUsernameChange = (val: string) => {
+    setUsername(val);
+    checkUsername(val);
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (username.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+    if (usernameStatus === "taken") {
+      toast.error("That username is already taken");
+      return;
+    }
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
@@ -44,7 +74,7 @@ const Signup = () => {
   };
 
   const fields = [
-    { id: "username", label: "Username", icon: User, type: "text", placeholder: "CricketKing99", value: username, onChange: setUsername, required: true },
+    { id: "username", label: "Username", icon: User, type: "text", placeholder: "CricketKing99", value: username, onChange: handleUsernameChange, required: true },
     { id: "email", label: "Email Address", icon: Mail, type: "email", placeholder: "your@email.com", value: email, onChange: setEmail, required: true },
     { id: "referral", label: "Referral Code (Optional)", icon: Gift, type: "text", placeholder: "Enter code for bonus", value: referralCode, onChange: setReferralCode, required: false },
   ];
@@ -97,7 +127,20 @@ const Signup = () => {
                     className="pl-11 h-11 bg-secondary/50 border-border/50 focus:border-primary/50 rounded-xl"
                     required={f.required}
                   />
+                  {f.id === "username" && username.length >= 3 && (
+                    <div className="absolute right-3.5 top-3">
+                      {usernameStatus === "checking" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                      {usernameStatus === "available" && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                      {usernameStatus === "taken" && <XCircle className="h-4 w-4 text-destructive" />}
+                    </div>
+                  )}
                 </div>
+                {f.id === "username" && usernameStatus === "taken" && (
+                  <p className="text-[11px] text-destructive font-medium">This username is already taken. Try another one!</p>
+                )}
+                {f.id === "username" && usernameStatus === "available" && (
+                  <p className="text-[11px] text-green-500 font-medium">Username is available ✓</p>
+                )}
               </div>
             ))}
             <div className="space-y-1.5">
