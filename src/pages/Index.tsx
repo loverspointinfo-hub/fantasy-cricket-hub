@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useMatches, Match } from "@/hooks/useMatches";
+import { useMatchPlayerCounts } from "@/hooks/useMatchPlayerCounts";
 import { useWallet } from "@/hooks/useWallet";
 import { useUnreadCount } from "@/hooks/useNotifications";
 import { format, isToday, isTomorrow } from "date-fns";
@@ -26,7 +27,7 @@ const formatMatchTime = (dateStr: string) => {
   return format(d, "dd MMM, h:mm a");
 };
 
-const MatchCard = ({ match }: { match: Match }) => {
+const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number }) => {
   const navigate = useNavigate();
   const countdown = useCountdown(match.match_time);
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
@@ -105,9 +106,16 @@ const MatchCard = ({ match }: { match: Match }) => {
       <div className="flex items-center justify-between border-t border-border/10 px-4 py-2.5"
         style={{ background: "hsl(228 16% 6% / 0.4)" }}
       >
-        <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
-          <Users className="h-3 w-3" /> {match.venue || "TBD"}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
+            <Users className="h-3 w-3" /> {match.venue || "TBD"}
+          </span>
+          {playerCount != null && playerCount > 0 && (
+            <span className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold text-primary bg-primary/10 border border-primary/15">
+              {playerCount} players
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
           View <ChevronRight className="h-3.5 w-3.5" />
         </div>
@@ -152,6 +160,7 @@ const Index = () => {
   const { data: matches = [], isLoading } = useMatches(activeTab);
   const { data: liveMatches = [] } = useMatches("live");
   const { data: wallet } = useWallet();
+  const { data: playerCounts = {} } = useMatchPlayerCounts();
   const navigate = useNavigate();
 
   const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
@@ -362,7 +371,7 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground/50 mt-1">Check back soon!</p>
               </motion.div>
             ) : (
-              matches.map(match => <MatchCard key={match.id} match={match} />)
+              matches.map(match => <MatchCard key={match.id} match={match} playerCount={playerCounts[match.id]} />)
             )}
           </motion.div>
         </AnimatePresence>
