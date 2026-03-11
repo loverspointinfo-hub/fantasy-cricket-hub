@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 import { staggerContainer, item } from "@/lib/animations";
+import PageHeader from "@/components/layout/PageHeader";
 
 const MyMatches = () => {
   const navigate = useNavigate();
@@ -13,14 +14,7 @@ const MyMatches = () => {
       <div className="floating-orb w-64 h-64 bg-neon-green -top-10 -left-10" />
       <div className="floating-orb w-48 h-48 bg-neon-cyan bottom-40 right-0" style={{ animationDelay: "3s" }} />
 
-      <header className="sticky top-0 z-40 border-b border-border/30" style={{
-        background: "linear-gradient(180deg, hsl(228 18% 5% / 0.95), hsl(228 18% 5% / 0.8))",
-        backdropFilter: "blur(20px)",
-      }}>
-        <div className="mx-auto max-w-lg px-4 py-3">
-          <h1 className="font-display text-xl font-bold">My Matches</h1>
-        </div>
-      </header>
+      <PageHeader title="My Matches" icon={Trophy} />
 
       <motion.div
         variants={staggerContainer}

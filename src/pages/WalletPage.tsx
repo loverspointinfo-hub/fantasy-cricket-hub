@@ -5,6 +5,7 @@ import { staggerContainer, item } from "@/lib/animations";
 import { useWallet, useTransactions } from "@/hooks/useWallet";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import PageHeader from "@/components/layout/PageHeader";
 
 const WalletPage = () => {
   const { user } = useAuth();
@@ -20,14 +21,7 @@ const WalletPage = () => {
       <div className="floating-orb w-64 h-64 bg-neon-green -top-10 right-0" />
       <div className="floating-orb w-48 h-48 bg-neon-purple bottom-40 -left-10" style={{ animationDelay: "4s" }} />
 
-      <header className="sticky top-0 z-40 border-b border-border/30" style={{
-        background: "linear-gradient(180deg, hsl(228 18% 5% / 0.95), hsl(228 18% 5% / 0.8))",
-        backdropFilter: "blur(20px)",
-      }}>
-        <div className="mx-auto max-w-lg px-4 py-3">
-          <h1 className="font-display text-xl font-bold">Wallet</h1>
-        </div>
-      </header>
+      <PageHeader title="Wallet" icon={Wallet} />
 
       <motion.div
         variants={staggerContainer}

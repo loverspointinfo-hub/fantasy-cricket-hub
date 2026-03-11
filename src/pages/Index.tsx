@@ -2,15 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, ChevronRight, Clock, Users, Star, Flame, Crown, Bell, Wallet, Timer } from "lucide-react";
+import { Trophy, ChevronRight, Clock, Users, Star, Flame, Crown, Timer } from "lucide-react";
 import { useCountdown } from "@/hooks/useCountdown";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useMatches, Match } from "@/hooks/useMatches";
-import { useWallet } from "@/hooks/useWallet";
-import { useUnreadCount } from "@/hooks/useNotifications";
 import { format, isToday, isTomorrow } from "date-fns";
+import AppHeader from "@/components/layout/AppHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const BANNERS = [
@@ -150,12 +149,7 @@ type TabKey = "upcoming" | "live" | "completed";
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
   const { data: matches = [], isLoading } = useMatches(activeTab);
-  const { data: liveMatches = [] } = useMatches("live");
-  const { data: wallet } = useWallet();
   const navigate = useNavigate();
-
-  const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
-  const unreadCount = useUnreadCount();
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
@@ -172,86 +166,7 @@ const Index = () => {
       <div className="floating-orb w-64 h-64 bg-[hsl(var(--neon-purple))] bottom-20 left-10" style={{ animationDelay: "5s" }} />
 
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-40 relative"
-        style={{
-          background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.88))",
-          backdropFilter: "blur(24px) saturate(1.8)",
-        }}
-      >
-        {/* Bottom border with gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-[1px]"
-          style={{ background: "linear-gradient(90deg, transparent, hsl(228 12% 18% / 0.6), hsl(152 100% 50% / 0.15), hsl(228 12% 18% / 0.6), transparent)" }}
-        />
-
-        <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
-          {/* Brand */}
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl relative overflow-hidden"
-                style={{
-                  background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
-                  boxShadow: "0 2px 12px hsl(152 100% 50% / 0.3)",
-                }}
-              >
-                <span className="shimmer absolute inset-0" />
-                <Trophy className="h-5 w-5 text-primary-foreground relative z-10" />
-              </div>
-              {liveMatches.length > 0 && (
-                <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-[hsl(var(--neon-red))] border-2 border-background animate-pulse" />
-              )}
-            </div>
-            <div>
-              <h1 className="font-display text-xl font-bold leading-none tracking-tight">
-                FANTASY<span className="text-gradient">11</span>
-              </h1>
-              <p className="text-[8px] text-muted-foreground/50 tracking-[0.25em] uppercase font-medium mt-0.5">
-                Play • Predict • Win
-              </p>
-            </div>
-          </div>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
-            {/* Wallet chip */}
-            <button
-              onClick={() => navigate("/wallet")}
-              className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 transition-all hover:scale-105 active:scale-95"
-              style={{
-                background: "linear-gradient(135deg, hsl(228 16% 12%), hsl(228 16% 9%))",
-                border: "1px solid hsl(228 12% 18% / 0.6)",
-              }}
-            >
-              <Wallet className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[11px] font-bold text-foreground">₹{totalBalance.toFixed(0)}</span>
-            </button>
-
-            {/* Notification bell */}
-            <button
-              onClick={() => navigate("/notifications")}
-              className="relative h-9 w-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-              style={{
-                background: "hsl(228 16% 11%)",
-                border: "1px solid hsl(228 12% 18% / 0.5)",
-              }}
-            >
-              <Bell className="h-4 w-4 text-muted-foreground" />
-              {unreadCount > 0 && (
-                <div className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full flex items-center justify-center px-1"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(var(--neon-red)), hsl(var(--neon-orange)))",
-                    boxShadow: "0 0 8px hsl(var(--neon-red) / 0.5)",
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    color: "white",
-                  }}
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </div>
-              )}
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       {/* ─── Content ─── */}
       <div className="mx-auto max-w-lg px-4 py-5 space-y-5 relative z-10">
