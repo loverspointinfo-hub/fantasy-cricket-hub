@@ -5,7 +5,7 @@ import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Zap, Plus, Sparkles,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
 import ContestCard from "@/components/contest/ContestCard";
+import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 const MatchDetail = () => {
   const { matchId } = useParams();
@@ -29,6 +31,15 @@ const MatchDetail = () => {
 
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+
+  const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
+    queryKeys: [
+      ["match", matchId || ""],
+      ["contests", matchId || ""],
+      ["user-teams", matchId || ""],
+      ["my-contest-entries", matchId || ""],
+    ],
+  });
 
   const joinedContestIds = new Set(myEntries.map((e: any) => e.contest_id));
   const joinedTeamIdsForContest = (contestId: string) =>
@@ -52,11 +63,21 @@ const MatchDetail = () => {
 
   if (matchLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <span className="text-xs text-muted-foreground">Loading match…</span>
-        </div>
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b border-border/20 px-4 py-3"
+          style={{ background: "hsl(228 18% 5% / 0.97)", backdropFilter: "blur(24px)" }}
+        >
+          <div className="mx-auto max-w-lg flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="p-2 -ml-1 rounded-xl hover:bg-secondary/80">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="flex-1">
+              <div className="h-4 w-28 rounded bg-secondary animate-pulse" />
+              <div className="h-2.5 w-16 rounded bg-secondary/60 animate-pulse mt-1.5" />
+            </div>
+          </div>
+        </header>
+        <MatchDetailSkeleton />
       </div>
     );
   }
@@ -74,7 +95,34 @@ const MatchDetail = () => {
   const isLive = match.status === "live";
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
+    <div
+      className="min-h-screen relative overflow-hidden bg-background"
+      {...handlers}
+    >
+      {/* Pull to refresh indicator */}
+      <div
+        className="absolute left-0 right-0 z-[60] flex justify-center pointer-events-none transition-opacity duration-200"
+        style={{
+          top: 56,
+          transform: `translateY(${pullDistance}px)`,
+          opacity: pullDistance > 10 ? 1 : 0,
+        }}
+      >
+        <div className={cn(
+          "h-9 w-9 rounded-full flex items-center justify-center shadow-lg",
+          "border border-border/30"
+        )}
+          style={{ background: "hsl(228 16% 10%)" }}
+        >
+          <RefreshCw className={cn(
+            "h-4 w-4 text-primary transition-transform duration-300",
+            isRefreshing && "animate-spin"
+          )}
+            style={{ transform: isRefreshing ? undefined : `rotate(${pullDistance * 3}deg)` }}
+          />
+        </div>
+      </div>
+
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none gradient-mesh opacity-60" />
       <div className="floating-orb w-80 h-80 bg-[hsl(var(--neon-green))] -top-32 -left-24" />
@@ -247,8 +295,9 @@ const MatchDetail = () => {
         </motion.div>
 
         {contestsLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-7 w-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <div className="space-y-3">
+            <ContestCardSkeleton />
+            <ContestCardSkeleton />
           </div>
         ) : contests.length === 0 ? (
           <motion.div variants={item} className="glass-card flex flex-col items-center py-14 text-muted-foreground">
