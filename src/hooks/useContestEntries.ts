@@ -53,13 +53,11 @@ export const useJoinContest = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please login first");
 
-      const { error } = await (supabase
-        .from("contest_entries" as any) as any)
-        .insert({
-          contest_id: contestId,
-          team_id: teamId,
-          user_id: user.id,
-        });
+      const { error } = await supabase.rpc("join_contest_with_fee" as any, {
+        p_contest_id: contestId,
+        p_team_id: teamId,
+        p_user_id: user.id,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -67,6 +65,7 @@ export const useJoinContest = () => {
       queryClient.invalidateQueries({ queryKey: ["my-contest-entries"] });
       queryClient.invalidateQueries({ queryKey: ["contests"] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
 };

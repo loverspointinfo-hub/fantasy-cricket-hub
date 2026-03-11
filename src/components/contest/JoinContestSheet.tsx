@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Crown, Star, Check, Trophy, AlertCircle } from "lucide-react";
+import { Crown, Star, Check, Trophy, AlertCircle, Wallet } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { UserTeam } from "@/hooks/useUserTeams";
 import { Contest } from "@/hooks/useContests";
 import { useJoinContest } from "@/hooks/useContestEntries";
+import { useWallet } from "@/hooks/useWallet";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { item } from "@/lib/animations";
@@ -29,6 +30,11 @@ const JoinContestSheet = ({
 }: JoinContestSheetProps) => {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const joinContest = useJoinContest();
+  const { data: wallet } = useWallet();
+
+  const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
+  const entryFee = contest?.entry_fee ?? 0;
+  const hasInsufficientBalance = entryFee > 0 && totalBalance < entryFee;
 
   const handleJoin = () => {
     if (!contest || !selectedTeamId) return;
@@ -59,7 +65,7 @@ const JoinContestSheet = ({
         </SheetHeader>
 
         {/* Contest summary */}
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-2">
           <div className="glass-card p-4 flex items-center justify-between">
             <div>
               <p className="font-display font-bold text-sm">{contest.name}</p>
@@ -79,6 +85,35 @@ const JoinContestSheet = ({
             </div>
           </div>
         </div>
+
+        {/* Wallet balance */}
+        {entryFee > 0 && (
+          <div className="px-5 pb-4">
+            <div className={cn(
+              "rounded-xl p-3 flex items-center justify-between border",
+              hasInsufficientBalance
+                ? "bg-destructive/10 border-destructive/30"
+                : "bg-primary/5 border-primary/20"
+            )}>
+              <div className="flex items-center gap-2">
+                <Wallet className={cn("h-4 w-4", hasInsufficientBalance ? "text-destructive" : "text-primary")} />
+                <span className="text-xs font-medium">Wallet Balance</span>
+              </div>
+              <span className={cn(
+                "font-display font-bold text-sm",
+                hasInsufficientBalance ? "text-destructive" : "text-foreground"
+              )}>
+                ₹{totalBalance.toFixed(2)}
+              </span>
+            </div>
+            {hasInsufficientBalance && (
+              <p className="text-[11px] text-destructive mt-1.5 px-1 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Insufficient balance. Add ₹{(entryFee - totalBalance).toFixed(2)} more to join.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Team selection */}
         <div className="px-5 overflow-y-auto flex-1" style={{ maxHeight: "calc(85vh - 260px)" }}>
@@ -162,7 +197,7 @@ const JoinContestSheet = ({
           <div className="px-5 py-4 border-t border-border/20 safe-bottom">
             <Button
               onClick={handleJoin}
-              disabled={!selectedTeamId || joinContest.isPending}
+              disabled={!selectedTeamId || joinContest.isPending || hasInsufficientBalance}
               className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
             >
               <span className="shimmer absolute inset-0" />
@@ -170,6 +205,8 @@ const JoinContestSheet = ({
                 <Trophy className="h-5 w-5" />
                 {joinContest.isPending
                   ? "Joining..."
+                  : hasInsufficientBalance
+                  ? "Insufficient Balance"
                   : contest.entry_fee === 0
                   ? "Join for Free"
                   : `Join for ₹${contest.entry_fee}`}
