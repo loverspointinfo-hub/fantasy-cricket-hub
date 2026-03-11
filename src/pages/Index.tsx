@@ -96,9 +96,41 @@ const MatchCard = ({ match }: { match: Match }) => {
         <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
           <Users className="h-3 w-3" /> {match.venue || "TBD"}
         </span>
-        <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
-          View <ChevronRight className="h-3.5 w-3.5" />
-        </div>
+
+        {/* Countdown timer */}
+        {match.status === "upcoming" && !countdown.isExpired ? (
+          <div className={cn(
+            "flex items-center gap-1.5 text-[10px] font-bold",
+            isUrgent ? "text-[hsl(var(--neon-red))]" : "text-primary"
+          )}>
+            <Timer className={cn("h-3 w-3", isUrgent && "animate-pulse")} />
+            <div className="flex items-center gap-0.5 font-display tracking-wide">
+              {countdown.days > 0 ? (
+                <>
+                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{countdown.days}d</span>
+                  <span className="opacity-40">:</span>
+                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{countdown.hours}h</span>
+                </>
+              ) : countdown.hours > 0 ? (
+                <>
+                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{countdown.hours}h</span>
+                  <span className="opacity-40">:</span>
+                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{String(countdown.minutes).padStart(2, "0")}m</span>
+                </>
+              ) : (
+                <>
+                  <span className="rounded px-1 py-0.5" style={{ background: "hsl(var(--neon-red) / 0.1)" }}>{String(countdown.minutes).padStart(2, "0")}m</span>
+                  <span className="opacity-40">:</span>
+                  <span className="rounded px-1 py-0.5" style={{ background: "hsl(var(--neon-red) / 0.1)" }}>{String(countdown.seconds).padStart(2, "0")}s</span>
+                </>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
+            View <ChevronRight className="h-3.5 w-3.5" />
+          </div>
+        )}
       </div>
     </motion.div>
   );
