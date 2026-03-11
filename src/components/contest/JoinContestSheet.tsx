@@ -197,7 +197,7 @@ const JoinContestSheet = ({
           <div className="px-5 py-4 border-t border-border/20 safe-bottom">
             <Button
               onClick={handleJoin}
-              disabled={!selectedTeamId || joinContest.isPending}
+              disabled={!selectedTeamId || joinContest.isPending || hasInsufficientBalance}
               className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
             >
               <span className="shimmer absolute inset-0" />
@@ -205,6 +205,8 @@ const JoinContestSheet = ({
                 <Trophy className="h-5 w-5" />
                 {joinContest.isPending
                   ? "Joining..."
+                  : hasInsufficientBalance
+                  ? "Insufficient Balance"
                   : contest.entry_fee === 0
                   ? "Join for Free"
                   : `Join for ₹${contest.entry_fee}`}
