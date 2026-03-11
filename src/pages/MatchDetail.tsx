@@ -32,6 +32,15 @@ const MatchDetail = () => {
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
 
+  const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
+    queryKeys: [
+      ["match", matchId || ""],
+      ["contests", matchId || ""],
+      ["user-teams", matchId || ""],
+      ["my-contest-entries", matchId || ""],
+    ],
+  });
+
   const joinedContestIds = new Set(myEntries.map((e: any) => e.contest_id));
   const joinedTeamIdsForContest = (contestId: string) =>
     myEntries.filter((e: any) => e.contest_id === contestId).map((e: any) => e.team_id);
