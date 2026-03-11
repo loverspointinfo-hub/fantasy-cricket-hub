@@ -28,7 +28,7 @@ const formatMatchTime = (dateStr: string) => {
 
 const MatchCard = ({ match }: { match: Match }) => {
   const navigate = useNavigate();
-  const countdown = useCountdown(match.entry_deadline);
+  const countdown = useCountdown(match.match_time);
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
   return (
     <motion.div
@@ -56,10 +56,16 @@ const MatchCard = ({ match }: { match: Match }) => {
             <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))] animate-pulse" /> Live
           </Badge>
         )}
-        {match.status === "upcoming" && (
-          <Badge variant="outline" className="border-primary/15 text-primary/70 text-[9px] gap-1 bg-primary/5">
-            <Clock className="h-2.5 w-2.5" /> {formatMatchTime(match.match_time)}
-          </Badge>
+        {match.status === "upcoming" && !countdown.isExpired && (
+          <div className={cn(
+            "flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] font-bold",
+            isUrgent ? "text-[hsl(var(--neon-red))] bg-[hsl(var(--neon-red)/0.08)]" : "text-primary bg-primary/5"
+          )}
+            style={{ border: `1px solid ${isUrgent ? "hsl(var(--neon-red) / 0.15)" : "hsl(var(--primary) / 0.12)"}` }}
+          >
+            <Timer className={cn("h-2.5 w-2.5", isUrgent && "animate-pulse")} />
+            <span className="font-display tracking-wide">{countdown.label}</span>
+          </div>
         )}
       </div>
 
@@ -97,41 +103,9 @@ const MatchCard = ({ match }: { match: Match }) => {
         <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
           <Users className="h-3 w-3" /> {match.venue || "TBD"}
         </span>
-
-        {/* Countdown timer */}
-        {match.status === "upcoming" && !countdown.isExpired ? (
-          <div className={cn(
-            "flex items-center gap-1.5 text-[10px] font-bold",
-            isUrgent ? "text-[hsl(var(--neon-red))]" : "text-primary"
-          )}>
-            <Timer className={cn("h-3 w-3", isUrgent && "animate-pulse")} />
-            <div className="flex items-center gap-0.5 font-display tracking-wide">
-              {countdown.days > 0 ? (
-                <>
-                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{countdown.days}d</span>
-                  <span className="opacity-40">:</span>
-                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{countdown.hours}h</span>
-                </>
-              ) : countdown.hours > 0 ? (
-                <>
-                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{countdown.hours}h</span>
-                  <span className="opacity-40">:</span>
-                  <span className="rounded px-1 py-0.5" style={{ background: isUrgent ? "hsl(var(--neon-red) / 0.1)" : "hsl(var(--primary) / 0.1)" }}>{String(countdown.minutes).padStart(2, "0")}m</span>
-                </>
-              ) : (
-                <>
-                  <span className="rounded px-1 py-0.5" style={{ background: "hsl(var(--neon-red) / 0.1)" }}>{String(countdown.minutes).padStart(2, "0")}m</span>
-                  <span className="opacity-40">:</span>
-                  <span className="rounded px-1 py-0.5" style={{ background: "hsl(var(--neon-red) / 0.1)" }}>{String(countdown.seconds).padStart(2, "0")}s</span>
-                </>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
-            View <ChevronRight className="h-3.5 w-3.5" />
-          </div>
-        )}
+        <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
+          View <ChevronRight className="h-3.5 w-3.5" />
+        </div>
       </div>
     </motion.div>
   );
