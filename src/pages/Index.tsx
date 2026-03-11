@@ -176,6 +176,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
+  const unreadCount = useUnreadCount();
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
