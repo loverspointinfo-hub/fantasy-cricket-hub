@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -14,6 +15,15 @@ import MatchDetail from "./pages/MatchDetail";
 import CreateTeam from "./pages/CreateTeam";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./components/admin/AdminLayout";
+
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminMatches = lazy(() => import("./pages/admin/AdminMatches"));
+const AdminPlayers = lazy(() => import("./pages/admin/AdminPlayers"));
+const AdminContests = lazy(() => import("./pages/admin/AdminContests"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminWallet = lazy(() => import("./pages/admin/AdminWallet"));
+const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 
 const queryClient = new QueryClient();
 
@@ -35,6 +45,15 @@ const App = () => (
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/match/:matchId/create-team" element={<CreateTeam />} />
             <Route path="/match/:matchId/edit-team/:teamId" element={<CreateTeam />} />
+          </Route>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Suspense fallback={<div />}><AdminDashboard /></Suspense>} />
+            <Route path="matches" element={<Suspense fallback={<div />}><AdminMatches /></Suspense>} />
+            <Route path="players" element={<Suspense fallback={<div />}><AdminPlayers /></Suspense>} />
+            <Route path="contests" element={<Suspense fallback={<div />}><AdminContests /></Suspense>} />
+            <Route path="users" element={<Suspense fallback={<div />}><AdminUsers /></Suspense>} />
+            <Route path="wallet" element={<Suspense fallback={<div />}><AdminWallet /></Suspense>} />
+            <Route path="notifications" element={<Suspense fallback={<div />}><AdminNotifications /></Suspense>} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
