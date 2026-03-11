@@ -106,9 +106,16 @@ const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number 
       <div className="flex items-center justify-between border-t border-border/10 px-4 py-2.5"
         style={{ background: "hsl(228 16% 6% / 0.4)" }}
       >
-        <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
-          <Users className="h-3 w-3" /> {match.venue || "TBD"}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
+            <Users className="h-3 w-3" /> {match.venue || "TBD"}
+          </span>
+          {playerCount != null && playerCount > 0 && (
+            <span className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold text-primary bg-primary/10 border border-primary/15">
+              {playerCount} players
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
           View <ChevronRight className="h-3.5 w-3.5" />
         </div>
