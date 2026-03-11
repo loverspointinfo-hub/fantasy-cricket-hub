@@ -133,26 +133,15 @@ const MatchDetail = () => {
       <div className="floating-orb w-60 h-60 bg-[hsl(var(--neon-cyan))] top-1/3 -right-16" style={{ animationDelay: "3s" }} />
       <div className="floating-orb w-40 h-40 bg-[hsl(var(--neon-purple))] bottom-32 left-1/4" style={{ animationDelay: "5s" }} />
 
-      {/* Header — Bold Sporty */}
-      <header className="sticky top-0 z-50 relative overflow-hidden">
-        <div className="absolute inset-0"
-          style={{
-            background: "linear-gradient(135deg, hsl(228 20% 6% / 0.98) 0%, hsl(228 18% 8% / 0.95) 50%, hsl(228 16% 6% / 0.98) 100%)",
-            backdropFilter: "blur(24px) saturate(1.5)",
-          }}
-        />
-        <div className="absolute -top-4 -right-8 w-32 h-24 opacity-15"
-          style={{
-            background: "linear-gradient(135deg, hsl(var(--neon-green)), hsl(var(--neon-cyan)))",
-            transform: "skewY(-12deg)",
-            borderRadius: "0 0 0 30px",
-          }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 h-[2px]"
-          style={{ background: "linear-gradient(90deg, hsl(var(--neon-green)), hsl(var(--neon-cyan)), hsl(var(--neon-green)))", opacity: 0.5 }}
-        />
-        <div className="mx-auto max-w-lg px-4 py-3.5 flex items-center gap-3 relative z-10">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-xl hover:bg-secondary/80 active:scale-95 transition-all">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border/20"
+        style={{
+          background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.85))",
+          backdropFilter: "blur(24px) saturate(1.5)",
+        }}
+      >
+        <div className="mx-auto max-w-lg px-4 py-3 flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-1 rounded-xl hover:bg-secondary/80 active:scale-95 transition-all">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0">

@@ -36,6 +36,7 @@ const NotificationItem = ({ notification, onRead }: { notification: Notification
         border: `1px solid ${notification.is_read ? "hsl(228 12% 14% / 0.3)" : "hsl(228 12% 18% / 0.5)"}`,
       }}
     >
+      {/* Unread indicator */}
       {!notification.is_read && (
         <div className="absolute top-4 right-4">
           <div className="h-2 w-2 rounded-full"
@@ -46,14 +47,23 @@ const NotificationItem = ({ notification, onRead }: { notification: Notification
           />
         </div>
       )}
+
+      {/* Icon */}
       <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", config.bg)}>
         <Icon className={cn("h-5 w-5", config.color)} />
       </div>
+
+      {/* Content */}
       <div className="flex-1 min-w-0 pr-4">
-        <p className={cn("text-sm leading-snug", notification.is_read ? "font-medium" : "font-semibold")}>
+        <p className={cn(
+          "text-sm leading-snug",
+          notification.is_read ? "font-medium" : "font-semibold"
+        )}>
           {notification.title}
         </p>
-        <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed">{notification.message}</p>
+        <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed">
+          {notification.message}
+        </p>
         <p className="text-[10px] text-muted-foreground/40 mt-1.5">
           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
         </p>
@@ -85,42 +95,28 @@ const Notifications = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
+      {/* Background */}
       <div className="fixed inset-0 pointer-events-none gradient-mesh opacity-40" />
       <div className="floating-orb w-60 h-60 bg-[hsl(var(--neon-cyan))] -top-20 -right-16" />
       <div className="floating-orb w-40 h-40 bg-[hsl(var(--neon-purple))] bottom-40 -left-10" style={{ animationDelay: "4s" }} />
 
-      {/* Header — Bold Sporty */}
-      <header className="sticky top-0 z-50 relative overflow-hidden">
-        <div className="absolute inset-0"
-          style={{
-            background: "linear-gradient(135deg, hsl(228 20% 6% / 0.98) 0%, hsl(228 18% 8% / 0.95) 50%, hsl(228 16% 6% / 0.98) 100%)",
-            backdropFilter: "blur(24px) saturate(1.8)",
-          }}
+      {/* Header */}
+      <header className="sticky top-0 z-50 relative"
+        style={{
+          background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.88))",
+          backdropFilter: "blur(24px) saturate(1.8)",
+        }}
+      >
+        <div className="absolute bottom-0 left-0 right-0 h-[1px]"
+          style={{ background: "linear-gradient(90deg, transparent, hsl(228 12% 18% / 0.6), transparent)" }}
         />
-        <div className="absolute -top-4 -right-8 w-32 h-24 opacity-15"
-          style={{
-            background: "linear-gradient(135deg, hsl(var(--neon-green)), hsl(var(--neon-cyan)))",
-            transform: "skewY(-12deg)",
-            borderRadius: "0 0 0 30px",
-          }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 h-[2px]"
-          style={{ background: "linear-gradient(90deg, hsl(var(--neon-green)), hsl(var(--neon-cyan)), hsl(var(--neon-green)))", opacity: 0.5 }}
-        />
-        <div className="mx-auto max-w-lg px-4 py-3.5 flex items-center gap-3 relative z-10">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-xl hover:bg-secondary/80 active:scale-95 transition-all">
+        <div className="mx-auto max-w-lg px-4 py-3 flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-1 rounded-xl hover:bg-secondary/80 active:scale-95 transition-all">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="flex h-8 w-8 items-center justify-center"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--neon-green) / 0.15), hsl(var(--neon-cyan) / 0.1))",
-              clipPath: "polygon(50% 0%, 100% 20%, 100% 80%, 50% 100%, 0% 80%, 0% 20%)",
-            }}
-          >
-            <Bell className="h-4 w-4 text-[hsl(var(--neon-green))]" strokeWidth={2.5} />
-          </div>
           <div className="flex-1">
-            <h1 className="font-display text-xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="font-display text-lg font-bold flex items-center gap-2">
+              <Bell className="h-4 w-4 text-primary" />
               Notifications
               {unreadCount > 0 && (
                 <span className="text-xs font-bold text-primary-foreground rounded-full h-5 min-w-[20px] flex items-center justify-center px-1.5"
