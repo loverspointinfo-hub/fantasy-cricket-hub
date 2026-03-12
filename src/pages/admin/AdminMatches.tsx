@@ -254,13 +254,16 @@ const AdminMatches = () => {
                       <Clock className="h-3 w-3" />
                       Match: {m.match_time ? formatIST(m.match_time, "dd MMM, h:mm a") : "N/A"}
                     </span>
-                    {deadlineInfo && (
+                    {m.entry_deadline && (
                       <span className={cn(
                         "flex items-center gap-1 font-medium",
-                        deadlineInfo.passed ? "text-[hsl(var(--neon-red))]" : "text-primary"
+                        deadlineInfo?.passed ? "text-[hsl(var(--neon-red))]" : "text-primary"
                       )}>
                         <Timer className="h-3 w-3" />
-                        Deadline: {deadlineInfo.passed ? `Passed ${deadlineInfo.label}` : deadlineInfo.label}
+                        Deadline: {formatIST(m.entry_deadline, "dd MMM, h:mm a")}
+                        {deadlineInfo && (
+                          <span className="opacity-60 ml-0.5">({deadlineInfo.passed ? "Passed" : deadlineInfo.label})</span>
+                        )}
                       </span>
                     )}
                     {m.venue && (
