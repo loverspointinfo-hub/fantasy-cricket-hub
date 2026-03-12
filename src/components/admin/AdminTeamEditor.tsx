@@ -53,7 +53,7 @@ const AdminTeamEditor = ({ open, onOpenChange, team }: AdminTeamEditorProps) => 
 
   // Initialize state from team data
   if (team && !initialized && matchPlayers.length > 0) {
-    const playerIds = new Set((team.team_players ?? []).map((tp: any) => tp.player_id));
+    const playerIds = new Set<string>((team.team_players ?? []).map((tp: any) => tp.player_id as string));
     setSelected(playerIds);
     setCaptainId(team.captain_id);
     setViceCaptainId(team.vice_captain_id);
