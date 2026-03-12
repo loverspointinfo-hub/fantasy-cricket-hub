@@ -97,6 +97,8 @@ const MatchDetail = () => {
   const matchDate = match.match_time;
   const isLive = match.status === "live";
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
+  const isTeamEditingLocked = match.status !== "upcoming" || countdown.isExpired;
+  const canManageTeams = !isTeamEditingLocked;
 
   return (
     <div
@@ -316,8 +318,8 @@ const MatchDetail = () => {
                 <motion.div key={team.id} variants={item}>
                   <SavedTeamCard
                     team={team}
-                    onDelete={match.status === "upcoming" ? handleDeleteTeam : undefined}
-                    onEdit={match.status === "upcoming" ? handleEditTeam : undefined}
+                    onDelete={canManageTeams ? handleDeleteTeam : undefined}
+                    onEdit={canManageTeams ? handleEditTeam : undefined}
                     deleting={deleteTeam.isPending}
                   />
                 </motion.div>

@@ -28,7 +28,7 @@ type Step = "select" | "captain" | "preview";
 const CreateTeam = () => {
   const { matchId, teamId } = useParams();
   const navigate = useNavigate();
-  const { data: match } = useMatch(matchId || "");
+  const { data: match, isLoading: matchLoading } = useMatch(matchId || "");
   const { data: matchPlayers = [], isLoading } = useMatchPlayers(matchId || "");
   const { data: userTeams = [] } = useUserTeams(matchId || "");
 
@@ -115,6 +115,11 @@ const CreateTeam = () => {
       toast.error("Select both Captain and Vice-Captain");
       return;
     }
+    if (isEditing && match && (match.status !== "upcoming" || new Date(match.entry_deadline).getTime() <= Date.now())) {
+      toast.error("Team editing is locked once the match is live");
+      navigate(`/match/${matchId}`);
+      return;
+    }
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -179,9 +184,10 @@ const CreateTeam = () => {
   };
 
   const playersForRole = matchPlayers.filter(mp => mp.player.role === activeRole);
+  const isTeamEditingLocked = !!match && (match.status !== "upcoming" || new Date(match.entry_deadline).getTime() <= Date.now());
 
   // Block editing for non-upcoming matches (only admin can edit via admin panel)
-  if (match && match.status !== "upcoming" && isEditing) {
+  if (isEditing && isTeamEditingLocked) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
         <p className="text-muted-foreground text-center px-6">Teams cannot be edited after the match deadline has passed.</p>
@@ -190,7 +196,7 @@ const CreateTeam = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || matchLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
