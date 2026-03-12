@@ -112,7 +112,7 @@ const MatchLineupManager = ({ match, open, onOpenChange }: Props) => {
   });
 
   // Filter available players by team names
-  const availablePlayers = allPlayers.filter((p: any) => {
+  const availablePlayers = match ? allPlayers.filter((p: any) => {
     if (assignedPlayerIds.has(p.id)) return false;
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.team.toLowerCase().includes(search.toLowerCase());
@@ -120,7 +120,7 @@ const MatchLineupManager = ({ match, open, onOpenChange }: Props) => {
     if (filterTeam === "team1") return p.team.toLowerCase() === match.team1_name?.toLowerCase() || p.team.toLowerCase() === match.team1_short?.toLowerCase();
     if (filterTeam === "team2") return p.team.toLowerCase() === match.team2_name?.toLowerCase() || p.team.toLowerCase() === match.team2_short?.toLowerCase();
     return true;
-  });
+  }) : [];
 
   // Group lineup by role
   const lineupByRole = matchPlayers.reduce((acc: Record<string, any[]>, mp: any) => {
