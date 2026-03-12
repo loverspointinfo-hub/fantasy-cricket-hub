@@ -148,7 +148,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled }: ContestCardProps) 
           </span>
         </div>
         <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
-          {isJoined ? "View" : "Join Now"} <ChevronRight className="h-3.5 w-3.5" />
+          {isJoined ? "View" : disabled ? "Closed" : "Join Now"} <ChevronRight className="h-3.5 w-3.5" />
         </div>
       </div>
     </motion.div>
