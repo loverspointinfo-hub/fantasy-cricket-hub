@@ -11,9 +11,9 @@ const ROLE_LABELS: Record<string, string> = {
 
 interface SavedTeamCardProps {
   team: UserTeam;
-  onDelete: (teamId: string) => void;
+  onDelete?: (teamId: string) => void;
   onEdit?: (teamId: string) => void;
-  deleting: boolean;
+  deleting?: boolean;
 }
 
 const SavedTeamCard = ({ team, onDelete, onEdit, deleting }: SavedTeamCardProps) => {

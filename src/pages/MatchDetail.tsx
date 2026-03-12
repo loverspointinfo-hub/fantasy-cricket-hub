@@ -316,8 +316,8 @@ const MatchDetail = () => {
                 <motion.div key={team.id} variants={item}>
                   <SavedTeamCard
                     team={team}
-                    onDelete={handleDeleteTeam}
-                    onEdit={handleEditTeam}
+                    onDelete={match.status === "upcoming" ? handleDeleteTeam : undefined}
+                    onEdit={match.status === "upcoming" ? handleEditTeam : undefined}
                     deleting={deleteTeam.isPending}
                   />
                 </motion.div>
