@@ -174,7 +174,7 @@ const AdminUsers = () => {
                 <div><span className="text-muted-foreground text-xs">Full Name</span><p className="font-semibold">{selectedUser.full_name || "—"}</p></div>
                 <div><span className="text-muted-foreground text-xs">KYC Status</span><p className="font-semibold">{selectedUser.kyc_status}</p></div>
                 <div><span className="text-muted-foreground text-xs">Referral Code</span><p className="font-semibold">{selectedUser.referral_code || "—"}</p></div>
-                <div><span className="text-muted-foreground text-xs">Joined</span><p className="font-semibold">{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString() : "—"}</p></div>
+                <div><span className="text-muted-foreground text-xs">Joined</span><p className="font-semibold">{selectedUser.created_at ? formatIST(selectedUser.created_at, "dd MMM yyyy, h:mm a") : "—"}</p></div>
               </div>
 
               <div>
