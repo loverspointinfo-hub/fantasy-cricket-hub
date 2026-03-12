@@ -63,36 +63,21 @@ const AdminUsers = () => {
       const amt = parseFloat(moneyForm.amount);
       if (!amt || amt <= 0) throw new Error("Invalid amount");
       
-      // Fetch current wallet balance
-      const { data: wallet, error: fetchErr } = await (supabase.from("wallets") as any)
-        .select("*")
-        .eq("user_id", moneyForm.userId)
-        .single();
-      if (fetchErr || !wallet) throw new Error("Wallet not found");
-      
-      // Increment the selected balance type
-      const newVal = (wallet[moneyForm.type] ?? 0) + amt;
-      const { error: updateErr } = await (supabase.from("wallets") as any)
-        .update({ [moneyForm.type]: newVal, updated_at: new Date().toISOString() })
-        .eq("user_id", moneyForm.userId);
-      if (updateErr) throw updateErr;
-      
-      // Record transaction
+      // Create a pending deposit transaction (money added only after admin approval in Wallet page)
       const { error: txErr } = await (supabase.from("transactions") as any).insert({
         user_id: moneyForm.userId,
-        type: "admin_credit",
+        type: "deposit",
         amount: amt,
-        description: moneyForm.description || `Admin added ₹${amt} to ${moneyForm.type.replace(/_/g, " ")}`,
-        status: "completed",
+        description: moneyForm.description || `Admin deposit ₹${amt} to ${moneyForm.type.replace(/_/g, " ")}`,
+        status: "pending",
       });
       if (txErr) throw txErr;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-wallets"] });
       qc.invalidateQueries({ queryKey: ["admin-transactions"] });
       setAddMoneyOpen(false);
       setMoneyForm({ userId: "", amount: "", type: "deposit_balance", description: "" });
-      toast.success("Money added successfully");
+      toast.success("Deposit request created — approve it in Wallet & Transactions");
     },
     onError: (e: any) => toast.error(e.message),
   });
