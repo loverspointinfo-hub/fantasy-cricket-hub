@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, isPast } from "date-fns";
-import { formatIST, toIST } from "@/lib/date-utils";
+import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import MatchLineupManager from "@/components/admin/MatchLineupManager";
@@ -61,11 +61,16 @@ const AdminMatches = () => {
 
   const save = useMutation({
     mutationFn: async () => {
+      const payload = {
+        ...form,
+        match_time: form.match_time ? istToUTC(form.match_time) : form.match_time,
+        entry_deadline: form.entry_deadline ? istToUTC(form.entry_deadline) : form.entry_deadline,
+      };
       if (editId) {
-        const { error } = await (supabase.from("matches") as any).update(form).eq("id", editId);
+        const { error } = await (supabase.from("matches") as any).update(payload).eq("id", editId);
         if (error) throw error;
       } else {
-        const { error } = await (supabase.from("matches") as any).insert(form);
+        const { error } = await (supabase.from("matches") as any).insert(payload);
         if (error) throw error;
       }
     },
@@ -85,7 +90,7 @@ const AdminMatches = () => {
   const openEdit = (m: any) => {
     setForm({
       team1_name: m.team1_name, team1_short: m.team1_short, team2_name: m.team2_name, team2_short: m.team2_short,
-      league: m.league, match_time: m.match_time?.slice(0, 16) || "", entry_deadline: m.entry_deadline?.slice(0, 16) || "",
+      league: m.league, match_time: m.match_time ? utcToISTInput(m.match_time) : "", entry_deadline: m.entry_deadline ? utcToISTInput(m.entry_deadline) : "",
       venue: m.venue || "", sport: m.sport || "cricket", status: m.status || "upcoming",
     });
     setEditId(m.id);
@@ -141,8 +146,8 @@ const AdminMatches = () => {
               <div><Label className="text-xs text-muted-foreground">Team 2 Short</Label><Input value={form.team2_short} onChange={e => set("team2_short", e.target.value)} maxLength={4} placeholder="CSK" /></div>
               <div><Label className="text-xs text-muted-foreground">League</Label><Input value={form.league} onChange={e => set("league", e.target.value)} placeholder="IPL 2025" /></div>
               <div><Label className="text-xs text-muted-foreground">Venue</Label><Input value={form.venue} onChange={e => set("venue", e.target.value)} placeholder="Wankhede Stadium" /></div>
-              <div><Label className="text-xs text-muted-foreground">Match Time</Label><Input type="datetime-local" value={form.match_time} onChange={e => set("match_time", e.target.value)} /></div>
-              <div><Label className="text-xs text-muted-foreground">Entry Deadline</Label><Input type="datetime-local" value={form.entry_deadline} onChange={e => set("entry_deadline", e.target.value)} /></div>
+              <div><Label className="text-xs text-muted-foreground">Match Time (IST)</Label><Input type="datetime-local" value={form.match_time} onChange={e => set("match_time", e.target.value)} /></div>
+              <div><Label className="text-xs text-muted-foreground">Entry Deadline (IST)</Label><Input type="datetime-local" value={form.entry_deadline} onChange={e => set("entry_deadline", e.target.value)} /></div>
               <div>
                 <Label className="text-xs text-muted-foreground">Sport</Label>
                 <Select value={form.sport} onValueChange={v => set("sport", v)}>
