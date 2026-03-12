@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Wallet, Eye, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { formatIST } from "@/lib/date-utils";
 
 const AdminUsers = () => {
   const qc = useQueryClient();
