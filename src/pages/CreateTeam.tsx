@@ -28,7 +28,7 @@ type Step = "select" | "captain" | "preview";
 const CreateTeam = () => {
   const { matchId, teamId } = useParams();
   const navigate = useNavigate();
-  const { data: match } = useMatch(matchId || "");
+  const { data: match, isLoading: matchLoading } = useMatch(matchId || "");
   const { data: matchPlayers = [], isLoading } = useMatchPlayers(matchId || "");
   const { data: userTeams = [] } = useUserTeams(matchId || "");
 

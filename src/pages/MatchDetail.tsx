@@ -97,6 +97,8 @@ const MatchDetail = () => {
   const matchDate = match.match_time;
   const isLive = match.status === "live";
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
+  const isTeamEditingLocked = match.status !== "upcoming" || countdown.isExpired;
+  const canManageTeams = !isTeamEditingLocked;
 
   return (
     <div
