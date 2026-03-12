@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useNotifications, useMarkAsRead, useMarkAllAsRead, Notification } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { toIST } from "@/lib/date-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const typeConfig: Record<string, { icon: typeof Bell; color: string; bg: string }> = {
