@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, isPast } from "date-fns";
-import { formatIST, toIST } from "@/lib/date-utils";
+import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import MatchLineupManager from "@/components/admin/MatchLineupManager";
