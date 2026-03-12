@@ -62,25 +62,38 @@ const AdminUsers = () => {
     mutationFn: async () => {
       const amt = parseFloat(moneyForm.amount);
       if (!amt || amt <= 0) throw new Error("Invalid amount");
-      // Update wallet
-      const { error } = await (supabase.from("wallets") as any)
-        .update({ [moneyForm.type]: (supabase as any).rpc ? amt : amt })
-        .eq("user_id", moneyForm.userId);
-      // Actually we need to increment, let's use rpc or raw update
-      // For simplicity, fetch current and add
-      const { data: wallet } = await (supabase.from("wallets") as any).select("*").eq("user_id", moneyForm.userId).single();
-      if (!wallet) throw new Error("Wallet not found");
+      
+      // Fetch current wallet balance
+      const { data: wallet, error: fetchErr } = await (supabase.from("wallets") as any)
+        .select("*")
+        .eq("user_id", moneyForm.userId)
+        .single();
+      if (fetchErr || !wallet) throw new Error("Wallet not found");
+      
+      // Increment the selected balance type
       const newVal = (wallet[moneyForm.type] ?? 0) + amt;
-      const { error: updateErr } = await (supabase.from("wallets") as any).update({ [moneyForm.type]: newVal }).eq("user_id", moneyForm.userId);
+      const { error: updateErr } = await (supabase.from("wallets") as any)
+        .update({ [moneyForm.type]: newVal, updated_at: new Date().toISOString() })
+        .eq("user_id", moneyForm.userId);
       if (updateErr) throw updateErr;
+      
       // Record transaction
-      await (supabase.from("transactions") as any).insert({
-        user_id: moneyForm.userId, type: "admin_credit", amount: amt,
-        description: moneyForm.description || `Admin added ₹${amt} to ${moneyForm.type.replace("_", " ")}`,
+      const { error: txErr } = await (supabase.from("transactions") as any).insert({
+        user_id: moneyForm.userId,
+        type: "admin_credit",
+        amount: amt,
+        description: moneyForm.description || `Admin added ₹${amt} to ${moneyForm.type.replace(/_/g, " ")}`,
         status: "completed",
       });
+      if (txErr) throw txErr;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-wallets"] }); setAddMoneyOpen(false); setMoneyForm({ userId: "", amount: "", type: "deposit_balance", description: "" }); toast.success("Money added"); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-wallets"] });
+      qc.invalidateQueries({ queryKey: ["admin-transactions"] });
+      setAddMoneyOpen(false);
+      setMoneyForm({ userId: "", amount: "", type: "deposit_balance", description: "" });
+      toast.success("Money added successfully");
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
