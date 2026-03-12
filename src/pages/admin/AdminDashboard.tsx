@@ -471,7 +471,7 @@ const AdminDashboard = () => {
                       </p>
                       <p className="text-[10px] text-muted-foreground">
                         {t.created_at
-                          ? format(new Date(t.created_at), "dd MMM, h:mm a")
+                          ? formatIST(t.created_at, "dd MMM, h:mm a")
                           : ""}
                       </p>
                     </div>
