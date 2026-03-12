@@ -21,34 +21,19 @@ export const useMatches = (status?: string) => {
   return useQuery({
     queryKey: ["matches", status],
     queryFn: async () => {
-      // Fetch upcoming + live from DB, then re-classify client-side
+      // Auto-transition matches whose deadline has passed
+      await (supabase.rpc as any)("auto_transition_matches");
+
       let query = (supabase.from("matches" as any) as any).select("*").order("match_time", { ascending: true });
 
-      // When requesting "upcoming" or "live", fetch both so we can reclassify
-      if (status === "upcoming" || status === "live") {
-        query = query.in("status", ["upcoming", "live"]);
-      } else if (status) {
+      if (status) {
         query = query.eq("status", status);
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const now = Date.now();
-      const matches = (data as Match[]) ?? [];
-
-      if (status === "upcoming") {
-        // Only show matches whose entry_deadline is still in the future
-        return matches.filter((m) => new Date(m.entry_deadline).getTime() > now);
-      }
-      if (status === "live") {
-        // Show DB-live matches + upcoming matches whose entry_deadline has passed
-        return matches.filter(
-          (m) => m.status === "live" || (m.status === "upcoming" && new Date(m.entry_deadline).getTime() <= now)
-        );
-      }
-
-      return matches;
+      return (data as Match[]) ?? [];
     },
     // Refetch every 30s so matches transition automatically
     refetchInterval: 30_000,
