@@ -28,6 +28,8 @@ const MatchLineupManager = ({ match, open, onOpenChange }: Props) => {
   const [search, setSearch] = useState("");
   const [filterTeam, setFilterTeam] = useState<"all" | "team1" | "team2">("all");
 
+  if (!match) return null;
+
   // Fetch all players
   const { data: allPlayers = [] } = useQuery({
     queryKey: ["admin-players"],
