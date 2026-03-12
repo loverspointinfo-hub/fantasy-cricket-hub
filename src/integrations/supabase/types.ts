@@ -487,6 +487,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_transition_matches: { Args: never; Returns: number }
       check_username_available: {
         Args: { desired_username: string }
         Returns: boolean
