@@ -178,7 +178,7 @@ const AdminDashboard = () => {
         .limit(100);
       const grouped: Record<string, number> = {};
       (data ?? []).forEach((t: any) => {
-        const day = format(new Date(t.created_at), "dd MMM");
+        const day = formatIST(t.created_at, "dd MMM");
         grouped[day] = (grouped[day] || 0) + Number(t.amount || 0);
       });
       return Object.entries(grouped)
