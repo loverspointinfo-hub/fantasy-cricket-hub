@@ -17,9 +17,10 @@ interface ContestCardProps {
   contest: Contest;
   onJoin: () => void;
   isJoined: boolean;
+  disabled?: boolean;
 }
 
-const ContestCard = ({ contest, onJoin, isJoined }: ContestCardProps) => {
+const ContestCard = ({ contest, onJoin, isJoined, disabled }: ContestCardProps) => {
   const config = typeConfig[contest.type] || typeConfig.mega;
   const fillPercent = Math.round((contest.current_entries / contest.max_entries) * 100);
   const spotsLeft = contest.max_entries - contest.current_entries;

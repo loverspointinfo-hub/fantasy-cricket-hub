@@ -358,6 +358,7 @@ const MatchDetail = () => {
                 contest={contest}
                 isJoined={joinedContestIds.has(contest.id)}
                 onJoin={() => handleJoinContest(contest)}
+                disabled={match.status !== "upcoming" || countdown.isExpired}
               />
             ))}
           </div>
