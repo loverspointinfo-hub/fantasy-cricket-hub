@@ -115,6 +115,11 @@ const CreateTeam = () => {
       toast.error("Select both Captain and Vice-Captain");
       return;
     }
+    if (isEditing && match && (match.status !== "upcoming" || new Date(match.entry_deadline).getTime() <= Date.now())) {
+      toast.error("Team editing is locked once the match is live");
+      navigate(`/match/${matchId}`);
+      return;
+    }
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
