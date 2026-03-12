@@ -101,9 +101,9 @@ const AdminMatches = () => {
 
   const getDeadlineInfo = (m: any) => {
     if (!m.entry_deadline) return null;
-    const deadline = toIST(m.entry_deadline);
-    const passed = isPast(deadline);
-    return { passed, label: formatDistanceToNow(deadline, { addSuffix: true }) };
+    const deadlineUTC = new Date(m.entry_deadline);
+    const passed = isPast(deadlineUTC);
+    return { passed, label: formatDistanceToNow(deadlineUTC, { addSuffix: true }) };
   };
 
   return (
