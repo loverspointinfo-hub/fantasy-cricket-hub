@@ -247,7 +247,7 @@ const AdminMatches = () => {
                   <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      Match: {m.match_time ? format(new Date(m.match_time), "dd MMM, h:mm a") : "N/A"}
+                      Match: {m.match_time ? formatIST(m.match_time, "dd MMM, h:mm a") : "N/A"}
                     </span>
                     {deadlineInfo && (
                       <span className={cn(
