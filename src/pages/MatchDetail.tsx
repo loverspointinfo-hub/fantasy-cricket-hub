@@ -229,7 +229,7 @@ const MatchDetail = () => {
                   </Badge>
                 ) : (
                   <p className="text-[10px] text-muted-foreground font-medium">
-                    {format(matchDate, "h:mm a")}
+                    {formatIST(matchDate, "h:mm a")}
                   </p>
                 )}
               </div>
