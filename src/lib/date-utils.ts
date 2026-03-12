@@ -1,7 +1,18 @@
 import { format, isToday, isTomorrow } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
 const IST_TZ = "Asia/Kolkata";
+
+/** Convert a local datetime-local string (treated as IST) to a UTC ISO string for DB storage */
+export const istToUTC = (localDatetimeStr: string): string => {
+  return fromZonedTime(new Date(localDatetimeStr), IST_TZ).toISOString();
+};
+
+/** Convert a UTC date string to a datetime-local compatible string in IST (YYYY-MM-DDTHH:mm) */
+export const utcToISTInput = (utcStr: string): string => {
+  const istDate = toZonedTime(new Date(utcStr), IST_TZ);
+  return format(istDate, "yyyy-MM-dd'T'HH:mm");
+};
 
 /** Convert a date string/Date to IST zoned time */
 export const toIST = (date: string | Date): Date => {

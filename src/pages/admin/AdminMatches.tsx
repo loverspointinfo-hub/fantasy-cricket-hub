@@ -146,8 +146,8 @@ const AdminMatches = () => {
               <div><Label className="text-xs text-muted-foreground">Team 2 Short</Label><Input value={form.team2_short} onChange={e => set("team2_short", e.target.value)} maxLength={4} placeholder="CSK" /></div>
               <div><Label className="text-xs text-muted-foreground">League</Label><Input value={form.league} onChange={e => set("league", e.target.value)} placeholder="IPL 2025" /></div>
               <div><Label className="text-xs text-muted-foreground">Venue</Label><Input value={form.venue} onChange={e => set("venue", e.target.value)} placeholder="Wankhede Stadium" /></div>
-              <div><Label className="text-xs text-muted-foreground">Match Time</Label><Input type="datetime-local" value={form.match_time} onChange={e => set("match_time", e.target.value)} /></div>
-              <div><Label className="text-xs text-muted-foreground">Entry Deadline</Label><Input type="datetime-local" value={form.entry_deadline} onChange={e => set("entry_deadline", e.target.value)} /></div>
+              <div><Label className="text-xs text-muted-foreground">Match Time (IST)</Label><Input type="datetime-local" value={form.match_time} onChange={e => set("match_time", e.target.value)} /></div>
+              <div><Label className="text-xs text-muted-foreground">Entry Deadline (IST)</Label><Input type="datetime-local" value={form.entry_deadline} onChange={e => set("entry_deadline", e.target.value)} /></div>
               <div>
                 <Label className="text-xs text-muted-foreground">Sport</Label>
                 <Select value={form.sport} onValueChange={v => set("sport", v)}>
