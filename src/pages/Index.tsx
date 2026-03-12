@@ -11,21 +11,8 @@ import { useMatches, Match } from "@/hooks/useMatches";
 import { useMatchPlayerCounts } from "@/hooks/useMatchPlayerCounts";
 import { useWallet } from "@/hooks/useWallet";
 import { useUnreadCount } from "@/hooks/useNotifications";
-import { format, isToday, isTomorrow } from "date-fns";
+import { formatMatchTime } from "@/lib/date-utils";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const BANNERS = [
-  { title: "MEGA CONTEST", subtitle: "₹25 Lakhs Prize Pool", desc: "Join the biggest contest of the season", gradient: "gradient-primary", icon: Crown },
-  { title: "100% BONUS", subtitle: "On First Deposit", desc: "Use code WELCOME100", gradient: "gradient-premium", icon: Star },
-  { title: "WINNER TAKES ALL", subtitle: "₹1 Lakh Direct Win", desc: "Head-to-head showdown", gradient: "gradient-purple", icon: Flame },
-];
-
-const formatMatchTime = (dateStr: string) => {
-  const d = new Date(dateStr);
-  if (isToday(d)) return `Today, ${format(d, "h:mm a")}`;
-  if (isTomorrow(d)) return `Tomorrow, ${format(d, "h:mm a")}`;
-  return format(d, "dd MMM, h:mm a");
-};
 
 const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number }) => {
   const navigate = useNavigate();

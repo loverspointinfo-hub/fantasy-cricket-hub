@@ -66,7 +66,7 @@ const NotificationItem = ({ notification, onRead }: { notification: Notification
           {notification.message}
         </p>
         <p className="text-[10px] text-muted-foreground/40 mt-1.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          {formatDistanceToNow(toIST(notification.created_at), { addSuffix: true })}
         </p>
       </div>
     </motion.div>

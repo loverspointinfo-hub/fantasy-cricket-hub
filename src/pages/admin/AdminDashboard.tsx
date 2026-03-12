@@ -546,7 +546,7 @@ const AdminDashboard = () => {
                     <Clock className="h-3 w-3" />
                     <span className="text-[10px]">
                       {u.created_at
-                        ? format(new Date(u.created_at), "dd MMM")
+                        ? formatIST(u.created_at, "dd MMM")
                         : "—"}
                     </span>
                   </div>

@@ -251,7 +251,7 @@ const MatchDetail = () => {
             <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-border/10">
               <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                 <Clock className="h-3 w-3 text-primary/60" />
-                {format(matchDate, "dd MMM, h:mm a")}
+                {formatIST(matchDate, "dd MMM, h:mm a")}
               </span>
               {match.venue && (
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
