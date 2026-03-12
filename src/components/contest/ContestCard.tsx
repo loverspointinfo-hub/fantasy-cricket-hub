@@ -17,9 +17,10 @@ interface ContestCardProps {
   contest: Contest;
   onJoin: () => void;
   isJoined: boolean;
+  disabled?: boolean;
 }
 
-const ContestCard = ({ contest, onJoin, isJoined }: ContestCardProps) => {
+const ContestCard = ({ contest, onJoin, isJoined, disabled }: ContestCardProps) => {
   const config = typeConfig[contest.type] || typeConfig.mega;
   const fillPercent = Math.round((contest.current_entries / contest.max_entries) * 100);
   const spotsLeft = contest.max_entries - contest.current_entries;
@@ -28,8 +29,11 @@ const ContestCard = ({ contest, onJoin, isJoined }: ContestCardProps) => {
   return (
     <motion.div
       variants={item}
-      onClick={onJoin}
-      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 hover:-translate-y-1"
+      onClick={disabled && !isJoined ? undefined : onJoin}
+      className={cn(
+        "group relative rounded-2xl overflow-hidden transition-all duration-500",
+        disabled && !isJoined ? "opacity-60 cursor-default" : "cursor-pointer hover:-translate-y-1"
+      )}
       style={{
         background: "linear-gradient(145deg, hsl(228 16% 10% / 0.9), hsl(228 20% 6% / 0.8))",
         border: "1px solid hsl(228 12% 18% / 0.5)",
@@ -144,7 +148,7 @@ const ContestCard = ({ contest, onJoin, isJoined }: ContestCardProps) => {
           </span>
         </div>
         <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
-          {isJoined ? "View" : "Join Now"} <ChevronRight className="h-3.5 w-3.5" />
+          {isJoined ? "View" : disabled ? "Closed" : "Join Now"} <ChevronRight className="h-3.5 w-3.5" />
         </div>
       </div>
     </motion.div>

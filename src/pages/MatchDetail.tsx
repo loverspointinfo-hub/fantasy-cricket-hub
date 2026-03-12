@@ -264,22 +264,42 @@ const MatchDetail = () => {
         </motion.div>
 
         {/* ─── Create Team CTA ─── */}
-        <motion.div variants={item}>
-          <Button
-            onClick={() => navigate(`/match/${matchId}/create-team`)}
-            className="w-full font-bold rounded-2xl h-14 text-base relative overflow-hidden group border-0"
+        {match.status === "upcoming" && !countdown.isExpired && (
+          <motion.div variants={item}>
+            <Button
+              onClick={() => navigate(`/match/${matchId}/create-team`)}
+              className="w-full font-bold rounded-2xl h-14 text-base relative overflow-hidden group border-0"
+              style={{
+                background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
+                boxShadow: "0 4px 24px hsl(152 100% 50% / 0.25), 0 0 0 1px hsl(152 100% 50% / 0.3) inset",
+              }}
+            >
+              <span className="shimmer absolute inset-0" />
+              <span className="relative z-10 flex items-center gap-2 text-primary-foreground">
+                <Plus className="h-5 w-5" />
+                Create Your Team
+              </span>
+            </Button>
+          </motion.div>
+        )}
+
+        {/* ─── Not Joined Any Contest (Live/Completed) ─── */}
+        {(isLive || match.status === "completed") && myEntries.length === 0 && (
+          <motion.div variants={item} className="relative rounded-2xl overflow-hidden p-5 text-center"
             style={{
-              background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
-              boxShadow: "0 4px 24px hsl(152 100% 50% / 0.25), 0 0 0 1px hsl(152 100% 50% / 0.3) inset",
+              background: "linear-gradient(145deg, hsl(228 16% 10% / 0.9), hsl(228 20% 6% / 0.8))",
+              border: "1px solid hsl(var(--neon-red) / 0.15)",
             }}
           >
-            <span className="shimmer absolute inset-0" />
-            <span className="relative z-10 flex items-center gap-2 text-primary-foreground">
-              <Plus className="h-5 w-5" />
-              Create Your Team
-            </span>
-          </Button>
-        </motion.div>
+            <div className="h-14 w-14 rounded-2xl bg-[hsl(var(--neon-red)/0.08)] flex items-center justify-center mx-auto mb-3">
+              <Trophy className="h-6 w-6 text-[hsl(var(--neon-red)/0.5)]" />
+            </div>
+            <p className="font-display font-bold text-sm text-foreground">You didn't join any contest</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {isLive ? "This match is now live. Entry is closed." : "This match has ended."}
+            </p>
+          </motion.div>
+        )}
 
         {/* ─── My Teams ─── */}
         {userTeams.length > 0 && (
@@ -338,6 +358,7 @@ const MatchDetail = () => {
                 contest={contest}
                 isJoined={joinedContestIds.has(contest.id)}
                 onJoin={() => handleJoinContest(contest)}
+                disabled={match.status !== "upcoming" || countdown.isExpired}
               />
             ))}
           </div>
