@@ -61,11 +61,16 @@ const AdminMatches = () => {
 
   const save = useMutation({
     mutationFn: async () => {
+      const payload = {
+        ...form,
+        match_time: form.match_time ? istToUTC(form.match_time) : form.match_time,
+        entry_deadline: form.entry_deadline ? istToUTC(form.entry_deadline) : form.entry_deadline,
+      };
       if (editId) {
-        const { error } = await (supabase.from("matches") as any).update(form).eq("id", editId);
+        const { error } = await (supabase.from("matches") as any).update(payload).eq("id", editId);
         if (error) throw error;
       } else {
-        const { error } = await (supabase.from("matches") as any).insert(form);
+        const { error } = await (supabase.from("matches") as any).insert(payload);
         if (error) throw error;
       }
     },
