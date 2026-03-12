@@ -14,6 +14,12 @@ import { useUnreadCount } from "@/hooks/useNotifications";
 import { formatMatchTime } from "@/lib/date-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const BANNERS = [
+  { title: "MEGA CONTEST", subtitle: "₹25 Lakhs Prize Pool", desc: "Join the biggest contest of the season", gradient: "gradient-primary", icon: Crown },
+  { title: "100% BONUS", subtitle: "On First Deposit", desc: "Use code WELCOME100", gradient: "gradient-premium", icon: Star },
+  { title: "WINNER TAKES ALL", subtitle: "₹1 Lakh Direct Win", desc: "Head-to-head showdown", gradient: "gradient-purple", icon: Flame },
+];
+
 const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number }) => {
   const navigate = useNavigate();
   const countdown = useCountdown(match.entry_deadline);

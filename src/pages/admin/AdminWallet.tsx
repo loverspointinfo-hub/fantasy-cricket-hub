@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, X, Search } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatIST } from "@/lib/date-utils";
 
 const AdminWallet = () => {
   const qc = useQueryClient();
