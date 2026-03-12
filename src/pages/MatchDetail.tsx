@@ -94,7 +94,7 @@ const MatchDetail = () => {
     );
   }
 
-  const matchDate = new Date(match.match_time);
+  const matchDate = match.match_time;
   const isLive = match.status === "live";
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
 
