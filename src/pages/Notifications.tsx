@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useNotifications, useMarkAsRead, useMarkAllAsRead, Notification } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { toIST } from "@/lib/date-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const typeConfig: Record<string, { icon: typeof Bell; color: string; bg: string }> = {
@@ -65,7 +66,7 @@ const NotificationItem = ({ notification, onRead }: { notification: Notification
           {notification.message}
         </p>
         <p className="text-[10px] text-muted-foreground/40 mt-1.5">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+          {formatDistanceToNow(toIST(notification.created_at), { addSuffix: true })}
         </p>
       </div>
     </motion.div>

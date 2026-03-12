@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
-import { format } from "date-fns";
+import { formatIST } from "@/lib/date-utils";
 import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
@@ -94,7 +94,7 @@ const MatchDetail = () => {
     );
   }
 
-  const matchDate = new Date(match.match_time);
+  const matchDate = match.match_time;
   const isLive = match.status === "live";
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
 
@@ -229,7 +229,7 @@ const MatchDetail = () => {
                   </Badge>
                 ) : (
                   <p className="text-[10px] text-muted-foreground font-medium">
-                    {format(matchDate, "h:mm a")}
+                    {formatIST(matchDate, "h:mm a")}
                   </p>
                 )}
               </div>
@@ -251,7 +251,7 @@ const MatchDetail = () => {
             <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-border/10">
               <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                 <Clock className="h-3 w-3 text-primary/60" />
-                {format(matchDate, "dd MMM, h:mm a")}
+                {formatIST(matchDate, "dd MMM, h:mm a")}
               </span>
               {match.venue && (
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">

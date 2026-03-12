@@ -8,7 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+import { formatIST } from "@/lib/date-utils";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -178,7 +178,7 @@ const AdminDashboard = () => {
         .limit(100);
       const grouped: Record<string, number> = {};
       (data ?? []).forEach((t: any) => {
-        const day = format(new Date(t.created_at), "dd MMM");
+        const day = formatIST(t.created_at, "dd MMM");
         grouped[day] = (grouped[day] || 0) + Number(t.amount || 0);
       });
       return Object.entries(grouped)
@@ -471,7 +471,7 @@ const AdminDashboard = () => {
                       </p>
                       <p className="text-[10px] text-muted-foreground">
                         {t.created_at
-                          ? format(new Date(t.created_at), "dd MMM, h:mm a")
+                          ? formatIST(t.created_at, "dd MMM, h:mm a")
                           : ""}
                       </p>
                     </div>
@@ -546,7 +546,7 @@ const AdminDashboard = () => {
                     <Clock className="h-3 w-3" />
                     <span className="text-[10px]">
                       {u.created_at
-                        ? format(new Date(u.created_at), "dd MMM")
+                        ? formatIST(u.created_at, "dd MMM")
                         : "—"}
                     </span>
                   </div>

@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer } from "lucide-react";
 import { toast } from "sonner";
-import { format, formatDistanceToNow, isPast } from "date-fns";
+import { formatDistanceToNow, isPast } from "date-fns";
+import { formatIST, toIST } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import MatchLineupManager from "@/components/admin/MatchLineupManager";
@@ -95,7 +96,7 @@ const AdminMatches = () => {
 
   const getDeadlineInfo = (m: any) => {
     if (!m.entry_deadline) return null;
-    const deadline = new Date(m.entry_deadline);
+    const deadline = toIST(m.entry_deadline);
     const passed = isPast(deadline);
     return { passed, label: formatDistanceToNow(deadline, { addSuffix: true }) };
   };
@@ -246,7 +247,7 @@ const AdminMatches = () => {
                   <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      Match: {m.match_time ? format(new Date(m.match_time), "dd MMM, h:mm a") : "N/A"}
+                      Match: {m.match_time ? formatIST(m.match_time, "dd MMM, h:mm a") : "N/A"}
                     </span>
                     {deadlineInfo && (
                       <span className={cn(

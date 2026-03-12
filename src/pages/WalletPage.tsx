@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useWallet, useTransactions } from "@/hooks/useWallet";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
+import { formatIST } from "@/lib/date-utils";
 
 const WalletPage = () => {
   const { user } = useAuth();
@@ -95,7 +95,7 @@ const WalletPage = () => {
                 <div key={t.id} className="flex items-center justify-between py-2 border-b border-border/20 last:border-0">
                   <div>
                     <p className="text-sm font-medium capitalize">{t.type.replace("_", " ")}</p>
-                    <p className="text-[10px] text-muted-foreground">{format(new Date(t.created_at), "dd MMM, h:mm a")}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatIST(t.created_at, "dd MMM, h:mm a")}</p>
                   </div>
                   <p className={`font-display font-bold text-sm ${t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" ? "text-neon-green" : "text-neon-red"}`}>
                     {t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" ? "+" : "-"}₹{Math.abs(t.amount)}
