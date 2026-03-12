@@ -1,19 +1,86 @@
+import { useState } from "react";
 import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, History, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useWallet, useTransactions } from "@/hooks/useWallet";
 import { useAuth } from "@/hooks/useAuth";
 import { formatIST } from "@/lib/date-utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
+const QUICK_AMOUNTS = [100, 250, 500, 1000];
 
 const WalletPage = () => {
   const { user } = useAuth();
   const { data: wallet } = useWallet();
   const { data: transactions = [] } = useTransactions();
+  const qc = useQueryClient();
+
+  const [addCashOpen, setAddCashOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const totalBalance = wallet
     ? wallet.deposit_balance + wallet.winning_balance + wallet.bonus_balance
     : 0;
+
+  const handleAddCash = async () => {
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) { toast.error("Enter a valid amount"); return; }
+    if (!user) { toast.error("Please login first"); return; }
+    setSubmitting(true);
+    try {
+      const { error } = await (supabase.from("transactions") as any).insert({
+        user_id: user.id,
+        type: "deposit",
+        amount: amt,
+        description: `Add cash ₹${amt}`,
+        status: "pending",
+      });
+      if (error) throw error;
+      toast.success("Deposit request submitted! It will be credited after admin approval.");
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setAddCashOpen(false);
+      setAmount("");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to submit request");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) { toast.error("Enter a valid amount"); return; }
+    if (!user) { toast.error("Please login first"); return; }
+    const winnings = wallet?.winning_balance ?? 0;
+    if (amt > winnings) { toast.error(`You can only withdraw up to ₹${winnings} from winnings`); return; }
+    setSubmitting(true);
+    try {
+      const { error } = await (supabase.from("transactions") as any).insert({
+        user_id: user.id,
+        type: "withdrawal",
+        amount: amt,
+        description: `Withdraw ₹${amt}`,
+        status: "pending",
+      });
+      if (error) throw error;
+      toast.success("Withdrawal request submitted! It will be processed after admin approval.");
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setWithdrawOpen(false);
+      setAmount("");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to submit request");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -44,14 +111,21 @@ const WalletPage = () => {
             </p>
             <div className="flex gap-3 mt-5 justify-center">
               <motion.div whileTap={{ scale: 0.95 }}>
-                <Button className="gradient-primary font-bold rounded-xl px-6 h-11 text-sm relative overflow-hidden">
+                <Button
+                  className="gradient-primary font-bold rounded-xl px-6 h-11 text-sm relative overflow-hidden"
+                  onClick={() => { setAmount(""); setAddCashOpen(true); }}
+                >
                   <span className="shimmer absolute inset-0" />
                   <Plus className="h-4 w-4 mr-1.5 relative z-10" />
                   <span className="relative z-10">Add Cash</span>
                 </Button>
               </motion.div>
               <motion.div whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" className="border-primary/30 text-primary rounded-xl px-6 h-11 text-sm font-bold hover:bg-primary/10">
+                <Button
+                  variant="outline"
+                  className="border-primary/30 text-primary rounded-xl px-6 h-11 text-sm font-bold hover:bg-primary/10"
+                  onClick={() => { setAmount(""); setWithdrawOpen(true); }}
+                >
                   <ArrowUpRight className="h-4 w-4 mr-1.5" /> Withdraw
                 </Button>
               </motion.div>
@@ -95,10 +169,13 @@ const WalletPage = () => {
                 <div key={t.id} className="flex items-center justify-between py-2 border-b border-border/20 last:border-0">
                   <div>
                     <p className="text-sm font-medium capitalize">{t.type.replace("_", " ")}</p>
-                    <p className="text-[10px] text-muted-foreground">{formatIST(t.created_at, "dd MMM, h:mm a")}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {formatIST(t.created_at, "dd MMM, h:mm a")}
+                      {t.status === "pending" && <span className="ml-1.5 text-amber-400 font-semibold">• Pending</span>}
+                    </p>
                   </div>
-                  <p className={`font-display font-bold text-sm ${t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" ? "text-neon-green" : "text-neon-red"}`}>
-                    {t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" ? "+" : "-"}₹{Math.abs(t.amount)}
+                  <p className={`font-display font-bold text-sm ${t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" || t.type === "admin_credit" ? "text-neon-green" : "text-neon-red"}`}>
+                    {t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" || t.type === "admin_credit" ? "+" : "-"}₹{Math.abs(t.amount)}
                   </p>
                 </div>
               ))}
@@ -106,6 +183,68 @@ const WalletPage = () => {
           )}
         </motion.div>
       </motion.div>
+
+      {/* Add Cash Dialog */}
+      <Dialog open={addCashOpen} onOpenChange={setAddCashOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add Cash</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-3">
+            <div>
+              <Label className="text-xs">Amount (₹)</Label>
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                className="text-lg font-bold h-12"
+              />
+            </div>
+            <div className="flex gap-2">
+              {QUICK_AMOUNTS.map(qa => (
+                <Button
+                  key={qa}
+                  variant={amount === String(qa) ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => setAmount(String(qa))}
+                >
+                  ₹{qa}
+                </Button>
+              ))}
+            </div>
+            <Button onClick={handleAddCash} disabled={submitting} className="w-full h-11 font-bold">
+              {submitting ? "Submitting..." : `Add ₹${parseFloat(amount) > 0 ? amount : "0"}`}
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center">Amount will be credited after admin approval</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdraw Dialog */}
+      <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Withdraw</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-3">
+            <p className="text-xs text-muted-foreground">
+              Withdrawable balance: <span className="font-bold text-foreground">₹{wallet?.winning_balance?.toFixed(0) ?? 0}</span>
+            </p>
+            <div>
+              <Label className="text-xs">Amount (₹)</Label>
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                className="text-lg font-bold h-12"
+              />
+            </div>
+            <Button onClick={handleWithdraw} disabled={submitting} className="w-full h-11 font-bold">
+              {submitting ? "Submitting..." : `Withdraw ₹${parseFloat(amount) > 0 ? amount : "0"}`}
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center">Withdrawal will be processed after admin approval</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
