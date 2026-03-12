@@ -180,6 +180,16 @@ const CreateTeam = () => {
 
   const playersForRole = matchPlayers.filter(mp => mp.player.role === activeRole);
 
+  // Block editing for non-upcoming matches (only admin can edit via admin panel)
+  if (match && match.status !== "upcoming" && isEditing) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
+        <p className="text-muted-foreground text-center px-6">Teams cannot be edited after the match deadline has passed.</p>
+        <Button onClick={() => navigate(-1)} variant="outline" className="rounded-xl">Go Back</Button>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
