@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { useWallet, useTransactions } from "@/hooks/useWallet";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
+import { formatIST } from "@/lib/date-utils";
 
 const WalletPage = () => {
   const { user } = useAuth();
