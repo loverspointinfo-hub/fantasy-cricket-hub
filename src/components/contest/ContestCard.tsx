@@ -29,8 +29,11 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled }: ContestCardProps) 
   return (
     <motion.div
       variants={item}
-      onClick={onJoin}
-      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 hover:-translate-y-1"
+      onClick={disabled && !isJoined ? undefined : onJoin}
+      className={cn(
+        "group relative rounded-2xl overflow-hidden transition-all duration-500",
+        disabled && !isJoined ? "opacity-60 cursor-default" : "cursor-pointer hover:-translate-y-1"
+      )}
       style={{
         background: "linear-gradient(145deg, hsl(228 16% 10% / 0.9), hsl(228 20% 6% / 0.8))",
         border: "1px solid hsl(228 12% 18% / 0.5)",
