@@ -176,16 +176,51 @@ const TeamPreview = ({
       </motion.div>
 
       {/* Cricket Field */}
-      <div className="relative bg-gradient-to-b from-[hsl(145,60%,22%)] via-[hsl(145,55%,18%)] to-[hsl(145,50%,14%)] px-3 py-6 min-h-[400px]">
+      <div className="relative bg-gradient-to-b from-[hsl(145,60%,22%)] via-[hsl(145,55%,18%)] to-[hsl(145,50%,14%)] px-3 py-8 min-h-[420px] overflow-hidden">
+        {/* Grass stripe pattern */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 20px, white 20px, white 21px)',
+          }}
+        />
+
         {/* Field markings */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          {/* Outer oval */}
-          <div className="w-[85%] h-[90%] rounded-[50%] border border-white/8" />
+          {/* Outer boundary oval */}
+          <div className="w-[90%] h-[92%] rounded-[50%] border-[1.5px] border-white/10" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          {/* Inner circle */}
-          <div className="w-24 h-32 border border-white/10 rounded-sm" />
+          {/* 30-yard circle */}
+          <div className="w-[55%] h-[60%] rounded-[50%] border border-dashed border-white/8" />
         </div>
+
+        {/* Pitch strip (center rectangle) */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[28px] h-[120px] border border-white/12 rounded-[2px] bg-[hsl(40,30%,50%,0.08)]">
+            {/* Crease lines */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[44px] h-[1px] bg-white/15" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[44px] h-[1px] bg-white/15" />
+            <div className="absolute top-[8px] left-1/2 -translate-x-1/2 w-[36px] h-[1px] bg-white/10" />
+            <div className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[36px] h-[1px] bg-white/10" />
+            {/* Stumps dots */}
+            <div className="absolute top-[3px] left-1/2 -translate-x-1/2 flex gap-[3px]">
+              <div className="w-[2px] h-[2px] rounded-full bg-white/20" />
+              <div className="w-[2px] h-[2px] rounded-full bg-white/20" />
+              <div className="w-[2px] h-[2px] rounded-full bg-white/20" />
+            </div>
+            <div className="absolute bottom-[3px] left-1/2 -translate-x-1/2 flex gap-[3px]">
+              <div className="w-[2px] h-[2px] rounded-full bg-white/20" />
+              <div className="w-[2px] h-[2px] rounded-full bg-white/20" />
+              <div className="w-[2px] h-[2px] rounded-full bg-white/20" />
+            </div>
+          </div>
+        </div>
+
+        {/* Corner boundary markers */}
+        <div className="absolute top-3 left-3 w-3 h-3 border-t border-l border-white/10 rounded-tl-sm pointer-events-none" />
+        <div className="absolute top-3 right-3 w-3 h-3 border-t border-r border-white/10 rounded-tr-sm pointer-events-none" />
+        <div className="absolute bottom-3 left-3 w-3 h-3 border-b border-l border-white/10 rounded-bl-sm pointer-events-none" />
+        <div className="absolute bottom-3 right-3 w-3 h-3 border-b border-r border-white/10 rounded-br-sm pointer-events-none" />
 
         {/* Players by role */}
         <div className="relative z-10 flex flex-col gap-6">
