@@ -39,17 +39,17 @@ const PlayerAvatar = ({
     .slice(0, 2);
 
   return (
-    <motion.div variants={item} className="flex flex-col items-center gap-1 w-[72px]">
+    <motion.div variants={item} className="flex flex-col items-center gap-1 w-[76px]">
       <div className="relative">
         {/* Avatar circle */}
         <div
           className={cn(
-            "h-12 w-12 rounded-full flex items-center justify-center font-display font-bold text-xs border-2",
+            "h-14 w-14 rounded-full flex items-center justify-center font-display font-bold text-xs border-2 overflow-hidden shadow-lg",
             isCaptain
-              ? "border-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.2)]"
+              ? "border-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.2)] shadow-[0_0_12px_hsl(var(--gold)/0.3)]"
               : isVC
-              ? "border-primary bg-primary/20"
-              : "border-white/20 bg-secondary/80"
+              ? "border-primary bg-primary/20 shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+              : "border-white/30 bg-secondary/80"
           )}
         >
           {player.photo_url ? (
@@ -57,10 +57,14 @@ const PlayerAvatar = ({
               src={player.photo_url}
               alt={player.name}
               className="h-full w-full rounded-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
             />
-          ) : (
-            <span className="text-foreground">{initials}</span>
-          )}
+          ) : null}
+          <span className={cn("text-foreground", player.photo_url ? "hidden" : "")}>{initials}</span>
         </div>
         {/* C / VC badge */}
         {(isCaptain || isVC) && (
