@@ -43,6 +43,17 @@ const CreateTeam = () => {
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
+  // Block access when match is not upcoming (live/completed)
+  useEffect(() => {
+    if (match && match.status !== "upcoming") {
+      toast.error("Team editing is locked — match is " + match.status);
+      navigate(`/match/${matchId}`, { replace: true });
+    } else if (match && new Date(match.entry_deadline) <= new Date()) {
+      toast.error("Entry deadline has passed");
+      navigate(`/match/${matchId}`, { replace: true });
+    }
+  }, [match, matchId, navigate]);
+
   // Load existing team data when editing
   useEffect(() => {
     if (isEditing && editingTeam && !initialized) {
