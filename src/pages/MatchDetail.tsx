@@ -323,6 +323,8 @@ const MatchDetail = () => {
                     onDelete={canManageTeams ? handleDeleteTeam : undefined}
                     onEdit={canManageTeams ? handleEditTeam : undefined}
                     deleting={deleteTeam.isPending}
+                    team1Short={match.team1_short}
+                    team2Short={match.team2_short}
                   />
                 </motion.div>
               ))}
