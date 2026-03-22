@@ -15,6 +15,8 @@ import MatchDetail from "./pages/MatchDetail";
 import CreateTeam from "./pages/CreateTeam";
 import Notifications from "./pages/Notifications";
 import ContestLeaderboard from "./pages/ContestLeaderboard";
+import PlayerStats from "./pages/PlayerStats";
+import Referrals from "./pages/Referrals";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 
