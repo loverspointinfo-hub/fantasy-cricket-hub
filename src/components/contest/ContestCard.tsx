@@ -18,9 +18,10 @@ interface ContestCardProps {
   onJoin: () => void;
   isJoined: boolean;
   disabled?: boolean;
+  onViewLeaderboard?: () => void;
 }
 
-const ContestCard = ({ contest, onJoin, isJoined, disabled }: ContestCardProps) => {
+const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }: ContestCardProps) => {
   const config = typeConfig[contest.type] || typeConfig.mega;
   const fillPercent = Math.round((contest.current_entries / contest.max_entries) * 100);
   const spotsLeft = contest.max_entries - contest.current_entries;
@@ -147,8 +148,18 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled }: ContestCardProps) 
             <Trophy className="h-3 w-3" /> {contest.prize_breakdown?.length || 1} winners
           </span>
         </div>
-        <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
-          {isJoined ? "View" : disabled ? "Closed" : "Join Now"} <ChevronRight className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-2">
+          {isJoined && onViewLeaderboard && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onViewLeaderboard(); }}
+              className="flex items-center gap-1 text-[hsl(var(--neon-cyan))] text-[10px] font-bold hover:underline"
+            >
+              Leaderboard <ChevronRight className="h-3 w-3" />
+            </button>
+          )}
+          <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
+            {isJoined ? "View" : disabled ? "Closed" : "Join Now"} <ChevronRight className="h-3.5 w-3.5" />
+          </div>
         </div>
       </div>
     </motion.div>

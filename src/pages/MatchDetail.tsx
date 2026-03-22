@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
 import ContestCard from "@/components/contest/ContestCard";
+import ContestCategoryTabs from "@/components/contest/ContestCategoryTabs";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useCountdown } from "@/hooks/useCountdown";
@@ -32,6 +33,7 @@ const MatchDetail = () => {
 
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const [contestCategory, setContestCategory] = useState("all");
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
@@ -337,6 +339,18 @@ const MatchDetail = () => {
               <span className="text-sm font-normal text-muted-foreground">({contests.length})</span>
             </h2>
           </div>
+          {/* Category filter tabs */}
+          {(() => {
+            const counts: Record<string, number> = {};
+            contests.forEach(c => { counts[c.type] = (counts[c.type] || 0) + 1; });
+            return (
+              <ContestCategoryTabs
+                active={contestCategory}
+                onChange={setContestCategory}
+                counts={counts}
+              />
+            );
+          })()}
         </motion.div>
 
         {contestsLoading ? (
@@ -354,12 +368,15 @@ const MatchDetail = () => {
           </motion.div>
         ) : (
           <div className="space-y-3">
-            {contests.map((contest) => (
+            {contests
+              .filter(c => contestCategory === "all" || c.type === contestCategory)
+              .map((contest) => (
               <ContestCard
                 key={contest.id}
                 contest={contest}
                 isJoined={joinedContestIds.has(contest.id)}
                 onJoin={() => handleJoinContest(contest)}
+                onViewLeaderboard={() => navigate(`/contest/${contest.id}/leaderboard`)}
                 disabled={match.status !== "upcoming" || countdown.isExpired}
               />
             ))}

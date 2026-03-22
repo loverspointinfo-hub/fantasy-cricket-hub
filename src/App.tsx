@@ -14,6 +14,7 @@ import Signup from "./pages/Signup";
 import MatchDetail from "./pages/MatchDetail";
 import CreateTeam from "./pages/CreateTeam";
 import Notifications from "./pages/Notifications";
+import ContestLeaderboard from "./pages/ContestLeaderboard";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/match/:matchId" element={<MatchDetail />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/contest/:contestId/leaderboard" element={<ContestLeaderboard />} />
             <Route path="/match/:matchId/create-team" element={<CreateTeam />} />
             <Route path="/match/:matchId/edit-team/:teamId" element={<CreateTeam />} />
           </Route>
