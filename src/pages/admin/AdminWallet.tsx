@@ -48,6 +48,8 @@ const AdminWallet = () => {
         if (wallet) {
           await (supabase.from("wallets") as any).update({ deposit_balance: (wallet.deposit_balance ?? 0) + amount }).eq("user_id", userId);
         }
+        // Process referral bonus on first deposit
+        await (supabase.rpc as any)("process_referral_bonus", { p_user_id: userId });
       }
       // If approving a withdrawal, deduct from winning_balance
       if (status === "completed" && type === "withdrawal") {
