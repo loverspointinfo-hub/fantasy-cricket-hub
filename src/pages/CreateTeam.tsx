@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useMatchPlayers, MatchPlayer } from "@/hooks/useMatchPlayers";
 import { useUserTeams } from "@/hooks/useUserTeams";
-import { ArrowLeft, Check, Star, Crown, Users, Minus, Plus, Info } from "lucide-react";
+import { ArrowLeft, Check, Star, Crown, Users, Minus, Plus, Info, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -391,7 +391,13 @@ const CreateTeam = () => {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{mp.player.name}</p>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); navigate(`/player/${mp.player_id}`); }}
+                            className="text-sm font-semibold truncate text-left hover:text-primary transition-colors flex items-center gap-1"
+                          >
+                            {mp.player.name}
+                            <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity flex-shrink-0" />
+                          </button>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-[10px] text-muted-foreground">{mp.player.team}</span>
                             <span className="text-[10px] text-muted-foreground/40">•</span>
