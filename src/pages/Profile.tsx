@@ -111,7 +111,7 @@ const Profile = () => {
   const menuItems = [
     { label: "KYC Verification", desc: kycStatus === "verified" ? "Verified ✓" : "Complete to enable withdrawals", icon: Fingerprint, badge: kycStatus === "verified" ? undefined : "Required", onClick: undefined },
     { label: "Transaction History", desc: "View all deposits & withdrawals", icon: History, onClick: () => navigate("/wallet") },
-    { label: "My Referrals", desc: profile?.referral_code ? `Code: ${profile.referral_code}` : "Invite friends & earn bonus", icon: Users, onClick: copyReferral },
+    { label: "My Referrals", desc: "Invite friends & earn ₹50 bonus", icon: Users, onClick: () => navigate("/referrals") },
     { label: "Settings", desc: "App preferences", icon: Settings, onClick: undefined },
     { label: "Help & Support", desc: "FAQs and contact us", icon: HelpCircle, onClick: undefined },
   ];
