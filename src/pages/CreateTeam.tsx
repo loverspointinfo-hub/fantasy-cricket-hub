@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useMatchPlayers, MatchPlayer } from "@/hooks/useMatchPlayers";
 import { useUserTeams } from "@/hooks/useUserTeams";
-import { ArrowLeft, Check, Star, Crown, Users, Minus, Plus, Info } from "lucide-react";
+import { ArrowLeft, Check, Star, Crown, Users, Minus, Plus, Info, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
