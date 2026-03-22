@@ -339,6 +339,18 @@ const MatchDetail = () => {
               <span className="text-sm font-normal text-muted-foreground">({contests.length})</span>
             </h2>
           </div>
+          {/* Category filter tabs */}
+          {(() => {
+            const counts: Record<string, number> = {};
+            contests.forEach(c => { counts[c.type] = (counts[c.type] || 0) + 1; });
+            return (
+              <ContestCategoryTabs
+                active={contestCategory}
+                onChange={setContestCategory}
+                counts={counts}
+              />
+            );
+          })()}
         </motion.div>
 
         {contestsLoading ? (
@@ -356,12 +368,15 @@ const MatchDetail = () => {
           </motion.div>
         ) : (
           <div className="space-y-3">
-            {contests.map((contest) => (
+            {contests
+              .filter(c => contestCategory === "all" || c.type === contestCategory)
+              .map((contest) => (
               <ContestCard
                 key={contest.id}
                 contest={contest}
                 isJoined={joinedContestIds.has(contest.id)}
                 onJoin={() => handleJoinContest(contest)}
+                onViewLeaderboard={() => navigate(`/contest/${contest.id}/leaderboard`)}
                 disabled={match.status !== "upcoming" || countdown.isExpired}
               />
             ))}
