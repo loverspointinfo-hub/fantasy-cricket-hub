@@ -18,6 +18,7 @@ interface ContestCardProps {
   onJoin: () => void;
   isJoined: boolean;
   disabled?: boolean;
+  onViewLeaderboard?: () => void;
 }
 
 const ContestCard = ({ contest, onJoin, isJoined, disabled }: ContestCardProps) => {
