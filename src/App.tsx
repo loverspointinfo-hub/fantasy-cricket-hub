@@ -14,6 +14,7 @@ import Signup from "./pages/Signup";
 import MatchDetail from "./pages/MatchDetail";
 import CreateTeam from "./pages/CreateTeam";
 import Notifications from "./pages/Notifications";
+import ContestLeaderboard from "./pages/ContestLeaderboard";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 
