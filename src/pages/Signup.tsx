@@ -60,7 +60,7 @@ const Signup = () => {
         email,
         password,
         options: {
-          data: { username, referral_code: referralCode || null },
+          data: { username, referred_by: referralCode.toUpperCase().trim() || null },
           emailRedirectTo: window.location.origin,
         },
       });
