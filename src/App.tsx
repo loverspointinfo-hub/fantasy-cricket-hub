@@ -47,6 +47,8 @@ const App = () => (
             <Route path="/match/:matchId" element={<MatchDetail />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/contest/:contestId/leaderboard" element={<ContestLeaderboard />} />
+            <Route path="/player/:playerId" element={<PlayerStats />} />
+            <Route path="/referrals" element={<Referrals />} />
             <Route path="/match/:matchId/create-team" element={<CreateTeam />} />
             <Route path="/match/:matchId/edit-team/:teamId" element={<CreateTeam />} />
           </Route>
