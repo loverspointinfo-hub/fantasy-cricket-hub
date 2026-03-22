@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
 import ContestCard from "@/components/contest/ContestCard";
+import ContestCategoryTabs from "@/components/contest/ContestCategoryTabs";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useCountdown } from "@/hooks/useCountdown";
