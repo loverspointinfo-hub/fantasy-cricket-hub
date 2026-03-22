@@ -1,13 +1,20 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Trophy, Crown, Star, Medal, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Trophy, Crown, Medal, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { MatchPlayer } from "@/hooks/useMatchPlayers";
+import TeamPreview from "@/components/team/TeamPreview";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 interface LeaderboardEntry {
   id: string;
@@ -24,7 +31,6 @@ const useContestLeaderboard = (contestId: string) => {
   return useQuery({
     queryKey: ["contest-leaderboard", contestId],
     queryFn: async () => {
-      // Get entries with team info
       const { data: entries, error } = await (supabase
         .from("contest_entries" as any) as any)
         .select(`
@@ -35,7 +41,6 @@ const useContestLeaderboard = (contestId: string) => {
         .order("rank", { ascending: true, nullsFirst: false });
       if (error) throw error;
 
-      // Get user profiles
       const userIds = [...new Set((entries || []).map((e: any) => e.user_id))];
       let profiles: Record<string, string> = {};
       if (userIds.length > 0) {
@@ -46,16 +51,23 @@ const useContestLeaderboard = (contestId: string) => {
         profs?.forEach((p: any) => { profiles[p.id] = p.username || "Player"; });
       }
 
-      return (entries || []).map((e: any, i: number) => ({
+      // Sort by total_points descending for ranking
+      const mapped = (entries || []).map((e: any) => ({
         id: e.id,
         user_id: e.user_id,
         team_id: e.team_id,
-        rank: e.rank ?? i + 1,
+        rank: e.rank ?? 0,
         winnings: e.winnings ?? 0,
         username: profiles[e.user_id] || "Player",
         team_name: e.user_teams?.name || "Team",
         total_points: e.user_teams?.total_points ?? 0,
-      })) as LeaderboardEntry[];
+      }));
+
+      // Sort by points desc and assign ranks
+      mapped.sort((a: any, b: any) => b.total_points - a.total_points);
+      mapped.forEach((e: any, i: number) => { e.rank = i + 1; });
+
+      return mapped as LeaderboardEntry[];
     },
     enabled: !!contestId,
     refetchInterval: 15_000,
@@ -68,13 +80,52 @@ const useContestInfo = (contestId: string) => {
     queryFn: async () => {
       const { data, error } = await (supabase
         .from("contests" as any) as any)
-        .select("*, matches!contests_match_id_fkey(team1_short, team2_short, status)")
+        .select("*, matches!contests_match_id_fkey(team1_short, team2_short, status, id)")
         .eq("id", contestId)
         .single();
       if (error) throw error;
       return data;
     },
     enabled: !!contestId,
+  });
+};
+
+const useTeamPreviewData = (teamId: string | null, matchId: string | null) => {
+  return useQuery({
+    queryKey: ["team-preview", teamId],
+    queryFn: async () => {
+      if (!teamId || !matchId) return null;
+
+      // Get team info
+      const { data: team } = await (supabase
+        .from("user_teams" as any) as any)
+        .select("*")
+        .eq("id", teamId)
+        .single();
+      if (!team) return null;
+
+      // Get team players with player details
+      const { data: teamPlayers } = await (supabase
+        .from("team_players" as any) as any)
+        .select("player_id, players(*)")
+        .eq("team_id", teamId);
+
+      const matchPlayers: MatchPlayer[] = (teamPlayers || []).map((tp: any) => ({
+        id: tp.player_id,
+        match_id: matchId,
+        player_id: tp.player_id,
+        is_playing: true,
+        fantasy_points: 0,
+        selected_by_percent: 0,
+        player: tp.players,
+      }));
+
+      return {
+        team,
+        players: matchPlayers,
+      };
+    },
+    enabled: !!teamId && !!matchId,
   });
 };
 
@@ -92,7 +143,19 @@ const ContestLeaderboard = () => {
   const { data: entries = [], isLoading } = useContestLeaderboard(contestId || "");
   const { data: contest } = useContestInfo(contestId || "");
 
+  const [previewTeamId, setPreviewTeamId] = useState<string | null>(null);
+  const matchId = contest?.matches?.id || null;
+  const isLive = contest?.matches?.status === "live";
+
+  const { data: previewData } = useTeamPreviewData(previewTeamId, matchId);
+
   const myEntry = entries.find(e => e.user_id === user?.id);
+
+  const handleEntryClick = (entry: LeaderboardEntry) => {
+    if (isLive) {
+      setPreviewTeamId(entry.team_id);
+    }
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
@@ -114,7 +177,7 @@ const ContestLeaderboard = () => {
               {contest?.matches?.team1_short} vs {contest?.matches?.team2_short} • {entries.length} participants
             </p>
           </div>
-          {contest?.matches?.status === "live" && (
+          {isLive && (
             <Badge className="bg-[hsl(var(--neon-red)/0.15)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.25)] text-[10px] font-bold gap-1 animate-pulse">
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))]" /> LIVE
             </Badge>
@@ -179,6 +242,7 @@ const ContestLeaderboard = () => {
           <span className="flex-1">Player</span>
           <span className="w-16 text-right">Points</span>
           <span className="w-16 text-right">Prize</span>
+          {isLive && <span className="w-8" />}
         </div>
 
         {/* Entries */}
@@ -201,14 +265,16 @@ const ContestLeaderboard = () => {
                 <motion.div
                   key={entry.id}
                   variants={item}
+                  onClick={() => handleEntryClick(entry)}
                   className={cn(
                     "flex items-center py-3 border-b border-border/10 last:border-0 transition-all",
                     isMe && "bg-primary/5 -mx-4 px-4 rounded-xl border-primary/10",
-                    isTop3 && !isMe && "bg-[hsl(var(--gold)/0.02)]"
+                    isTop3 && !isMe && "bg-[hsl(var(--gold)/0.02)]",
+                    isLive && "cursor-pointer hover:bg-secondary/30 active:scale-[0.99]"
                   )}
                 >
                   <div className="w-12 flex items-center justify-center">
-                    {getRankIcon(entry.rank)}
+                    {getRankIcon(entry.rank!)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={cn("text-sm font-semibold truncate", isMe && "text-primary")}>
@@ -228,6 +294,11 @@ const ContestLeaderboard = () => {
                       <p className="text-[10px] text-muted-foreground">—</p>
                     )}
                   </div>
+                  {isLive && (
+                    <div className="w-8 flex items-center justify-center">
+                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  )}
                 </motion.div>
               );
             })}
@@ -240,6 +311,24 @@ const ContestLeaderboard = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Team Preview Dialog */}
+      <Dialog open={!!previewTeamId && !!previewData} onOpenChange={(open) => !open && setPreviewTeamId(null)}>
+        <DialogContent className="max-w-md p-0 bg-transparent border-0 shadow-none [&>button]:hidden">
+          {previewData && (
+            <TeamPreview
+              players={previewData.players}
+              captainId={previewData.team.captain_id || ""}
+              viceCaptainId={previewData.team.vice_captain_id || ""}
+              totalCredits={previewData.team.total_credits || 0}
+              team1Short={contest?.matches?.team1_short}
+              team2Short={contest?.matches?.team2_short}
+              teamName={previewData.team.name}
+              onClose={() => setPreviewTeamId(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
