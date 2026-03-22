@@ -33,6 +33,7 @@ const MatchDetail = () => {
 
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const [contestCategory, setContestCategory] = useState("all");
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
