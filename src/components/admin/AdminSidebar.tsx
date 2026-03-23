@@ -20,6 +20,7 @@ const items = [
   { title: "Users", url: "/admin/users", icon: UserCog },
   { title: "Wallet / Txns", url: "/admin/wallet", icon: Wallet },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
+  { title: "Live Scoring", url: "/admin/live-scoring", icon: Zap },
 ];
 
 export function AdminSidebar() {

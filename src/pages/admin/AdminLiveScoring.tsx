@@ -184,7 +184,7 @@ const AdminLiveScoring = () => {
               <p className="text-sm text-muted-foreground">No players in this match lineup. Add players from the Matches page first.</p>
             </Card>
           ) : (
-            Object.entries(groupedPlayers).map(([team, players]) => (
+            Object.entries(groupedPlayers).map(([team, players]: [string, any[]]) => (
               <motion.div
                 key={team}
                 initial={{ opacity: 0, y: 8 }}
@@ -199,7 +199,6 @@ const AdminLiveScoring = () => {
                   <div className="divide-y divide-border/10">
                     {players.map((mp: any) => (
                       <div key={mp.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary/20 transition-colors">
-                        {/* Player avatar */}
                         <div className="h-9 w-9 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden shrink-0">
                           {mp.players?.photo_url ? (
                             <img src={mp.players.photo_url} alt="" className="h-full w-full object-cover" />
@@ -209,14 +208,12 @@ const AdminLiveScoring = () => {
                             </span>
                           )}
                         </div>
-                        {/* Name + role */}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{mp.players?.name}</p>
                           <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", roleColors[mp.players?.role] || "")}>
                             {mp.players?.role}
                           </Badge>
                         </div>
-                        {/* Points input */}
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
