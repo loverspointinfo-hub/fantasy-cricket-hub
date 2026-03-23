@@ -4,16 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Camera, CheckCircle2, Clock, XCircle, ShieldCheck, RotateCcw } from "lucide-react";
+import { ArrowLeft, Camera, CheckCircle2, Clock, XCircle, ShieldCheck, RotateCcw, Send } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { sendTelegramNotification } from "@/lib/telegram";
 
 const STEPS = [
-  { key: "aadhaar_front", label: "Aadhaar Card (Front)", instruction: "Place the FRONT of your Aadhaar card in the frame and capture" },
-  { key: "aadhaar_back", label: "Aadhaar Card (Back)", instruction: "Now flip and place the BACK of your Aadhaar card in the frame" },
+  { key: "aadhaar_front", label: "Aadhaar Front", instruction: "Place the FRONT of your Aadhaar card in the frame and capture" },
+  { key: "aadhaar_back", label: "Aadhaar Back", instruction: "Now flip and place the BACK of your Aadhaar card in the frame" },
   { key: "pan_card", label: "PAN Card", instruction: "Place your PAN card in the frame and capture" },
+  { key: "passbook", label: "Bank Passbook", instruction: "Place the first page of your bank passbook in the frame and capture" },
   { key: "selfie", label: "Live Selfie", instruction: "Look straight at the camera and take a clear selfie", facing: "user" },
 ];
 
@@ -49,21 +50,39 @@ const KYCVerification = () => {
 
   const startCamera = useCallback(async (facingMode: string = "environment") => {
     try {
+      // Stop any existing stream first
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
       }
+      setCameraReady(false);
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => setCameraReady(true);
-      }
+
+      // Wait for ref to be available
+      const attachStream = () => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().then(() => {
+              setCameraReady(true);
+            }).catch(() => {
+              setCameraReady(true);
+            });
+          };
+        }
+      };
+
       setCameraActive(true);
+      // Small delay to let React render the video element
+      setTimeout(attachStream, 100);
     } catch (err) {
-      toast.error("Camera access denied. Please allow camera permissions.");
+      console.error("Camera error:", err);
+      toast.error("Camera access denied. Please allow camera permissions in your browser settings.");
     }
   }, []);
 
@@ -72,13 +91,20 @@ const KYCVerification = () => {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setCameraActive(false);
     setCameraReady(false);
   }, []);
 
   useEffect(() => {
-    return () => stopCamera();
-  }, [stopCamera]);
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -134,10 +160,9 @@ const KYCVerification = () => {
           .upload(path, blob, { contentType: "image/jpeg", upsert: true });
         if (uploadErr) throw uploadErr;
 
-        // Get signed URL for private bucket
         const { data: signedData } = await supabase.storage
           .from("kyc-documents")
-          .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 year
+          .createSignedUrl(path, 60 * 60 * 24 * 365);
         urls[step.key] = signedData?.signedUrl || path;
       }
 
@@ -147,16 +172,15 @@ const KYCVerification = () => {
         aadhaar_back_url: urls.aadhaar_back,
         pan_card_url: urls.pan_card,
         selfie_url: urls.selfie,
+        passbook_url: urls.passbook,
         status: "pending",
       });
       if (error) throw error;
 
-      // Update profile kyc_status
       await (supabase.from("profiles" as any) as any)
         .update({ kyc_status: "pending" })
         .eq("id", user.id);
 
-      // Notify admin via Telegram
       try {
         const { data: profile } = await (supabase.from("profiles" as any) as any)
           .select("username").eq("id", user.id).single();
@@ -188,7 +212,7 @@ const KYCVerification = () => {
   // If KYC already submitted, show status
   if (existingKyc) {
     const statusConfig: Record<string, { icon: any; color: string; label: string; desc: string }> = {
-      pending: { icon: Clock, color: "text-amber-400", label: "Under Review", desc: "Your KYC documents are being reviewed by our team. This usually takes 24-48 hours." },
+      pending: { icon: Clock, color: "text-amber-400", label: "Under Review", desc: "Your KYC documents are being reviewed. This usually takes 24-48 hours." },
       verified: { icon: ShieldCheck, color: "text-primary", label: "Verified", desc: "Your KYC has been verified. You can now make withdrawals." },
       rejected: { icon: XCircle, color: "text-destructive", label: "Rejected", desc: existingKyc.admin_note || "Your KYC was rejected. Please resubmit with clear documents." },
     };
@@ -231,6 +255,7 @@ const KYCVerification = () => {
   const stepKey = STEPS[currentStep]?.key;
   const hasCaptured = !!captures[stepKey];
   const allCaptured = STEPS.every(s => captures[s.key]);
+  const capturedCount = STEPS.filter(s => captures[s.key]).length;
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -247,12 +272,12 @@ const KYCVerification = () => {
           </Button>
           <h1 className="font-display text-lg font-bold">KYC Verification</h1>
           <Badge variant="secondary" className="ml-auto text-[10px]">
-            Step {currentStep + 1}/{STEPS.length}
+            {capturedCount}/{STEPS.length} Done
           </Badge>
         </div>
       </header>
 
-      <div className="mx-auto max-w-lg px-4 py-6 space-y-4 pb-24">
+      <div className="mx-auto max-w-lg px-4 py-6 space-y-4 pb-32">
         {/* Progress */}
         <div className="flex gap-1.5">
           {STEPS.map((s, i) => (
@@ -270,35 +295,44 @@ const KYCVerification = () => {
 
         {/* Camera / Preview */}
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-secondary border border-border/30">
-          <AnimatePresence mode="wait">
-            {cameraActive && !hasCaptured ? (
-              <motion.div key="camera" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0">
-                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-                {/* Camera frame overlay */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-4 border-2 border-white/30 rounded-xl" />
-                  <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-primary rounded-tl-lg" />
-                  <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-primary rounded-tr-lg" />
-                  <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-primary rounded-bl-lg" />
-                  <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-primary rounded-br-lg" />
+          {cameraActive && !hasCaptured ? (
+            <div className="absolute inset-0">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              {/* Camera frame overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-4 border-2 border-white/30 rounded-xl" />
+                <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-primary rounded-tl-lg" />
+                <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-primary rounded-tr-lg" />
+                <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-primary rounded-bl-lg" />
+                <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-primary rounded-br-lg" />
+              </div>
+              {!cameraReady && (
+                <div className="absolute inset-0 flex items-center justify-center bg-secondary/80">
+                  <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
-              </motion.div>
-            ) : hasCaptured ? (
-              <motion.div key="preview" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0">
-                <img src={captures[stepKey]} alt={STEPS[currentStep].label} className="w-full h-full object-cover" />
-                <div className="absolute top-3 right-3">
-                  <Badge className="bg-primary/90 text-primary-foreground gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> Captured
-                  </Badge>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                <Camera className="h-12 w-12 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">Tap "Open Camera" to begin</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </div>
+          ) : hasCaptured ? (
+            <div className="absolute inset-0">
+              <img src={captures[stepKey]} alt={STEPS[currentStep].label} className="w-full h-full object-cover" />
+              <div className="absolute top-3 right-3">
+                <Badge className="bg-primary/90 text-primary-foreground gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Captured
+                </Badge>
+              </div>
+            </div>
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+              <Camera className="h-12 w-12 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">Tap "Open Camera" to begin</p>
+            </div>
+          )}
         </div>
 
         <canvas ref={canvasRef} className="hidden" />
@@ -306,12 +340,19 @@ const KYCVerification = () => {
         {/* Action buttons */}
         <div className="flex gap-3">
           {!cameraActive && !hasCaptured && (
-            <Button onClick={() => startCamera(STEPS[currentStep].facing === "user" ? "user" : "environment")} className="flex-1 gradient-primary h-12 rounded-xl font-bold gap-2">
+            <Button
+              onClick={() => startCamera(STEPS[currentStep].facing === "user" ? "user" : "environment")}
+              className="flex-1 gradient-primary h-12 rounded-xl font-bold gap-2"
+            >
               <Camera className="h-4 w-4" /> Open Camera
             </Button>
           )}
           {cameraActive && !hasCaptured && (
-            <Button onClick={capturePhoto} disabled={!cameraReady} className="flex-1 h-12 rounded-xl font-bold gap-2 bg-white text-black hover:bg-white/90">
+            <Button
+              onClick={capturePhoto}
+              disabled={!cameraReady}
+              className="flex-1 h-12 rounded-xl font-bold gap-2 bg-white text-black hover:bg-white/90"
+            >
               <Camera className="h-4 w-4" /> Capture Photo
             </Button>
           )}
@@ -320,13 +361,9 @@ const KYCVerification = () => {
               <Button onClick={retake} variant="outline" className="flex-1 h-12 rounded-xl font-bold gap-2">
                 <RotateCcw className="h-4 w-4" /> Retake
               </Button>
-              {currentStep < STEPS.length - 1 ? (
+              {currentStep < STEPS.length - 1 && (
                 <Button onClick={() => setCurrentStep(prev => prev + 1)} className="flex-1 gradient-primary h-12 rounded-xl font-bold">
                   Next Step →
-                </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={!allCaptured || submitting} className="flex-1 gradient-primary h-12 rounded-xl font-bold">
-                  {submitting ? "Submitting..." : "Submit KYC"}
                 </Button>
               )}
             </>
@@ -334,7 +371,7 @@ const KYCVerification = () => {
         </div>
 
         {/* Step thumbnails */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 gap-2">
           {STEPS.map((s, i) => (
             <button
               key={s.key}
@@ -355,13 +392,44 @@ const KYCVerification = () => {
                   <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
                 </div>
               )}
-              <p className="absolute bottom-0 inset-x-0 text-[7px] text-center bg-black/60 text-white py-0.5 truncate px-0.5">
+              <p className="absolute bottom-0 inset-x-0 text-[6px] text-center bg-black/60 text-white py-0.5 truncate px-0.5">
                 {s.label}
               </p>
             </button>
           ))}
         </div>
       </div>
+
+      {/* Fixed Submit Button - only visible when all captured */}
+      {allCaptured && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="fixed bottom-0 left-0 right-0 z-50 p-4"
+          style={{
+            background: "linear-gradient(0deg, hsl(228 18% 5% / 0.98), hsl(228 18% 5% / 0.8) 80%, transparent)",
+          }}
+        >
+          <div className="mx-auto max-w-lg">
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full gradient-primary h-14 rounded-2xl font-bold text-base gap-2"
+            >
+              {submitting ? (
+                <>
+                  <div className="h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="h-5 w-5" /> Submit KYC Documents
+                </>
+              )}
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
