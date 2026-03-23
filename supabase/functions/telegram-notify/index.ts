@@ -82,7 +82,27 @@ Deno.serve(async (req) => {
         break;
 
       case 'kyc_submitted':
-        message = `📋 <b>New KYC Submission!</b>\n\n👤 <b>User:</b> ${data.username || data.email}\n🕐 <b>Time:</b> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n\nPlease review in Admin Panel → KYC Review`;
+        message = `📋 <b>New KYC Submission!</b>\n\n👤 <b>User:</b> ${data.username || data.email}\n🆔 <b>User ID:</b> <code>${data.user_id}</code>\n🕐 <b>Time:</b> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n\n📄 Documents: Aadhaar (F/B), PAN, Passbook, Selfie`;
+        // Get the latest KYC document ID for this user
+        {
+          const { data: kycDoc } = await supabase
+            .from('kyc_documents')
+            .select('id')
+            .eq('user_id', data.user_id)
+            .order('submitted_at', { ascending: false })
+            .limit(1)
+            .single();
+          if (kycDoc) {
+            replyMarkup = {
+              inline_keyboard: [
+                [
+                  { text: '✅ Approve KYC', callback_data: `kyc_approve_${kycDoc.id}` },
+                  { text: '❌ Reject KYC', callback_data: `kyc_reject_${kycDoc.id}` },
+                ],
+              ],
+            };
+          }
+        }
         break;
 
       case 'kyc_review':
