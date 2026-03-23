@@ -13,6 +13,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { useUnreadCount } from "@/hooks/useNotifications";
 import { formatMatchTime } from "@/lib/date-utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const BANNERS = [
   { title: "MEGA CONTEST", subtitle: "₹25 Lakhs Prize Pool", desc: "Join the biggest contest of the season", gradient: "gradient-primary", icon: Crown },
