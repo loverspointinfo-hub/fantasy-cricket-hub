@@ -108,6 +108,10 @@ const Signup = () => {
             FANTASY<span className="text-gradient">11</span>
           </h1>
           <p className="text-sm text-muted-foreground">Create your account</p>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[hsl(var(--neon-green)/0.1)] border border-[hsl(var(--neon-green)/0.2)]">
+            <Gift className="h-3.5 w-3.5 text-[hsl(var(--neon-green))]" />
+            <span className="text-[11px] font-bold text-[hsl(var(--neon-green))]">Get ₹100 Signup Bonus!</span>
+          </div>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-5">
