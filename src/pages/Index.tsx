@@ -216,10 +216,10 @@ const Index = () => {
             </div>
             <div>
               <h1 className="font-display text-xl font-bold leading-none tracking-tight">
-                FANTASY<span className="text-gradient">11</span>
+                {siteSettings?.site_name || "FANTASY11"}
               </h1>
               <p className="text-[8px] text-muted-foreground/50 tracking-[0.25em] uppercase font-medium mt-0.5">
-                Play • Predict • Win
+                {siteSettings?.site_slogan || "Play • Predict • Win"}
               </p>
             </div>
           </div>
