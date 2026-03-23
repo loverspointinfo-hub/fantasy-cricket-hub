@@ -246,7 +246,14 @@ const Index = () => {
       </header>
 
       <div className="mx-auto max-w-lg px-4 py-5 space-y-5 relative z-10">
-        {/* Banners */}
+        {/* Custom Admin Banner */}
+        {siteSettings?.banner_url && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl overflow-hidden border border-border/20">
+            <img src={siteSettings.banner_url} alt="Banner" className="w-full h-36 object-cover" />
+          </motion.div>
+        )}
+
+        {/* Promo Banners */}
         <motion.div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory"
           initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
           {BANNERS.map((b, i) => (
