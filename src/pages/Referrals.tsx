@@ -136,7 +136,7 @@ const Referrals = () => {
             </div>
             <h2 className="font-display text-2xl font-bold">Invite & Earn ₹{REFERRAL_BONUS}</h2>
             <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto">
-              Share your referral code. When your friend signs up and makes their first deposit, you both get ₹{REFERRAL_BONUS} bonus!
+              Share your referral code. When your friend signs up, you both instantly get ₹{REFERRAL_BONUS} bonus!
             </p>
           </div>
         </motion.div>
