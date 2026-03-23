@@ -277,7 +277,7 @@ const KYCVerification = () => {
         </div>
       </header>
 
-      <div className="mx-auto max-w-lg px-4 py-6 space-y-4 pb-32">
+      <div className="mx-auto max-w-lg px-4 py-6 space-y-4 pb-6">
         {/* Progress */}
         <div className="flex gap-1.5">
           {STEPS.map((s, i) => (
@@ -398,38 +398,39 @@ const KYCVerification = () => {
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Fixed Submit Button - only visible when all captured */}
-      {allCaptured && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4"
-          style={{
-            background: "linear-gradient(0deg, hsl(228 18% 5% / 0.98), hsl(228 18% 5% / 0.8) 80%, transparent)",
-          }}
-        >
-          <div className="mx-auto max-w-lg">
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="w-full gradient-primary h-14 rounded-2xl font-bold text-base gap-2"
-            >
-              {submitting ? (
-                <>
-                  <div className="h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Send className="h-5 w-5" /> Submit KYC Documents
-                </>
-              )}
-            </Button>
-          </div>
-        </motion.div>
-      )}
+        {/* Submit Button - inline, visible when all captured */}
+        {allCaptured && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="pt-2"
+          >
+            <Card className="glass-card p-4 border-primary/30">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+                <p className="text-sm font-semibold">All documents captured!</p>
+              </div>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="w-full gradient-primary h-14 rounded-2xl font-bold text-base gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <div className="h-5 w-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-5 w-5" /> Submit KYC Documents
+                  </>
+                )}
+              </Button>
+            </Card>
+          </motion.div>
+        )}
     </div>
   );
 };
