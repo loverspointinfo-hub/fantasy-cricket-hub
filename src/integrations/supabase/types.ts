@@ -313,6 +313,39 @@ export type Database = {
         }
         Relationships: []
       }
+      scoring_presets: {
+        Row: {
+          color: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          label: string
+          roles: string[]
+          sort_order: number
+          value: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          label: string
+          roles?: string[]
+          sort_order?: number
+          value: number
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          label?: string
+          roles?: string[]
+          sort_order?: number
+          value?: number
+        }
+        Relationships: []
+      }
       team_players: {
         Row: {
           id: string

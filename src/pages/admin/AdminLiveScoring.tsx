@@ -5,18 +5,223 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Zap, Save, RefreshCw, Trophy, Users } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Zap, Save, RefreshCw, Trophy, Users, Settings, Plus, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
+interface ScoringPreset {
+  id: string;
+  label: string;
+  value: number;
+  roles: string[];
+  color: string;
+  sort_order: number;
+}
+
+const ALL_ROLES = ["BAT", "BOWL", "AR", "WK"];
+
+const COLOR_OPTIONS = [
+  { label: "Gray", value: "bg-secondary/60 hover:bg-secondary" },
+  { label: "Blue", value: "bg-blue-500/15 hover:bg-blue-500/30 text-blue-400" },
+  { label: "Purple", value: "bg-purple-500/15 hover:bg-purple-500/30 text-purple-400" },
+  { label: "Red", value: "bg-red-500/15 hover:bg-red-500/30 text-red-400" },
+  { label: "Green", value: "bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-400" },
+  { label: "Amber", value: "bg-amber-500/15 hover:bg-amber-500/30 text-amber-400" },
+  { label: "Yellow", value: "bg-yellow-500/15 hover:bg-yellow-500/30 text-yellow-400" },
+  { label: "Orange", value: "bg-orange-500/15 hover:bg-orange-500/30 text-orange-400" },
+];
+
+// ── Presets Hook ──
+const useScoringPresets = () => {
+  return useQuery({
+    queryKey: ["scoring-presets"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("scoring_presets" as any) as any)
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ScoringPreset[];
+    },
+  });
+};
+
+// ── Preset Manager Component ──
+const PresetManager = () => {
+  const qc = useQueryClient();
+  const { data: presets = [] } = useScoringPresets();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ label: "", value: "0", roles: [...ALL_ROLES], color: COLOR_OPTIONS[0].value });
+
+  const addPreset = useMutation({
+    mutationFn: async () => {
+      const maxOrder = presets.length > 0 ? Math.max(...presets.map(p => p.sort_order)) : 0;
+      const { error } = await (supabase.from("scoring_presets" as any) as any).insert({
+        label: form.label,
+        value: parseFloat(form.value),
+        roles: form.roles,
+        color: form.color,
+        sort_order: maxOrder + 1,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["scoring-presets"] });
+      setForm({ label: "", value: "0", roles: [...ALL_ROLES], color: COLOR_OPTIONS[0].value });
+      toast.success("Preset added");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deletePreset = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.from("scoring_presets" as any) as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["scoring-presets"] });
+      toast.success("Preset deleted");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const toggleRole = (role: string) => {
+    setForm(prev => ({
+      ...prev,
+      roles: prev.roles.includes(role) ? prev.roles.filter(r => r !== role) : [...prev.roles, role],
+    }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-xl">
+          <Settings className="h-3.5 w-3.5" /> Manage Presets
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display flex items-center gap-2">
+            <Settings className="h-4 w-4" /> Scoring Presets
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Existing presets list */}
+        <div className="space-y-1.5 mt-2">
+          {presets.map((p) => (
+            <div key={p.id} className="flex items-center gap-2 p-2.5 rounded-xl bg-secondary/20 border border-border/20">
+              <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+              <button className={cn("px-2 py-1 rounded-lg text-[10px] font-bold border border-border/20 shrink-0", p.color)}>
+                {p.value > 0 ? "+" : ""}{p.value} {p.label}
+              </button>
+              <div className="flex-1 flex gap-1 flex-wrap">
+                {p.roles.map(r => (
+                  <span key={r} className="text-[9px] bg-secondary/50 px-1.5 py-0.5 rounded font-medium text-muted-foreground">{r}</span>
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive shrink-0"
+                onClick={() => deletePreset.mutate(p.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        {/* Add new preset form */}
+        <div className="mt-4 p-4 rounded-xl border border-border/30 bg-secondary/10 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Add New Preset</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-[10px] text-muted-foreground">Label</Label>
+              <Input
+                value={form.label}
+                onChange={e => setForm(p => ({ ...p, label: e.target.value }))}
+                placeholder="e.g. Boundary"
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-[10px] text-muted-foreground">Points Value</Label>
+              <Input
+                type="number"
+                value={form.value}
+                onChange={e => setForm(p => ({ ...p, value: e.target.value }))}
+                className="h-8 text-sm"
+                step="0.5"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[10px] text-muted-foreground">Applicable Roles</Label>
+            <div className="flex gap-3 mt-1.5">
+              {ALL_ROLES.map(role => (
+                <label key={role} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <Checkbox
+                    checked={form.roles.includes(role)}
+                    onCheckedChange={() => toggleRole(role)}
+                  />
+                  {role}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Label className="text-[10px] text-muted-foreground">Color</Label>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {COLOR_OPTIONS.map(c => (
+                <button
+                  key={c.label}
+                  onClick={() => setForm(p => ({ ...p, color: c.value }))}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all",
+                    c.value,
+                    form.color === c.value ? "border-primary ring-1 ring-primary" : "border-border/20"
+                  )}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Preview */}
+          {form.label && (
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-[10px] text-muted-foreground">Preview:</span>
+              <span className={cn("px-2 py-1 rounded-lg text-[10px] font-bold border border-border/20", form.color)}>
+                {parseFloat(form.value) >= 0 ? "+" : ""}{form.value} {form.label}
+              </span>
+            </div>
+          )}
+          <Button
+            onClick={() => addPreset.mutate()}
+            disabled={!form.label || addPreset.isPending}
+            size="sm"
+            className="w-full gap-1.5 rounded-xl"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add Preset
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// ── Main Live Scoring Page ──
 const AdminLiveScoring = () => {
   const qc = useQueryClient();
   const [selectedMatchId, setSelectedMatchId] = useState<string>("");
   const [points, setPoints] = useState<Record<string, string>>({});
 
-  // Fetch live matches
+  const { data: presets = [] } = useScoringPresets();
+
   const { data: liveMatches = [] } = useQuery({
     queryKey: ["admin-live-matches"],
     queryFn: async () => {
@@ -30,7 +235,6 @@ const AdminLiveScoring = () => {
     refetchInterval: 30_000,
   });
 
-  // Fetch match players for selected match
   const { data: matchPlayers = [], isLoading: loadingPlayers } = useQuery({
     queryKey: ["admin-match-players-scoring", selectedMatchId],
     queryFn: async () => {
@@ -39,18 +243,14 @@ const AdminLiveScoring = () => {
         .eq("match_id", selectedMatchId)
         .order("fantasy_points", { ascending: false });
       if (error) throw error;
-      // Initialize points state
       const pts: Record<string, string> = {};
-      (data || []).forEach((mp: any) => {
-        pts[mp.id] = String(mp.fantasy_points ?? 0);
-      });
+      (data || []).forEach((mp: any) => { pts[mp.id] = String(mp.fantasy_points ?? 0); });
       setPoints(pts);
       return data ?? [];
     },
     enabled: !!selectedMatchId,
   });
 
-  // Count teams affected
   const { data: teamCount = 0 } = useQuery({
     queryKey: ["admin-team-count", selectedMatchId],
     queryFn: async () => {
@@ -63,10 +263,8 @@ const AdminLiveScoring = () => {
     enabled: !!selectedMatchId,
   });
 
-  // Save points and recalculate
   const savePoints = useMutation({
     mutationFn: async () => {
-      // Update each match_player's fantasy_points
       for (const mp of matchPlayers) {
         const newPts = parseFloat(points[mp.id] || "0");
         if (newPts !== (mp.fantasy_points ?? 0)) {
@@ -76,10 +274,7 @@ const AdminLiveScoring = () => {
           if (error) throw error;
         }
       }
-      // Recalculate all team total_points
-      const { data, error } = await (supabase.rpc as any)("recalculate_team_points", {
-        p_match_id: selectedMatchId,
-      });
+      const { data, error } = await (supabase.rpc as any)("recalculate_team_points", { p_match_id: selectedMatchId });
       if (error) throw error;
       return data;
     },
@@ -94,7 +289,6 @@ const AdminLiveScoring = () => {
 
   const selectedMatch = liveMatches.find((m: any) => m.id === selectedMatchId);
 
-  // Group players by team
   const groupedPlayers = matchPlayers.reduce((acc: Record<string, any[]>, mp: any) => {
     const team = mp.players?.team || "Unknown";
     if (!acc[team]) acc[team] = [];
@@ -107,6 +301,10 @@ const AdminLiveScoring = () => {
     BOWL: "bg-purple-500/15 text-purple-400 border-purple-500/20",
     AR: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
     WK: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  };
+
+  const getPresetsForRole = (role: string): ScoringPreset[] => {
+    return presets.filter(p => p.roles.includes(role));
   };
 
   return (
@@ -122,6 +320,7 @@ const AdminLiveScoring = () => {
             Update player fantasy points during live matches
           </p>
         </div>
+        <PresetManager />
       </div>
 
       {/* Match Selector */}
@@ -156,23 +355,14 @@ const AdminLiveScoring = () => {
                 </Badge>
               )}
               <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Users className="h-3 w-3" /> {teamCount} teams will be recalculated
+                <Users className="h-3 w-3" /> {teamCount} teams
               </span>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Trophy className="h-3 w-3" /> {matchPlayers.length} players
               </span>
             </div>
-            <Button
-              onClick={() => savePoints.mutate()}
-              disabled={savePoints.isPending}
-              className="gap-1.5 rounded-xl"
-              size="sm"
-            >
-              {savePoints.isPending ? (
-                <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Saving...</>
-              ) : (
-                <><Save className="h-3.5 w-3.5" /> Save & Recalculate</>
-              )}
+            <Button onClick={() => savePoints.mutate()} disabled={savePoints.isPending} className="gap-1.5 rounded-xl" size="sm">
+              {savePoints.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Saving...</> : <><Save className="h-3.5 w-3.5" /> Save & Recalculate</>}
             </Button>
           </div>
 
@@ -185,11 +375,7 @@ const AdminLiveScoring = () => {
             </Card>
           ) : (
             Object.entries(groupedPlayers).map(([team, players]: [string, any[]]) => (
-              <motion.div
-                key={team}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
+              <motion.div key={team} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                 <Card className="glass-card overflow-hidden">
                   <div className="px-4 py-2.5 border-b border-border/20 flex items-center justify-between"
                     style={{ background: "hsl(228 16% 10% / 0.6)" }}>
@@ -198,31 +384,11 @@ const AdminLiveScoring = () => {
                   </div>
                   <div className="divide-y divide-border/10">
                     {players.map((mp: any) => {
-                      const role = mp.players?.role;
-                      // Role-specific quick presets
-                      const presets = [
-                        { label: "Run", value: 1, color: "bg-secondary/60 hover:bg-secondary" },
-                        { label: "4s", value: 4, color: "bg-blue-500/15 hover:bg-blue-500/30 text-blue-400" },
-                        { label: "6s", value: 6, color: "bg-purple-500/15 hover:bg-purple-500/30 text-purple-400" },
-                        { label: "W", value: 25, color: "bg-[hsl(var(--neon-red)/0.15)] hover:bg-[hsl(var(--neon-red)/0.3)] text-[hsl(var(--neon-red))]" },
-                        { label: "Catch", value: 8, color: "bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-400" },
-                        ...(role === "BOWL" || role === "AR" ? [
-                          { label: "Maiden", value: 12, color: "bg-amber-500/15 hover:bg-amber-500/30 text-amber-400" },
-                        ] : []),
-                        ...(role === "BAT" || role === "AR" ? [
-                          { label: "50", value: 50, color: "bg-[hsl(var(--gold)/0.15)] hover:bg-[hsl(var(--gold)/0.3)] text-[hsl(var(--gold))]" },
-                          { label: "100", value: 100, color: "bg-[hsl(var(--neon-green)/0.15)] hover:bg-[hsl(var(--neon-green)/0.3)] text-[hsl(var(--neon-green))]" },
-                        ] : []),
-                        ...(role === "WK" ? [
-                          { label: "Stumping", value: 12, color: "bg-amber-500/15 hover:bg-amber-500/30 text-amber-400" },
-                        ] : []),
-                      ];
+                      const role = mp.players?.role || "";
+                      const rolePresets = getPresetsForRole(role);
 
-                      const addPoints = (val: number) => {
-                        setPoints(prev => ({
-                          ...prev,
-                          [mp.id]: String(parseFloat(prev[mp.id] || "0") + val),
-                        }));
+                      const addPts = (val: number) => {
+                        setPoints(prev => ({ ...prev, [mp.id]: String(parseFloat(prev[mp.id] || "0") + val) }));
                       };
 
                       return (
@@ -232,15 +398,13 @@ const AdminLiveScoring = () => {
                               {mp.players?.photo_url ? (
                                 <img src={mp.players.photo_url} alt="" className="h-full w-full object-cover" />
                               ) : (
-                                <span className="text-xs font-bold text-muted-foreground">
-                                  {mp.players?.name?.charAt(0) || "?"}
-                                </span>
+                                <span className="text-xs font-bold text-muted-foreground">{mp.players?.name?.charAt(0) || "?"}</span>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold truncate">{mp.players?.name}</p>
-                              <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", roleColors[mp.players?.role] || "")}>
-                                {mp.players?.role}
+                              <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", roleColors[role] || "")}>
+                                {role}
                               </Badge>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -248,9 +412,7 @@ const AdminLiveScoring = () => {
                                 onClick={() => setPoints(prev => ({ ...prev, [mp.id]: "0" }))}
                                 className="h-7 w-7 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs font-bold flex items-center justify-center transition-colors"
                                 title="Reset"
-                              >
-                                ↺
-                              </button>
+                              >↺</button>
                               <Input
                                 type="number"
                                 value={points[mp.id] || "0"}
@@ -261,26 +423,24 @@ const AdminLiveScoring = () => {
                               <span className="text-[10px] text-muted-foreground w-6">pts</span>
                             </div>
                           </div>
-                          {/* Quick preset buttons */}
+                          {/* Dynamic preset buttons from DB */}
                           <div className="flex flex-wrap gap-1.5 pl-12">
-                            {presets.map((p) => (
+                            {rolePresets.map((p) => (
                               <button
-                                key={p.label}
-                                onClick={() => addPoints(p.value)}
+                                key={p.id}
+                                onClick={() => addPts(p.value)}
                                 className={cn(
                                   "px-2 py-1 rounded-lg text-[10px] font-bold border border-border/20 transition-all active:scale-95",
                                   p.color
                                 )}
                               >
-                                +{p.value} {p.label}
+                                {p.value > 0 ? "+" : ""}{p.value} {p.label}
                               </button>
                             ))}
                             <button
-                              onClick={() => addPoints(-1)}
+                              onClick={() => addPts(-1)}
                               className="px-2 py-1 rounded-lg text-[10px] font-bold border border-border/20 bg-destructive/10 hover:bg-destructive/20 text-destructive transition-all active:scale-95"
-                            >
-                              −1
-                            </button>
+                            >−1</button>
                           </div>
                         </div>
                       );
@@ -291,20 +451,10 @@ const AdminLiveScoring = () => {
             ))
           )}
 
-          {/* Floating save button for mobile */}
           {matchPlayers.length > 0 && (
             <div className="fixed bottom-6 right-6 z-50">
-              <Button
-                onClick={() => savePoints.mutate()}
-                disabled={savePoints.isPending}
-                size="lg"
-                className="rounded-2xl shadow-2xl gap-2 gradient-primary"
-              >
-                {savePoints.isPending ? (
-                  <><RefreshCw className="h-4 w-4 animate-spin" /> Saving...</>
-                ) : (
-                  <><Save className="h-4 w-4" /> Save & Recalculate</>
-                )}
+              <Button onClick={() => savePoints.mutate()} disabled={savePoints.isPending} size="lg" className="rounded-2xl shadow-2xl gap-2 gradient-primary">
+                {savePoints.isPending ? <><RefreshCw className="h-4 w-4 animate-spin" /> Saving...</> : <><Save className="h-4 w-4" /> Save & Recalculate</>}
               </Button>
             </div>
           )}
