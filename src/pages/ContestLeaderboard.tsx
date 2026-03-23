@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Trophy, Crown, Medal, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -20,14 +20,30 @@ interface LeaderboardEntry {
   id: string;
   user_id: string;
   team_id: string;
-  rank: number | null;
-  winnings: number | null;
+  rank: number;
+  winnings: number;
   username: string;
   team_name: string;
   total_points: number;
 }
 
 const useContestLeaderboard = (contestId: string) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!contestId) return;
+    const channel = supabase
+      .channel(`leaderboard-${contestId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_teams' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["contest-leaderboard", contestId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contest_entries' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["contest-leaderboard", contestId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [contestId, queryClient]);
+
   return useQuery({
     queryKey: ["contest-leaderboard", contestId],
     queryFn: async () => {
@@ -37,8 +53,7 @@ const useContestLeaderboard = (contestId: string) => {
           id, user_id, team_id, rank, winnings,
           user_teams!contest_entries_team_id_fkey(name, total_points, user_id)
         `)
-        .eq("contest_id", contestId)
-        .order("rank", { ascending: true, nullsFirst: false });
+        .eq("contest_id", contestId);
       if (error) throw error;
 
       const userIds = [...new Set((entries || []).map((e: any) => e.user_id))];
@@ -51,26 +66,33 @@ const useContestLeaderboard = (contestId: string) => {
         profs?.forEach((p: any) => { profiles[p.id] = p.username || "Player"; });
       }
 
-      // Sort by total_points descending for ranking
-      const mapped = (entries || []).map((e: any) => ({
+      const mapped: LeaderboardEntry[] = (entries || []).map((e: any) => ({
         id: e.id,
         user_id: e.user_id,
         team_id: e.team_id,
-        rank: e.rank ?? 0,
+        rank: 0,
         winnings: e.winnings ?? 0,
         username: profiles[e.user_id] || "Player",
         team_name: e.user_teams?.name || "Team",
         total_points: e.user_teams?.total_points ?? 0,
       }));
 
-      // Sort by points desc and assign ranks
-      mapped.sort((a: any, b: any) => b.total_points - a.total_points);
-      mapped.forEach((e: any, i: number) => { e.rank = i + 1; });
+      // Sort by total_points DESC — highest points = rank 1
+      mapped.sort((a, b) => b.total_points - a.total_points);
 
-      return mapped as LeaderboardEntry[];
+      // Assign ranks with tie handling
+      let currentRank = 1;
+      for (let i = 0; i < mapped.length; i++) {
+        if (i > 0 && mapped[i].total_points < mapped[i - 1].total_points) {
+          currentRank = i + 1;
+        }
+        mapped[i].rank = currentRank;
+      }
+
+      return mapped;
     },
     enabled: !!contestId,
-    refetchInterval: 15_000,
+    refetchInterval: 10_000,
   });
 };
 
@@ -95,21 +117,16 @@ const useTeamPreviewData = (teamId: string | null, matchId: string | null) => {
     queryKey: ["team-preview", teamId],
     queryFn: async () => {
       if (!teamId || !matchId) return null;
-
-      // Get team info
       const { data: team } = await (supabase
         .from("user_teams" as any) as any)
         .select("*")
         .eq("id", teamId)
         .single();
       if (!team) return null;
-
-      // Get team players with player details
       const { data: teamPlayers } = await (supabase
         .from("team_players" as any) as any)
         .select("player_id, players(*)")
         .eq("team_id", teamId);
-
       const matchPlayers: MatchPlayer[] = (teamPlayers || []).map((tp: any) => ({
         id: tp.player_id,
         match_id: matchId,
@@ -119,21 +136,33 @@ const useTeamPreviewData = (teamId: string | null, matchId: string | null) => {
         selected_by_percent: 0,
         player: tp.players,
       }));
-
-      return {
-        team,
-        players: matchPlayers,
-      };
+      return { team, players: matchPlayers };
     },
     enabled: !!teamId && !!matchId,
   });
 };
 
-const getRankIcon = (rank: number) => {
-  if (rank === 1) return <Crown className="h-4 w-4 text-[hsl(var(--gold))]" />;
-  if (rank === 2) return <Medal className="h-4 w-4 text-[hsl(var(--neon-cyan))]" />;
-  if (rank === 3) return <Medal className="h-4 w-4 text-[hsl(var(--neon-orange))]" />;
-  return <span className="text-xs font-bold text-muted-foreground">#{rank}</span>;
+const getRankBadge = (rank: number) => {
+  if (rank === 1) return (
+    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-lg shadow-yellow-500/30">
+      <Crown className="h-3.5 w-3.5 text-white" />
+    </div>
+  );
+  if (rank === 2) return (
+    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-slate-300 to-slate-500 flex items-center justify-center shadow-lg shadow-slate-400/30">
+      <Medal className="h-3.5 w-3.5 text-white" />
+    </div>
+  );
+  if (rank === 3) return (
+    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-orange-400 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-500/30">
+      <Medal className="h-3.5 w-3.5 text-white" />
+    </div>
+  );
+  return (
+    <div className="h-7 w-7 rounded-full bg-secondary/60 flex items-center justify-center">
+      <span className="text-[11px] font-bold text-muted-foreground">{rank}</span>
+    </div>
+  );
 };
 
 const ContestLeaderboard = () => {
@@ -148,20 +177,12 @@ const ContestLeaderboard = () => {
   const isLive = contest?.matches?.status === "live";
 
   const { data: previewData } = useTeamPreviewData(previewTeamId, matchId);
-
   const myEntry = entries.find(e => e.user_id === user?.id);
-
-  const handleEntryClick = (entry: LeaderboardEntry) => {
-    if (isLive) {
-      setPreviewTeamId(entry.team_id);
-    }
-  };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
       <div className="fixed inset-0 pointer-events-none gradient-mesh opacity-50" />
 
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/20"
         style={{
           background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.85))",
@@ -186,10 +207,8 @@ const ContestLeaderboard = () => {
       </header>
 
       <div className="mx-auto max-w-lg relative z-10">
-        {/* Prize info bar */}
         {contest && (
-          <div className="px-4 py-3 border-b border-border/10"
-            style={{ background: "hsl(228 16% 8% / 0.8)" }}>
+          <div className="px-4 py-3 border-b border-border/10" style={{ background: "hsl(228 16% 8% / 0.8)" }}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em]">Prize Pool</p>
@@ -203,15 +222,12 @@ const ContestLeaderboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em]">Winners</p>
-                <p className="font-display text-lg font-bold text-[hsl(var(--gold))]">
-                  {contest.prize_breakdown?.length || 1}
-                </p>
+                <p className="font-display text-lg font-bold text-[hsl(var(--gold))]">{contest.prize_breakdown?.length || 1}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* My rank banner */}
         {myEntry && (
           <div className="mx-4 mt-4 rounded-xl p-3 flex items-center justify-between"
             style={{
@@ -236,21 +252,19 @@ const ContestLeaderboard = () => {
           </div>
         )}
 
-        {/* Leaderboard header */}
-        <div className="flex items-center justify-between px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-[0.15em] font-semibold">
-          <span className="w-12">Rank</span>
-          <span className="flex-1">Player</span>
+        <div className="flex items-center justify-between px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-[0.15em] font-semibold border-b border-border/10">
+          <span className="w-10 text-center">#</span>
+          <span className="flex-1 pl-2">Player</span>
           <span className="w-16 text-right">Points</span>
           <span className="w-16 text-right">Prize</span>
           {isLive && <span className="w-8" />}
         </div>
 
-        {/* Entries */}
         {isLoading ? (
           <div className="px-4 space-y-2">
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="flex items-center gap-3 py-3">
-                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-7 w-7 rounded-full" />
                 <Skeleton className="h-4 flex-1 rounded" />
                 <Skeleton className="h-4 w-12 rounded" />
               </div>
@@ -265,7 +279,7 @@ const ContestLeaderboard = () => {
                 <motion.div
                   key={entry.id}
                   variants={item}
-                  onClick={() => handleEntryClick(entry)}
+                  onClick={() => isLive && setPreviewTeamId(entry.team_id)}
                   className={cn(
                     "flex items-center py-3 border-b border-border/10 last:border-0 transition-all",
                     isMe && "bg-primary/5 -mx-4 px-4 rounded-xl border-primary/10",
@@ -273,10 +287,10 @@ const ContestLeaderboard = () => {
                     isLive && "cursor-pointer hover:bg-secondary/30 active:scale-[0.99]"
                   )}
                 >
-                  <div className="w-12 flex items-center justify-center">
-                    {getRankIcon(entry.rank!)}
+                  <div className="w-10 flex items-center justify-center">
+                    {getRankBadge(entry.rank)}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pl-2">
                     <p className={cn("text-sm font-semibold truncate", isMe && "text-primary")}>
                       {isMe ? "You" : entry.username}
                     </p>
@@ -286,6 +300,7 @@ const ContestLeaderboard = () => {
                     <p className={cn("font-display font-bold text-sm", isTop3 && "text-[hsl(var(--gold))]")}>
                       {entry.total_points}
                     </p>
+                    <p className="text-[9px] text-muted-foreground">pts</p>
                   </div>
                   <div className="w-16 text-right">
                     {entry.winnings > 0 ? (
@@ -312,7 +327,6 @@ const ContestLeaderboard = () => {
         )}
       </div>
 
-      {/* Team Preview Dialog */}
       <Dialog open={!!previewTeamId && !!previewData} onOpenChange={(open) => !open && setPreviewTeamId(null)}>
         <DialogContent className="max-w-md p-0 bg-transparent border-0 shadow-none [&>button]:hidden">
           {previewData && (
