@@ -82,6 +82,16 @@ const WalletPage = () => {
     if (!user) { toast.error("Please login first"); return; }
     const winnings = wallet?.winning_balance ?? 0;
     if (amt > winnings) { toast.error(`You can only withdraw up to ₹${winnings} from winnings`); return; }
+
+    // KYC check for withdrawals over ₹10,000
+    if (amt > 10000) {
+      const { data: profile } = await (supabase.from("profiles") as any)
+        .select("kyc_status").eq("id", user.id).single();
+      if (profile?.kyc_status !== "verified") {
+        toast.error("KYC verification required for withdrawals above ₹10,000. Please complete your KYC first.");
+        return;
+      }
+    }
     setSubmitting(true);
     try {
       const { error } = await (supabase.from("transactions") as any).insert({
