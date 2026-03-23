@@ -100,7 +100,17 @@ const SavedTeamCard = ({ team, onDelete, onEdit, deleting, team1Short, team2Shor
             <span className="font-display font-bold text-xs text-primary-foreground">T</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold">{team.name || "Team"}</p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm font-semibold">{team.name || "Team"}</p>
+              {nameEditsLeft > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setNewTeamName(team.name || ""); setEditNameOpen(true); }}
+                  className="p-0.5 rounded hover:bg-secondary/50 transition-colors"
+                >
+                  <Pencil className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-0.5">
               {team.captain && (
                 <span className="flex items-center gap-0.5 text-[9px] font-bold text-[hsl(var(--gold))]">
