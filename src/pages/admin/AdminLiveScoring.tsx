@@ -197,35 +197,94 @@ const AdminLiveScoring = () => {
                     <span className="text-[10px] text-muted-foreground">{players.length} players</span>
                   </div>
                   <div className="divide-y divide-border/10">
-                    {players.map((mp: any) => (
-                      <div key={mp.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary/20 transition-colors">
-                        <div className="h-9 w-9 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden shrink-0">
-                          {mp.players?.photo_url ? (
-                            <img src={mp.players.photo_url} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="text-xs font-bold text-muted-foreground">
-                              {mp.players?.name?.charAt(0) || "?"}
-                            </span>
-                          )}
+                    {players.map((mp: any) => {
+                      const role = mp.players?.role;
+                      // Role-specific quick presets
+                      const presets = [
+                        { label: "Run", value: 1, color: "bg-secondary/60 hover:bg-secondary" },
+                        { label: "4s", value: 4, color: "bg-blue-500/15 hover:bg-blue-500/30 text-blue-400" },
+                        { label: "6s", value: 6, color: "bg-purple-500/15 hover:bg-purple-500/30 text-purple-400" },
+                        { label: "W", value: 25, color: "bg-[hsl(var(--neon-red)/0.15)] hover:bg-[hsl(var(--neon-red)/0.3)] text-[hsl(var(--neon-red))]" },
+                        { label: "Catch", value: 8, color: "bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-400" },
+                        ...(role === "BOWL" || role === "AR" ? [
+                          { label: "Maiden", value: 12, color: "bg-amber-500/15 hover:bg-amber-500/30 text-amber-400" },
+                        ] : []),
+                        ...(role === "BAT" || role === "AR" ? [
+                          { label: "50", value: 50, color: "bg-[hsl(var(--gold)/0.15)] hover:bg-[hsl(var(--gold)/0.3)] text-[hsl(var(--gold))]" },
+                          { label: "100", value: 100, color: "bg-[hsl(var(--neon-green)/0.15)] hover:bg-[hsl(var(--neon-green)/0.3)] text-[hsl(var(--neon-green))]" },
+                        ] : []),
+                        ...(role === "WK" ? [
+                          { label: "Stumping", value: 12, color: "bg-amber-500/15 hover:bg-amber-500/30 text-amber-400" },
+                        ] : []),
+                      ];
+
+                      const addPoints = (val: number) => {
+                        setPoints(prev => ({
+                          ...prev,
+                          [mp.id]: String(parseFloat(prev[mp.id] || "0") + val),
+                        }));
+                      };
+
+                      return (
+                        <div key={mp.id} className="px-4 py-3 hover:bg-secondary/20 transition-colors space-y-2">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden shrink-0">
+                              {mp.players?.photo_url ? (
+                                <img src={mp.players.photo_url} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <span className="text-xs font-bold text-muted-foreground">
+                                  {mp.players?.name?.charAt(0) || "?"}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold truncate">{mp.players?.name}</p>
+                              <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", roleColors[mp.players?.role] || "")}>
+                                {mp.players?.role}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => setPoints(prev => ({ ...prev, [mp.id]: "0" }))}
+                                className="h-7 w-7 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs font-bold flex items-center justify-center transition-colors"
+                                title="Reset"
+                              >
+                                ↺
+                              </button>
+                              <Input
+                                type="number"
+                                value={points[mp.id] || "0"}
+                                onChange={(e) => setPoints(prev => ({ ...prev, [mp.id]: e.target.value }))}
+                                className="w-20 h-8 text-center font-display font-bold text-sm"
+                                step="0.5"
+                              />
+                              <span className="text-[10px] text-muted-foreground w-6">pts</span>
+                            </div>
+                          </div>
+                          {/* Quick preset buttons */}
+                          <div className="flex flex-wrap gap-1.5 pl-12">
+                            {presets.map((p) => (
+                              <button
+                                key={p.label}
+                                onClick={() => addPoints(p.value)}
+                                className={cn(
+                                  "px-2 py-1 rounded-lg text-[10px] font-bold border border-border/20 transition-all active:scale-95",
+                                  p.color
+                                )}
+                              >
+                                +{p.value} {p.label}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => addPoints(-1)}
+                              className="px-2 py-1 rounded-lg text-[10px] font-bold border border-border/20 bg-destructive/10 hover:bg-destructive/20 text-destructive transition-all active:scale-95"
+                            >
+                              −1
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{mp.players?.name}</p>
-                          <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", roleColors[mp.players?.role] || "")}>
-                            {mp.players?.role}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            value={points[mp.id] || "0"}
-                            onChange={(e) => setPoints(prev => ({ ...prev, [mp.id]: e.target.value }))}
-                            className="w-20 h-8 text-center font-display font-bold text-sm"
-                            step="0.5"
-                          />
-                          <span className="text-[10px] text-muted-foreground w-6">pts</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </Card>
               </motion.div>
