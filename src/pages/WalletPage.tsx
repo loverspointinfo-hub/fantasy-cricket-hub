@@ -92,6 +92,14 @@ const WalletPage = () => {
         status: "pending",
       });
       if (error) throw error;
+      // Send Telegram notification
+      const { data: profile } = await (supabase.from("profiles") as any)
+        .select("username").eq("id", user.id).single();
+      sendTelegramNotification('withdrawal', {
+        username: profile?.username || user.email,
+        email: user.email,
+        amount: amt,
+      });
       toast.success("Withdrawal request submitted! It will be processed after admin approval.");
       qc.invalidateQueries({ queryKey: ["transactions"] });
       setWithdrawOpen(false);
