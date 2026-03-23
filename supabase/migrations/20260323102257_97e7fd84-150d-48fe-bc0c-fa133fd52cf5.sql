@@ -1,0 +1,1 @@
+ALTER TABLE public.kyc_documents ADD COLUMN IF NOT EXISTS passbook_url TEXT;

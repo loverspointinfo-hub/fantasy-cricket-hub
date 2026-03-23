@@ -158,6 +158,7 @@ export type Database = {
           admin_note: string | null
           id: string
           pan_card_url: string | null
+          passbook_url: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           selfie_url: string | null
@@ -171,6 +172,7 @@ export type Database = {
           admin_note?: string | null
           id?: string
           pan_card_url?: string | null
+          passbook_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_url?: string | null
@@ -184,6 +186,7 @@ export type Database = {
           admin_note?: string | null
           id?: string
           pan_card_url?: string | null
+          passbook_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_url?: string | null
