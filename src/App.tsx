@@ -66,6 +66,7 @@ const App = () => (
             <Route path="wallet" element={<Suspense fallback={<div />}><AdminWallet /></Suspense>} />
             <Route path="notifications" element={<Suspense fallback={<div />}><AdminNotifications /></Suspense>} />
             <Route path="live-scoring" element={<Suspense fallback={<div />}><AdminLiveScoring /></Suspense>} />
+            <Route path="kyc" element={<Suspense fallback={<div />}><AdminKYC /></Suspense>} />
             <Route path="settings" element={<Suspense fallback={<div />}><AdminSettings /></Suspense>} />
           </Route>
           <Route path="*" element={<NotFound />} />
