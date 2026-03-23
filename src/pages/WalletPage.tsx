@@ -12,6 +12,7 @@ import { formatIST } from "@/lib/date-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { sendTelegramNotification } from "@/lib/telegram";
 
 const QUICK_AMOUNTS = [100, 250, 500, 1000];
 
