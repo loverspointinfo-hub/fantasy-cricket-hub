@@ -34,6 +34,34 @@ interface SavedTeamCardProps {
 const SavedTeamCard = ({ team, onDelete, onEdit, deleting, team1Short, team2Short }: SavedTeamCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [editNameOpen, setEditNameOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const queryClient = useQueryClient();
+
+  const nameEditsLeft = 2 - ((team as any).name_edit_count || 0);
+
+  const handleTeamNameEdit = async () => {
+    if (!newTeamName.trim()) return;
+    if (nameEditsLeft <= 0) {
+      toast.error("You can only rename a team 2 times");
+      return;
+    }
+    setSavingName(true);
+    try {
+      const { error } = await (supabase.from("user_teams" as any) as any)
+        .update({ name: newTeamName.trim(), name_edit_count: ((team as any).name_edit_count || 0) + 1 })
+        .eq("id", team.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["user-teams"] });
+      toast.success(`Team renamed! (${nameEditsLeft - 1} change${nameEditsLeft - 1 !== 1 ? 's' : ''} left)`);
+      setEditNameOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to rename team");
+    } finally {
+      setSavingName(false);
+    }
+  };
 
   const roleGroups = team.team_players.reduce<Record<string, typeof team.team_players>>((acc, tp) => {
     const role = tp.player.role;
