@@ -83,7 +83,6 @@ Deno.serve(async (req) => {
           }
 
           if (isApprove) {
-            // Credit user wallet
             const { data: wallet } = await supabase
               .from('wallets')
               .select('deposit_balance')
@@ -99,7 +98,6 @@ Deno.serve(async (req) => {
                 })
                 .eq('user_id', request.user_id);
 
-              // Record transaction
               await supabase.from('transactions').insert({
                 user_id: request.user_id,
                 type: 'deposit',
@@ -110,19 +108,15 @@ Deno.serve(async (req) => {
               });
             }
 
-            // Update request status
             await supabase
               .from('deposit_requests')
               .update({ status: 'approved', updated_at: new Date().toISOString() })
               .eq('id', requestId);
 
-            // Update Telegram message
             await editMessage(botToken, chatId, messageId, 
               update.callback_query.message.text + '\n\n✅ <b>APPROVED</b> by admin');
             await answerCallback(botToken, update.callback_query.id, '✅ Deposit Approved!');
-
           } else {
-            // Reject
             await supabase
               .from('deposit_requests')
               .update({ status: 'rejected', updated_at: new Date().toISOString() })
@@ -132,6 +126,55 @@ Deno.serve(async (req) => {
               update.callback_query.message.text + '\n\n❌ <b>REJECTED</b> by admin');
             await answerCallback(botToken, update.callback_query.id, '❌ Deposit Rejected');
           }
+
+          processed++;
+        }
+
+        // Handle KYC approval/rejection
+        if (callbackData.startsWith('kyc_approve_') || callbackData.startsWith('kyc_reject_')) {
+          const isApprove = callbackData.startsWith('kyc_approve_');
+          const kycId = callbackData.replace('kyc_approve_', '').replace('kyc_reject_', '');
+
+          const { data: kycDoc } = await supabase
+            .from('kyc_documents')
+            .select('*')
+            .eq('id', kycId)
+            .single();
+
+          if (!kycDoc) {
+            await answerCallback(botToken, update.callback_query.id, '❌ KYC not found');
+            continue;
+          }
+
+          if (kycDoc.status !== 'pending') {
+            await answerCallback(botToken, update.callback_query.id, `Already ${kycDoc.status}`);
+            continue;
+          }
+
+          const newStatus = isApprove ? 'verified' : 'rejected';
+
+          // Update KYC document
+          await supabase
+            .from('kyc_documents')
+            .update({ 
+              status: newStatus, 
+              reviewed_at: new Date().toISOString(),
+              admin_note: isApprove ? 'Approved via Telegram' : 'Rejected via Telegram'
+            })
+            .eq('id', kycId);
+
+          // Update profile kyc_status
+          await supabase
+            .from('profiles')
+            .update({ kyc_status: newStatus })
+            .eq('id', kycDoc.user_id);
+
+          const statusEmoji = isApprove ? '✅' : '❌';
+          const statusText = isApprove ? 'VERIFIED' : 'REJECTED';
+
+          await editMessage(botToken, chatId, messageId,
+            update.callback_query.message.text + `\n\n${statusEmoji} <b>${statusText}</b> by admin via Telegram`);
+          await answerCallback(botToken, update.callback_query.id, `${statusEmoji} KYC ${statusText}!`);
 
           processed++;
         }
