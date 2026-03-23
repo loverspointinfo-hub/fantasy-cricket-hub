@@ -21,6 +21,7 @@ const items = [
   { title: "Wallet / Txns", url: "/admin/wallet", icon: Wallet },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Live Scoring", url: "/admin/live-scoring", icon: Zap },
+  { title: "KYC Review", url: "/admin/kyc", icon: ShieldCheck },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
