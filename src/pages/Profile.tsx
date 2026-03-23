@@ -157,7 +157,7 @@ const Profile = () => {
   const nameEditsLeft = 2 - (profile?.name_edit_count || 0);
 
   const menuItems = [
-    { label: "KYC Verification", desc: kycStatus === "verified" ? "Verified ✓" : "Complete to enable withdrawals", icon: Fingerprint, badge: kycStatus === "verified" ? undefined : "Required", onClick: undefined },
+    { label: "KYC Verification", desc: kycStatus === "verified" ? "Verified ✓" : kycStatus === "pending" ? "Under review" : "Complete to enable withdrawals", icon: Fingerprint, badge: kycStatus === "verified" ? undefined : kycStatus === "pending" ? "Pending" : "Required", onClick: () => navigate("/kyc") },
     { label: "Transaction History", desc: "View all deposits & withdrawals", icon: History, onClick: () => navigate("/wallet") },
     { label: "My Referrals", desc: "Invite friends & earn ₹50 bonus", icon: Users, onClick: () => navigate("/referrals") },
     { label: "Settings", desc: "App preferences", icon: Settings, onClick: undefined },
