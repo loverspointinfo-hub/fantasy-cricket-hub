@@ -27,6 +27,7 @@ const AdminContests = lazy(() => import("./pages/admin/AdminContests"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminWallet = lazy(() => import("./pages/admin/AdminWallet"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminLiveScoring = lazy(() => import("./pages/admin/AdminLiveScoring"));
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="users" element={<Suspense fallback={<div />}><AdminUsers /></Suspense>} />
             <Route path="wallet" element={<Suspense fallback={<div />}><AdminWallet /></Suspense>} />
             <Route path="notifications" element={<Suspense fallback={<div />}><AdminNotifications /></Suspense>} />
+            <Route path="live-scoring" element={<Suspense fallback={<div />}><AdminLiveScoring /></Suspense>} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

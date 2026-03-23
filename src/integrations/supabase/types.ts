@@ -507,6 +507,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      recalculate_team_points: { Args: { p_match_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
