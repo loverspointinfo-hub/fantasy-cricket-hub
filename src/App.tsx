@@ -29,6 +29,8 @@ const AdminWallet = lazy(() => import("./pages/admin/AdminWallet"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminLiveScoring = lazy(() => import("./pages/admin/AdminLiveScoring"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminKYC = lazy(() => import("./pages/admin/AdminKYC"));
+const KYCVerification = lazy(() => import("./pages/KYCVerification"));
 
 const queryClient = new QueryClient();
 
