@@ -431,6 +431,7 @@ const KYCVerification = () => {
             </Card>
           </motion.div>
         )}
+      </div>
     </div>
   );
 };
