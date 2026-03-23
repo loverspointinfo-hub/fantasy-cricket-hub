@@ -66,6 +66,7 @@ const Signup = () => {
         },
       });
       if (error) throw error;
+      sendTelegramNotification('signup', { username, email });
       toast.success("Account created! Check your email to verify.");
       navigate("/login");
     } catch (err: any) {

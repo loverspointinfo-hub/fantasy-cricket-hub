@@ -20,8 +20,15 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      // Check if admin and send notification
+      if (authData.user) {
+        const { data: roles } = await (supabase.from("user_roles") as any).select("role").eq("user_id", authData.user.id);
+        if (roles?.some((r: any) => r.role === 'admin')) {
+          sendTelegramNotification('admin_login', { email });
+        }
+      }
       toast.success("Welcome back!");
       navigate("/");
     } catch (err: any) {
