@@ -81,6 +81,14 @@ Deno.serve(async (req) => {
         message = `🔐 <b>Admin Login</b>\n\n👤 <b>Email:</b> ${data.email}\n🕐 <b>Time:</b> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
         break;
 
+      case 'kyc_submitted':
+        message = `📋 <b>New KYC Submission!</b>\n\n👤 <b>User:</b> ${data.username || data.email}\n🕐 <b>Time:</b> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n\nPlease review in Admin Panel → KYC Review`;
+        break;
+
+      case 'kyc_review':
+        message = `🔍 <b>KYC ${data.status === 'verified' ? '✅ Approved' : '❌ Rejected'}</b>\n\n👤 <b>User:</b> ${data.username}\n📝 <b>Note:</b> ${data.admin_note || 'None'}`;
+        break;
+
       default:
         message = `📢 <b>${data.title || 'Notification'}</b>\n\n${data.message || ''}`;
     }

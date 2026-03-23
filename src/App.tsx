@@ -29,6 +29,8 @@ const AdminWallet = lazy(() => import("./pages/admin/AdminWallet"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminLiveScoring = lazy(() => import("./pages/admin/AdminLiveScoring"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminKYC = lazy(() => import("./pages/admin/AdminKYC"));
+const KYCVerification = lazy(() => import("./pages/KYCVerification"));
 
 const queryClient = new QueryClient();
 
@@ -53,6 +55,7 @@ const App = () => (
             <Route path="/referrals" element={<Referrals />} />
             <Route path="/match/:matchId/create-team" element={<CreateTeam />} />
             <Route path="/match/:matchId/edit-team/:teamId" element={<CreateTeam />} />
+            <Route path="/kyc" element={<Suspense fallback={<div />}><KYCVerification /></Suspense>} />
           </Route>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Suspense fallback={<div />}><AdminDashboard /></Suspense>} />
@@ -63,6 +66,7 @@ const App = () => (
             <Route path="wallet" element={<Suspense fallback={<div />}><AdminWallet /></Suspense>} />
             <Route path="notifications" element={<Suspense fallback={<div />}><AdminNotifications /></Suspense>} />
             <Route path="live-scoring" element={<Suspense fallback={<div />}><AdminLiveScoring /></Suspense>} />
+            <Route path="kyc" element={<Suspense fallback={<div />}><AdminKYC /></Suspense>} />
             <Route path="settings" element={<Suspense fallback={<div />}><AdminSettings /></Suspense>} />
           </Route>
           <Route path="*" element={<NotFound />} />

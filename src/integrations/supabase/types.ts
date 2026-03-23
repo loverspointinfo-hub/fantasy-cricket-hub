@@ -151,6 +151,48 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_documents: {
+        Row: {
+          aadhaar_back_url: string | null
+          aadhaar_front_url: string | null
+          admin_note: string | null
+          id: string
+          pan_card_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_url: string | null
+          status: string
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
+          admin_note?: string | null
+          id?: string
+          pan_card_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
+          admin_note?: string | null
+          id?: string
+          pan_card_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       match_players: {
         Row: {
           fantasy_points: number | null
