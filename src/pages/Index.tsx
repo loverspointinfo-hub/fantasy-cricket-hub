@@ -328,6 +328,7 @@ const Index = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+      <WelcomePopup />
     </div>
   );
 };
