@@ -15,136 +15,162 @@ import { formatMatchTime } from "@/lib/date-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const BANNERS = [
-{ title: "MEGA CONTEST", subtitle: "₹25 Lakhs Prize Pool", desc: "Join the biggest contest of the season", gradient: "gradient-primary", icon: Crown },
-{ title: "100% BONUS", subtitle: "On First Deposit", desc: "Use code WELCOME100", gradient: "gradient-premium", icon: Star },
-{ title: "WINNER TAKES ALL", subtitle: "₹1 Lakh Direct Win", desc: "Head-to-head showdown", gradient: "gradient-purple", icon: Flame }];
+  { title: "MEGA CONTEST", subtitle: "₹25 Lakhs Prize Pool", desc: "Join the biggest contest of the season", gradient: "gradient-primary", icon: Crown },
+  { title: "100% BONUS", subtitle: "On First Deposit", desc: "Use code WELCOME100", gradient: "gradient-premium", icon: Star },
+  { title: "WINNER TAKES ALL", subtitle: "₹1 Lakh Direct Win", desc: "Head-to-head showdown", gradient: "gradient-purple", icon: Flame },
+];
 
-
-const MatchCard = ({ match, playerCount }: {match: Match;playerCount?: number;}) => {
+const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number }) => {
   const navigate = useNavigate();
   const countdown = useCountdown(match.entry_deadline);
   const isUrgent = !countdown.isExpired && countdown.days === 0 && countdown.hours === 0;
+
   return (
     <motion.div
       variants={item}
-      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 hover:-translate-y-0.5"
+      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
       onClick={() => navigate(`/match/${match.id}`)}
       style={{
-        background: "linear-gradient(145deg, hsl(228 16% 10% / 0.9), hsl(228 20% 6% / 0.8))",
-        border: "1px solid hsl(228 12% 18% / 0.5)",
-        boxShadow: "0 8px 32px hsl(228 18% 3% / 0.4), 0 0 0 0.5px hsl(0 0% 100% / 0.03) inset"
+        background: "hsl(0 0% 100% / 0.97)",
+        border: "1px solid hsl(0 0% 0% / 0.06)",
+        boxShadow: "0 2px 12px hsl(0 0% 0% / 0.06)",
       }}
-      whileHover={{
-        boxShadow: "0 12px 40px hsl(152 100% 50% / 0.06), 0 0 0 1px hsl(152 100% 50% / 0.12)"
-      }}>
-      
-      {/* Top accent */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] opacity-40 group-hover:opacity-80 transition-opacity"
-      style={{ background: "linear-gradient(90deg, transparent, hsl(var(--primary)), hsl(var(--accent)), transparent)" }} />
-      
-
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-1.5">
-        <span className="text-[10px] text-muted-foreground/70 font-semibold uppercase tracking-[0.15em]">{match.league}</span>
-        {(match.status === "live" || match.status === "upcoming" && countdown.isExpired) &&
-        <Badge className="bg-[hsl(var(--neon-red)/0.12)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.2)] text-[9px] font-bold uppercase gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))] animate-pulse" /> Live
+      whileHover={{ y: -2, boxShadow: "0 8px 24px hsl(0 0% 0% / 0.1)" }}
+    >
+      {/* League header */}
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+          <span className="text-[11px] text-muted-foreground font-medium">{match.league}</span>
+        </div>
+        {match.status === "live" && (
+          <Badge className="bg-[hsl(0,85%,55%/0.1)] text-[hsl(0,85%,55%)] border-[hsl(0,85%,55%/0.2)] text-[9px] font-bold uppercase gap-1 px-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-[hsl(0,85%,55%)] animate-pulse" /> Live
           </Badge>
-        }
-        {match.status === "completed" &&
-        <Badge className="bg-muted/50 text-muted-foreground border-border/30 text-[9px] font-bold uppercase gap-1">
+        )}
+        {match.status === "completed" && (
+          <Badge className="bg-muted/50 text-muted-foreground border-border/30 text-[9px] font-bold uppercase">
             Completed
           </Badge>
-        }
-        {match.status === "upcoming" && !countdown.isExpired &&
-        <div className={cn(
-          "flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] font-bold",
-          isUrgent ? "text-[hsl(var(--neon-red))] bg-[hsl(var(--neon-red)/0.08)]" : "text-primary bg-primary/5"
         )}
-        style={{ border: `1px solid ${isUrgent ? "hsl(var(--neon-red) / 0.15)" : "hsl(var(--primary) / 0.12)"}` }}>
-          
-            <Timer className={cn("h-2.5 w-2.5", isUrgent && "animate-pulse")} />
-            <span className="font-display tracking-wide">{countdown.label}</span>
-          </div>
-        }
       </div>
 
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3 flex-1">
-          <div className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br text-[10px] font-bold font-display text-white shadow-lg",
-            match.team1_color
-          )}>
-            {match.team1_short}
-          </div>
-          <span className="text-sm font-bold">{match.team1_name}</span>
-        </div>
-        <div className="flex flex-col items-center mx-2">
-          <div className="h-8 w-8 rounded-full flex items-center justify-center"
-          style={{ background: "hsl(228 16% 12%)", border: "1px solid hsl(228 12% 18%)" }}>
-            
-            <span className="text-[8px] font-bold text-muted-foreground/60 tracking-wider">VS</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 flex-1 justify-end">
-          <span className="text-sm font-bold">{match.team2_name}</span>
-          <div className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br text-[10px] font-bold font-display text-white shadow-lg",
-            match.team2_color
-          )}>
-            {match.team2_short}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-border/10 px-4 py-2.5"
-      style={{ background: "hsl(228 16% 6% / 0.4)" }}>
-        
+      {/* Teams row - reference style */}
+      <div className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
-            <Users className="h-3 w-3" /> {match.venue || "TBD"}
-          </span>
-          {playerCount != null && playerCount > 0 &&
-          <span className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold text-primary bg-primary/10 border border-primary/15">
-              {playerCount} players
-            </span>
-          }
-        </div>
-        <div className="flex items-center gap-1 text-primary text-[11px] font-bold group-hover:gap-2 transition-all">
-          View <ChevronRight className="h-3.5 w-3.5" />
+          {/* Left: Teams stacked */}
+          <div className="flex-1 space-y-2.5">
+            {/* Team 1 */}
+            <div className="flex items-center gap-2.5">
+              <div
+                className={cn(
+                  "h-9 w-9 rounded-full flex items-center justify-center text-[8px] font-bold font-display text-white shadow-sm bg-gradient-to-br flex-shrink-0",
+                  match.team1_color || "from-blue-500 to-blue-700"
+                )}
+              >
+                {match.team1_short}
+              </div>
+              <div className="min-w-0">
+                <span className="text-[12px] font-bold text-foreground block">{match.team1_short}</span>
+                <span className="text-[10px] text-muted-foreground truncate block">{match.team1_name}</span>
+              </div>
+            </div>
+            {/* Team 2 */}
+            <div className="flex items-center gap-2.5">
+              <div
+                className={cn(
+                  "h-9 w-9 rounded-full flex items-center justify-center text-[8px] font-bold font-display text-white shadow-sm bg-gradient-to-br flex-shrink-0",
+                  match.team2_color || "from-red-500 to-red-700"
+                )}
+              >
+                {match.team2_short}
+              </div>
+              <div className="min-w-0">
+                <span className="text-[12px] font-bold text-foreground block">{match.team2_short}</span>
+                <span className="text-[10px] text-muted-foreground truncate block">{match.team2_name}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Countdown / Time */}
+          <div className="flex-shrink-0 text-right">
+            {match.status === "upcoming" && !countdown.isExpired ? (
+              <div className="flex flex-col items-end gap-0.5">
+                <span
+                  className={cn(
+                    "text-sm font-bold font-display tracking-wide",
+                    isUrgent ? "text-[hsl(0,85%,55%)]" : "text-[hsl(0,85%,55%)]"
+                  )}
+                >
+                  {countdown.label}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {formatMatchTime(match.match_time)}
+                </span>
+              </div>
+            ) : match.status === "live" ? (
+              <span className="text-sm font-bold text-[hsl(0,85%,55%)] animate-pulse">● LIVE</span>
+            ) : (
+              <span className="text-[11px] text-muted-foreground font-medium">
+                {formatMatchTime(match.match_time)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </motion.div>);
 
+      {/* Divider with pink/red tint like reference */}
+      <div className="h-[1px] mx-4" style={{ background: "linear-gradient(90deg, hsl(0 85% 55% / 0.08), hsl(0 85% 55% / 0.15), hsl(0 85% 55% / 0.08))" }} />
+
+      {/* Footer */}
+      <div className="px-4 py-2 flex items-center justify-between">
+        <span className="text-[10px] text-muted-foreground/60">
+          {match.venue || "Venue TBD"}
+        </span>
+        {playerCount != null && playerCount > 0 && (
+          <span className="text-[9px] font-semibold text-primary bg-primary/10 rounded-md px-1.5 py-0.5 border border-primary/15">
+            {playerCount} players
+          </span>
+        )}
+      </div>
+    </motion.div>
+  );
 };
 
-const MatchCardSkeleton = () =>
-<div className="rounded-2xl overflow-hidden"
-style={{
-  background: "linear-gradient(145deg, hsl(228 16% 10% / 0.9), hsl(228 20% 6% / 0.8))",
-  border: "1px solid hsl(228 12% 18% / 0.4)"
-}}>
-  
-    <div className="px-4 pt-3.5 pb-1.5 flex justify-between">
-      <Skeleton className="h-3 w-16 rounded" />
-      <Skeleton className="h-5 w-24 rounded-full" />
+const MatchCardSkeleton = () => (
+  <div
+    className="rounded-2xl overflow-hidden"
+    style={{
+      background: "hsl(0 0% 100% / 0.97)",
+      border: "1px solid hsl(0 0% 0% / 0.06)",
+    }}
+  >
+    <div className="px-4 pt-3 pb-2 flex justify-between">
+      <Skeleton className="h-3 w-20 rounded" />
+      <Skeleton className="h-5 w-16 rounded-full" />
     </div>
-    <div className="flex items-center justify-between px-4 py-3">
-      <div className="flex items-center gap-3 flex-1">
-        <Skeleton className="h-12 w-12 rounded-xl" />
-        <Skeleton className="h-4 w-20 rounded" />
+    <div className="px-4 py-3 space-y-2.5">
+      <div className="flex items-center gap-2.5">
+        <Skeleton className="h-9 w-9 rounded-full" />
+        <div className="space-y-1">
+          <Skeleton className="h-3 w-12 rounded" />
+          <Skeleton className="h-2.5 w-24 rounded" />
+        </div>
       </div>
-      <Skeleton className="h-8 w-8 rounded-full mx-2" />
-      <div className="flex items-center gap-3 flex-1 justify-end">
-        <Skeleton className="h-4 w-20 rounded" />
-        <Skeleton className="h-12 w-12 rounded-xl" />
+      <div className="flex items-center gap-2.5">
+        <Skeleton className="h-9 w-9 rounded-full" />
+        <div className="space-y-1">
+          <Skeleton className="h-3 w-12 rounded" />
+          <Skeleton className="h-2.5 w-24 rounded" />
+        </div>
       </div>
     </div>
-    <div className="border-t border-border/10 px-4 py-2.5 flex justify-between">
+    <div className="border-t border-border/10 px-4 py-2 flex justify-between">
       <Skeleton className="h-3 w-24 rounded" />
       <Skeleton className="h-3 w-12 rounded" />
     </div>
-  </div>;
-
+  </div>
+);
 
 type TabKey = "upcoming" | "live" | "completed";
 
@@ -159,11 +185,18 @@ const Index = () => {
   const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
   const unreadCount = useUnreadCount();
 
-  const tabs: {key: TabKey;label: string;}[] = [
-  { key: "upcoming", label: "Upcoming" },
-  { key: "live", label: "Live" },
-  { key: "completed", label: "Completed" }];
+  // Group matches by league
+  const groupedMatches = matches.reduce((acc, match) => {
+    if (!acc[match.league]) acc[match.league] = [];
+    acc[match.league].push(match);
+    return acc;
+  }, {} as Record<string, Match[]>);
 
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: "upcoming", label: "Upcoming" },
+    { key: "live", label: "Live" },
+    { key: "completed", label: "Completed" },
+  ];
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
@@ -174,33 +207,29 @@ const Index = () => {
       <div className="floating-orb w-64 h-64 bg-[hsl(var(--neon-purple))] bottom-20 left-10" style={{ animationDelay: "5s" }} />
 
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-40 relative"
-      style={{
-        background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.88))",
-        backdropFilter: "blur(24px) saturate(1.8)"
-      }}>
-        
-        {/* Bottom border with gradient */}
+      <header
+        className="sticky top-0 z-40 relative"
+        style={{
+          background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.88))",
+          backdropFilter: "blur(24px) saturate(1.8)",
+        }}
+      >
         <div className="absolute bottom-0 left-0 right-0 h-[1px]"
-        style={{ background: "linear-gradient(90deg, transparent, hsl(228 12% 18% / 0.6), hsl(152 100% 50% / 0.15), hsl(228 12% 18% / 0.6), transparent)" }} />
-        
-
+          style={{ background: "linear-gradient(90deg, transparent, hsl(228 12% 18% / 0.6), hsl(152 100% 50% / 0.15), hsl(228 12% 18% / 0.6), transparent)" }}
+        />
         <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
-          {/* Brand */}
           <div className="flex items-center gap-2.5">
             <div className="relative">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
-                boxShadow: "0 2px 12px hsl(152 100% 50% / 0.3)"
-              }}>
-                
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl relative overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
+                  boxShadow: "0 2px 12px hsl(152 100% 50% / 0.3)",
+                }}
+              >
                 <span className="shimmer absolute inset-0" />
                 <Trophy className="h-5 w-5 text-primary-foreground relative z-10" />
               </div>
-              {liveMatches.length > 0
-
-              }
             </div>
             <div>
               <h1 className="font-display text-xl font-bold leading-none tracking-tight">
@@ -211,45 +240,41 @@ const Index = () => {
               </p>
             </div>
           </div>
-
-          {/* Right actions */}
           <div className="flex items-center gap-2">
-            {/* Wallet chip */}
             <button
               onClick={() => navigate("/wallet")}
               className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 transition-all hover:scale-105 active:scale-95"
               style={{
                 background: "linear-gradient(135deg, hsl(228 16% 12%), hsl(228 16% 9%))",
-                border: "1px solid hsl(228 12% 18% / 0.6)"
-              }}>
-              
+                border: "1px solid hsl(228 12% 18% / 0.6)",
+              }}
+            >
               <Wallet className="h-3.5 w-3.5 text-primary" />
               <span className="text-[11px] font-bold text-foreground">₹{totalBalance.toFixed(0)}</span>
             </button>
-
-            {/* Notification bell */}
             <button
               onClick={() => navigate("/notifications")}
               className="relative h-9 w-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
               style={{
                 background: "hsl(228 16% 11%)",
-                border: "1px solid hsl(228 12% 18% / 0.5)"
-              }}>
-              
+                border: "1px solid hsl(228 12% 18% / 0.5)",
+              }}
+            >
               <Bell className="h-4 w-4 text-muted-foreground" />
-              {unreadCount > 0 &&
-              <div className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full flex items-center justify-center px-1"
-              style={{
-                background: "linear-gradient(135deg, hsl(var(--neon-red)), hsl(var(--neon-orange)))",
-                boxShadow: "0 0 8px hsl(var(--neon-red) / 0.5)",
-                fontSize: "9px",
-                fontWeight: 700,
-                color: "white"
-              }}>
-                
+              {unreadCount > 0 && (
+                <div
+                  className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full flex items-center justify-center px-1"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(var(--neon-red)), hsl(var(--neon-orange)))",
+                    boxShadow: "0 0 8px hsl(var(--neon-red) / 0.5)",
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    color: "white",
+                  }}
+                >
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </div>
-              }
+              )}
             </button>
           </div>
         </div>
@@ -262,115 +287,126 @@ const Index = () => {
           className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}>
-          
-          {BANNERS.map((b, i) =>
-          <motion.div
-            key={i}
-            className={cn(
-              "relative min-w-[280px] rounded-2xl p-5 flex-shrink-0 overflow-hidden snap-start",
-              b.gradient
-            )}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}>
-            
+          transition={{ duration: 0.5 }}
+        >
+          {BANNERS.map((b, i) => (
+            <motion.div
+              key={i}
+              className={cn(
+                "relative min-w-[280px] rounded-2xl p-5 flex-shrink-0 overflow-hidden snap-start",
+                b.gradient
+              )}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
               <div className="shimmer absolute inset-0 rounded-2xl" />
               <b.icon className="absolute top-4 right-4 h-16 w-16 opacity-10 text-primary-foreground" />
               <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground/60 relative z-10">{b.title}</p>
               <p className="mt-1.5 font-display text-xl font-bold text-primary-foreground relative z-10">{b.subtitle}</p>
               <p className="mt-0.5 text-[11px] text-primary-foreground/50 relative z-10">{b.desc}</p>
               <Button
-              size="sm"
-              className="mt-3 text-[11px] font-bold rounded-xl relative z-10 border-0 h-8 px-4"
-              style={{
-                background: "hsl(0 0% 100% / 0.15)",
-                backdropFilter: "blur(8px)",
-                color: "white"
-              }}>
-              
+                size="sm"
+                className="mt-3 text-[11px] font-bold rounded-xl relative z-10 border-0 h-8 px-4"
+                style={{
+                  background: "hsl(0 0% 100% / 0.15)",
+                  backdropFilter: "blur(8px)",
+                  color: "white",
+                }}
+              >
                 Join Now <ChevronRight className="h-3 w-3 ml-0.5" />
               </Button>
             </motion.div>
-          )}
+          ))}
         </motion.div>
 
         {/* Tabs */}
-        <div className="flex gap-1 rounded-2xl p-1 relative"
-        style={{
-          background: "hsl(228 16% 8% / 0.8)",
-          border: "1px solid hsl(228 12% 16% / 0.5)"
-        }}>
-          
-          {tabs.map((tab) =>
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              "relative flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all",
-              activeTab !== tab.key && "text-muted-foreground/50 hover:text-muted-foreground"
-            )}>
-            
-              {activeTab === tab.key &&
-            <motion.div
-              layoutId="tab-active"
-              className="absolute inset-0 rounded-xl"
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              style={{
-                background: "linear-gradient(135deg, hsl(152 100% 50% / 0.1), hsl(195 100% 55% / 0.06))",
-                border: "1px solid hsl(152 100% 50% / 0.2)",
-                boxShadow: "0 0 16px hsl(152 100% 50% / 0.06)"
-              }} />
-
-            }
-              {tab.key === "live" &&
-            <span className={cn(
-              "inline-block h-2 w-2 rounded-full transition-all",
-              activeTab === "live" ?
-              "bg-[hsl(var(--neon-red))] shadow-[0_0_6px_hsl(var(--neon-red)/0.5)] animate-pulse" :
-              "bg-[hsl(var(--neon-red)/0.4)]"
-            )} />
-            }
-              <span className={cn(
-              "relative z-10 transition-colors",
-              activeTab === tab.key && "text-primary"
-            )}>
+        <div
+          className="flex gap-1 rounded-2xl p-1 relative"
+          style={{
+            background: "hsl(228 16% 8% / 0.8)",
+            border: "1px solid hsl(228 12% 16% / 0.5)",
+          }}
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                "relative flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all",
+                activeTab !== tab.key && "text-muted-foreground/50 hover:text-muted-foreground"
+              )}
+            >
+              {activeTab === tab.key && (
+                <motion.div
+                  layoutId="tab-active"
+                  className="absolute inset-0 rounded-xl"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  style={{
+                    background: "linear-gradient(135deg, hsl(152 100% 50% / 0.1), hsl(195 100% 55% / 0.06))",
+                    border: "1px solid hsl(152 100% 50% / 0.2)",
+                    boxShadow: "0 0 16px hsl(152 100% 50% / 0.06)",
+                  }}
+                />
+              )}
+              {tab.key === "live" && (
+                <span
+                  className={cn(
+                    "inline-block h-2 w-2 rounded-full transition-all",
+                    activeTab === "live"
+                      ? "bg-[hsl(var(--neon-red))] shadow-[0_0_6px_hsl(var(--neon-red)/0.5)] animate-pulse"
+                      : "bg-[hsl(var(--neon-red)/0.4)]"
+                  )}
+                />
+              )}
+              <span className={cn("relative z-10 transition-colors", activeTab === tab.key && "text-primary")}>
                 {tab.label}
               </span>
             </button>
-          )}
+          ))}
         </div>
 
-        {/* Matches */}
+        {/* Matches - Grouped by League */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
             variants={staggerContainer}
             initial="hidden"
             animate="show"
-            className="space-y-3">
-            
-            {isLoading ?
-            <div className="space-y-3">
+            className="space-y-5"
+          >
+            {isLoading ? (
+              <div className="space-y-3">
                 <MatchCardSkeleton />
                 <MatchCardSkeleton />
                 <MatchCardSkeleton />
-              </div> :
-            matches.length === 0 ?
-            <motion.div variants={item} className="glass-card flex flex-col items-center py-16 text-muted-foreground">
+              </div>
+            ) : matches.length === 0 ? (
+              <motion.div variants={item} className="glass-card flex flex-col items-center py-16 text-muted-foreground">
                 <div className="h-16 w-16 rounded-2xl bg-secondary/60 flex items-center justify-center mb-4">
                   <Trophy className="h-7 w-7 opacity-30" />
                 </div>
                 <p className="text-sm font-semibold text-foreground/70">No {activeTab} matches</p>
                 <p className="text-xs text-muted-foreground/50 mt-1">Check back soon!</p>
-              </motion.div> :
-
-            matches.map((match) => <MatchCard key={match.id} match={match} playerCount={playerCounts[match.id]} />)
-            }
+              </motion.div>
+            ) : (
+              Object.entries(groupedMatches).map(([league, leagueMatches]) => (
+                <motion.div key={league} variants={item} className="space-y-2.5">
+                  {/* League section header */}
+                  <div className="flex items-center gap-2 px-1">
+                    <h3 className="text-[12px] font-semibold text-muted-foreground/70 uppercase tracking-wider">{league}</h3>
+                    <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+                  </div>
+                  {leagueMatches.map((match) => (
+                    <MatchCard key={match.id} match={match} playerCount={playerCounts[match.id]} />
+                  ))}
+                </motion.div>
+              ))
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
-    </div>);
-
+    </div>
+  );
 };
 
 export default Index;

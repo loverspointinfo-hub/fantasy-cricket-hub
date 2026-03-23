@@ -368,22 +368,59 @@ const MatchDetail = () => {
             <p className="text-sm font-semibold">No contests available</p>
             <p className="text-xs text-muted-foreground/60 mt-1">Contests will appear here soon</p>
           </motion.div>
-        ) : (
-          <div className="space-y-3">
-            {contests
-              .filter(c => contestCategory === "all" || c.type === contestCategory)
-              .map((contest) => (
-              <ContestCard
-                key={contest.id}
-                contest={contest}
-                isJoined={joinedContestIds.has(contest.id)}
-                onJoin={() => handleJoinContest(contest)}
-                onViewLeaderboard={() => navigate(`/contest/${contest.id}/leaderboard`)}
-                disabled={match.status !== "upcoming" || countdown.isExpired}
-              />
-            ))}
-          </div>
-        )}
+        ) : (() => {
+          const filtered = contests.filter(c => contestCategory === "all" || c.type === contestCategory);
+          const typeLabels: Record<string, string> = {
+            mega: "GRAND LEAGUE",
+            h2h: "HEAD TO HEAD",
+            winner_takes_all: "WINNER TAKES ALL",
+            practice: "PRACTICE",
+            private: "PRIVATE CONTESTS",
+          };
+          // Group by type if showing all
+          if (contestCategory === "all") {
+            const grouped: Record<string, typeof filtered> = {};
+            filtered.forEach(c => {
+              if (!grouped[c.type]) grouped[c.type] = [];
+              grouped[c.type].push(c);
+            });
+            return (
+              <div className="space-y-5">
+                {Object.entries(grouped).map(([type, typeContests]) => (
+                  <div key={type} className="space-y-2.5">
+                    <h3 className="text-[12px] font-bold text-muted-foreground/70 uppercase tracking-wider px-1">
+                      {typeLabels[type] || type.toUpperCase()}
+                    </h3>
+                    {typeContests.map(contest => (
+                      <ContestCard
+                        key={contest.id}
+                        contest={contest}
+                        isJoined={joinedContestIds.has(contest.id)}
+                        onJoin={() => handleJoinContest(contest)}
+                        onViewLeaderboard={() => navigate(`/contest/${contest.id}/leaderboard`)}
+                        disabled={match.status !== "upcoming" || countdown.isExpired}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            );
+          }
+          return (
+            <div className="space-y-3">
+              {filtered.map(contest => (
+                <ContestCard
+                  key={contest.id}
+                  contest={contest}
+                  isJoined={joinedContestIds.has(contest.id)}
+                  onJoin={() => handleJoinContest(contest)}
+                  onViewLeaderboard={() => navigate(`/contest/${contest.id}/leaderboard`)}
+                  disabled={match.status !== "upcoming" || countdown.isExpired}
+                />
+              ))}
+            </div>
+          );
+        })()}
       </motion.div>
 
       {/* Join Contest Sheet */}
