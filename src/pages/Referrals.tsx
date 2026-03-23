@@ -136,7 +136,7 @@ const Referrals = () => {
             </div>
             <h2 className="font-display text-2xl font-bold">Invite & Earn ₹{REFERRAL_BONUS}</h2>
             <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto">
-              Share your referral code. When your friend signs up and makes their first deposit, you both get ₹{REFERRAL_BONUS} bonus!
+              Share your referral code. When your friend signs up, you both instantly get ₹{REFERRAL_BONUS} bonus!
             </p>
           </div>
         </motion.div>
@@ -191,7 +191,7 @@ const Referrals = () => {
             {[
               { step: 1, title: "Share your code", desc: "Send your referral code to friends" },
               { step: 2, title: "Friend signs up", desc: "They create an account using your code" },
-              { step: 3, title: "First deposit", desc: "When they make their first deposit, you both get ₹50 bonus!" },
+              { step: 3, title: "Both get ₹50!", desc: "Instant bonus credited to both wallets on signup" },
             ].map(s => (
               <div key={s.step} className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
