@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Trophy, Mail, Lock, User, Eye, EyeOff, Gift, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { sendTelegramNotification } from "@/lib/telegram";
 import { motion } from "framer-motion";
 
 const Signup = () => {
@@ -65,6 +66,7 @@ const Signup = () => {
         },
       });
       if (error) throw error;
+      sendTelegramNotification('signup', { username, email });
       toast.success("Account created! Check your email to verify.");
       navigate("/login");
     } catch (err: any) {

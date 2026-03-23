@@ -12,6 +12,7 @@ import { formatIST } from "@/lib/date-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { sendTelegramNotification } from "@/lib/telegram";
 
 const QUICK_AMOUNTS = [100, 250, 500, 1000];
 
@@ -36,14 +37,34 @@ const WalletPage = () => {
     if (!user) { toast.error("Please login first"); return; }
     setSubmitting(true);
     try {
+      // Create deposit request
+      const { data: req, error: reqErr } = await (supabase.from("deposit_requests") as any).insert({
+        user_id: user.id,
+        amount: amt,
+      }).select().single();
+      if (reqErr) throw reqErr;
+
+      // Also create transaction record
       const { error } = await (supabase.from("transactions") as any).insert({
         user_id: user.id,
         type: "deposit",
         amount: amt,
         description: `Add cash ₹${amt}`,
         status: "pending",
+        reference_id: req.id,
       });
       if (error) throw error;
+
+      // Send Telegram notification with approve/reject buttons
+      const { data: profile } = await (supabase.from("profiles") as any)
+        .select("username").eq("id", user.id).single();
+      sendTelegramNotification('deposit_request', {
+        username: profile?.username || user.email,
+        email: user.email,
+        amount: amt,
+        request_id: req.id,
+      });
+
       toast.success("Deposit request submitted! It will be credited after admin approval.");
       qc.invalidateQueries({ queryKey: ["transactions"] });
       setAddCashOpen(false);
@@ -71,6 +92,14 @@ const WalletPage = () => {
         status: "pending",
       });
       if (error) throw error;
+      // Send Telegram notification
+      const { data: profile } = await (supabase.from("profiles") as any)
+        .select("username").eq("id", user.id).single();
+      sendTelegramNotification('withdrawal', {
+        username: profile?.username || user.email,
+        email: user.email,
+        amount: amt,
+      });
       toast.success("Withdrawal request submitted! It will be processed after admin approval.");
       qc.invalidateQueries({ queryKey: ["transactions"] });
       setWithdrawOpen(false);
