@@ -164,6 +164,7 @@ const AdminKYC = () => {
                   { key: "aadhaar_front_url", label: "Aadhaar Front" },
                   { key: "aadhaar_back_url", label: "Aadhaar Back" },
                   { key: "pan_card_url", label: "PAN Card" },
+                  { key: "passbook_url", label: "Bank Passbook" },
                   { key: "selfie_url", label: "Selfie" },
                 ].map(doc => (
                   <div key={doc.key} className="space-y-1">
