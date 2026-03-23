@@ -284,6 +284,7 @@ export type Database = {
           full_name: string | null
           id: string
           kyc_status: string | null
+          name_edit_count: number
           referral_code: string | null
           referred_by: string | null
           updated_at: string | null
@@ -295,6 +296,7 @@ export type Database = {
           full_name?: string | null
           id: string
           kyc_status?: string | null
+          name_edit_count?: number
           referral_code?: string | null
           referred_by?: string | null
           updated_at?: string | null
@@ -306,6 +308,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           kyc_status?: string | null
+          name_edit_count?: number
           referral_code?: string | null
           referred_by?: string | null
           updated_at?: string | null
@@ -455,6 +458,7 @@ export type Database = {
           id: string
           match_id: string
           name: string | null
+          name_edit_count: number
           total_credits: number | null
           total_points: number | null
           user_id: string
@@ -466,6 +470,7 @@ export type Database = {
           id?: string
           match_id: string
           name?: string | null
+          name_edit_count?: number
           total_credits?: number | null
           total_points?: number | null
           user_id: string
@@ -477,6 +482,7 @@ export type Database = {
           id?: string
           match_id?: string
           name?: string | null
+          name_edit_count?: number
           total_credits?: number | null
           total_points?: number | null
           user_id?: string
