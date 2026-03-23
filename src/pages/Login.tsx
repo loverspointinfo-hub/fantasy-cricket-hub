@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Trophy, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { sendTelegramNotification } from "@/lib/telegram";
 import { motion } from "framer-motion";
 
 const Login = () => {
