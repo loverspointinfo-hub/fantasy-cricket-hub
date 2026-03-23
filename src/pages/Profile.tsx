@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, LogOut, Shield, ChevronRight, Fingerprint, History, Users, HelpCircle, Settings, Trophy, Gamepad2, TrendingUp, Copy, CheckCircle2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { User, LogOut, Shield, ChevronRight, Fingerprint, History, Users, HelpCircle, Settings, Trophy, Gamepad2, TrendingUp, Copy, CheckCircle2, Camera, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWallet } from "@/hooks/useWallet";
 
 const useProfileStats = (userId: string | undefined) => {
@@ -15,26 +17,15 @@ const useProfileStats = (userId: string | undefined) => {
     queryKey: ["profile-stats", userId],
     queryFn: async () => {
       if (!userId) return { matches: 0, contestsWon: 0, totalWinnings: 0, contestsJoined: 0 };
-
-      // Count matches with teams
       const { data: teams } = await (supabase.from("user_teams" as any) as any)
         .select("match_id").eq("user_id", userId);
       const uniqueMatches = new Set(teams?.map((t: any) => t.match_id) || []);
-
-      // Count contest entries and winnings
       const { data: entries } = await (supabase.from("contest_entries" as any) as any)
         .select("id, rank, winnings").eq("user_id", userId);
-
       const contestsJoined = entries?.length || 0;
       const contestsWon = entries?.filter((e: any) => e.rank === 1).length || 0;
       const totalWinnings = entries?.reduce((sum: number, e: any) => sum + (e.winnings || 0), 0) || 0;
-
-      return {
-        matches: uniqueMatches.size,
-        contestsWon,
-        totalWinnings,
-        contestsJoined,
-      };
+      return { matches: uniqueMatches.size, contestsWon, totalWinnings, contestsJoined };
     },
     enabled: !!userId,
   });
@@ -55,8 +46,14 @@ const useProfileData = (userId: string | undefined) => {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [editNameOpen, setEditNameOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: wallet } = useWallet();
 
   useEffect(() => {
@@ -85,6 +82,56 @@ const Profile = () => {
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be under 2MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/avatar.${ext}`;
+      // Remove old avatar if exists
+      await supabase.storage.from("avatars").remove([path]);
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      await (supabase.from("profiles" as any) as any).update({ avatar_url: avatarUrl }).eq("id", user.id);
+      queryClient.invalidateQueries({ queryKey: ["profile-data"] });
+      toast.success("Profile picture updated!");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleNameEdit = async () => {
+    if (!user || !newName.trim()) return;
+    const editCount = profile?.name_edit_count || 0;
+    if (editCount >= 2) {
+      toast.error("You can only change your name 2 times");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await (supabase.from("profiles" as any) as any)
+        .update({ username: newName.trim(), name_edit_count: editCount + 1 })
+        .eq("id", user.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["profile-data"] });
+      toast.success(`Name updated! (${2 - editCount - 1} change${2 - editCount - 1 !== 1 ? 's' : ''} remaining)`);
+      setEditNameOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update name");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 gap-5 relative overflow-hidden">
@@ -107,6 +154,7 @@ const Profile = () => {
   const username = profile?.username || user.user_metadata?.username || "Player";
   const kycStatus = profile?.kyc_status || "pending";
   const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
+  const nameEditsLeft = 2 - (profile?.name_edit_count || 0);
 
   const menuItems = [
     { label: "KYC Verification", desc: kycStatus === "verified" ? "Verified ✓" : "Complete to enable withdrawals", icon: Fingerprint, badge: kycStatus === "verified" ? undefined : "Required", onClick: undefined },
@@ -139,13 +187,45 @@ const Profile = () => {
         {/* User Card */}
         <motion.div variants={item} className="glass-card-premium p-5 flex items-center gap-4 relative overflow-hidden">
           <div className="shimmer absolute inset-0" />
-          <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary shadow-lg flex-shrink-0">
-            <span className="font-display text-2xl font-bold text-primary-foreground">
-              {username[0]?.toUpperCase()}
-            </span>
+          {/* Avatar with upload */}
+          <div className="relative z-10 flex-shrink-0">
+            <div
+              className="relative h-16 w-16 rounded-2xl overflow-hidden gradient-primary shadow-lg cursor-pointer group"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center">
+                  <span className="font-display text-2xl font-bold text-primary-foreground">
+                    {username[0]?.toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="h-5 w-5 text-white" />
+              </div>
+              {uploading && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </div>
+
           <div className="flex-1 relative z-10 min-w-0">
-            <p className="font-display font-bold text-xl truncate">{username}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="font-display font-bold text-xl truncate">{username}</p>
+              {nameEditsLeft > 0 && (
+                <button
+                  onClick={() => { setNewName(username); setEditNameOpen(true); }}
+                  className="p-1 rounded-md hover:bg-secondary/50 transition-colors"
+                >
+                  <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                </button>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             {profile?.referral_code && (
               <button onClick={copyReferral} className="flex items-center gap-1 mt-1 text-[10px] text-primary hover:underline">
@@ -155,8 +235,8 @@ const Profile = () => {
             )}
           </div>
           <Badge className={`text-[10px] font-bold flex-shrink-0 relative z-10 ${
-            kycStatus === "verified" 
-              ? "bg-primary/15 text-primary border-primary/25" 
+            kycStatus === "verified"
+              ? "bg-primary/15 text-primary border-primary/25"
               : "bg-[hsl(var(--neon-orange)/0.15)] text-[hsl(var(--neon-orange))] border-[hsl(var(--neon-orange)/0.25)]"
           }`}>
             <Shield className="mr-1 h-3 w-3" /> {kycStatus === "verified" ? "Verified" : "Unverified"}
@@ -231,6 +311,32 @@ const Profile = () => {
           </Button>
         </motion.div>
       </motion.div>
+
+      {/* Edit Name Dialog */}
+      <Dialog open={editNameOpen} onOpenChange={setEditNameOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Name</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Enter new name"
+              maxLength={30}
+            />
+            <p className="text-xs text-muted-foreground">
+              You have <span className="font-bold text-primary">{nameEditsLeft}</span> name change{nameEditsLeft !== 1 ? 's' : ''} remaining
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditNameOpen(false)}>Cancel</Button>
+            <Button onClick={handleNameEdit} disabled={saving || !newName.trim()} className="gradient-primary">
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
