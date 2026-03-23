@@ -27,6 +27,7 @@ const AdminContests = lazy(() => import("./pages/admin/AdminContests"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminWallet = lazy(() => import("./pages/admin/AdminWallet"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminLiveScoring = lazy(() => import("./pages/admin/AdminLiveScoring"));
 
 const queryClient = new QueryClient();
 
