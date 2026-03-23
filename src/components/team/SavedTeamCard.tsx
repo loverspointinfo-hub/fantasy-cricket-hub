@@ -232,6 +232,32 @@ const SavedTeamCard = ({ team, onDelete, onEdit, deleting, team1Short, team2Shor
           />
         </DialogContent>
       </Dialog>
+
+      {/* Edit Team Name Dialog */}
+      <Dialog open={editNameOpen} onOpenChange={setEditNameOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Rename Team</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              placeholder="Enter team name"
+              maxLength={30}
+            />
+            <p className="text-xs text-muted-foreground">
+              You have <span className="font-bold text-primary">{nameEditsLeft}</span> rename{nameEditsLeft !== 1 ? 's' : ''} remaining
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditNameOpen(false)}>Cancel</Button>
+            <Button onClick={handleTeamNameEdit} disabled={savingName || !newTeamName.trim()} className="gradient-primary">
+              {savingName ? "Saving..." : "Rename"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
