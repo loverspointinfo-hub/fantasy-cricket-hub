@@ -1,0 +1,225 @@
+import { useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { Settings, Save, Upload, Trash2, Image, Type, MessageSquareQuote } from "lucide-react";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+
+const AdminSettings = () => {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [siteName, setSiteName] = useState("");
+  const [slogan, setSlogan] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [initialized, setInitialized] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const { isLoading } = useQuery({
+    queryKey: ["admin-site-settings"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("site_settings" as any) as any).select("key, value");
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data || []).forEach((r: any) => { map[r.key] = r.value; });
+      if (!initialized) {
+        setSiteName(map.site_name || "FANTASY11");
+        setSlogan(map.site_slogan || "Play • Predict • Win");
+        setBannerUrl(map.banner_url || "");
+        setInitialized(true);
+      }
+      return map;
+    },
+  });
+
+  const saveSetting = async (key: string, value: string) => {
+    const { error } = await (supabase.from("site_settings" as any) as any)
+      .update({ value, updated_at: new Date().toISOString() })
+      .eq("key", key);
+    if (error) throw error;
+  };
+
+  const saveAll = useMutation({
+    mutationFn: async () => {
+      await saveSetting("site_name", siteName);
+      await saveSetting("site_slogan", slogan);
+      await saveSetting("banner_url", bannerUrl);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["site-settings"] });
+      qc.invalidateQueries({ queryKey: ["admin-site-settings"] });
+      toast.success("Settings saved!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be under 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `banner-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("banners")
+        .upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("banners").getPublicUrl(fileName);
+      setBannerUrl(urlData.publicUrl);
+
+      // Auto-save banner URL
+      await saveSetting("banner_url", urlData.publicUrl);
+      qc.invalidateQueries({ queryKey: ["site-settings"] });
+      toast.success("Banner uploaded!");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeBanner = async () => {
+    setBannerUrl("");
+    await saveSetting("banner_url", "");
+    qc.invalidateQueries({ queryKey: ["site-settings"] });
+    toast.success("Banner removed");
+  };
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading settings...</p>;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold flex items-center gap-2">
+            <Settings className="h-5 w-5 text-primary" />
+            Site Settings
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Customize your app's branding and banner
+          </p>
+        </div>
+        <Button onClick={() => saveAll.mutate()} disabled={saveAll.isPending} className="gap-1.5 rounded-xl" size="sm">
+          {saveAll.isPending ? "Saving..." : <><Save className="h-3.5 w-3.5" /> Save All</>}
+        </Button>
+      </div>
+
+      {/* Site Name & Slogan */}
+      <Card className="glass-card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Type className="h-4 w-4 text-primary" />
+          <h3 className="font-display text-sm font-bold uppercase tracking-wider">Branding</h3>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Website Name</Label>
+          <Input
+            value={siteName}
+            onChange={(e) => setSiteName(e.target.value)}
+            placeholder="e.g. FANTASY11"
+            className="h-10 font-display font-bold text-lg"
+          />
+          <p className="text-[10px] text-muted-foreground">This appears in the header of your app</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Slogan / Tagline</Label>
+          <Input
+            value={slogan}
+            onChange={(e) => setSlogan(e.target.value)}
+            placeholder="e.g. Play • Predict • Win"
+            className="h-10"
+          />
+          <p className="text-[10px] text-muted-foreground">Short tagline shown below the name</p>
+        </div>
+
+        {/* Live Preview */}
+        <div className="rounded-xl p-4 border border-border/20" style={{ background: "hsl(228 16% 8% / 0.8)" }}>
+          <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider mb-2">Preview</p>
+          <div className="flex items-center gap-2.5">
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))" }}>
+              <span className="text-primary-foreground text-xs font-bold">F</span>
+            </div>
+            <div>
+              <h1 className="font-display text-xl font-bold leading-none">
+                {siteName || "FANTASY11"}
+              </h1>
+              <p className="text-[8px] text-muted-foreground/50 tracking-[0.25em] uppercase font-medium mt-0.5">
+                {slogan || "Play • Predict • Win"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Banner Upload */}
+      <Card className="glass-card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Image className="h-4 w-4 text-primary" />
+          <h3 className="font-display text-sm font-bold uppercase tracking-wider">Header Banner</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">Upload a promotional banner that appears on the home page. Recommended size: 1200×400px.</p>
+
+        {bannerUrl ? (
+          <div className="space-y-3">
+            <div className="relative rounded-xl overflow-hidden border border-border/20">
+              <img src={bannerUrl} alt="Banner preview" className="w-full h-32 object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1 rounded-xl gap-1.5" onClick={() => fileRef.current?.click()}>
+                <Upload className="h-3.5 w-3.5" /> Replace
+              </Button>
+              <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-destructive" onClick={removeBanner}>
+                <Trash2 className="h-3.5 w-3.5" /> Remove
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <motion.button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="w-full rounded-xl border-2 border-dashed border-border/30 hover:border-primary/30 p-8 flex flex-col items-center gap-3 transition-all"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Upload className="h-5 w-5 text-primary" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold">{uploading ? "Uploading..." : "Upload Banner Image"}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">JPG, PNG, WebP • Max 5MB</p>
+            </div>
+          </motion.button>
+        )}
+
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleBannerUpload}
+        />
+      </Card>
+    </div>
+  );
+};
+
+export default AdminSettings;

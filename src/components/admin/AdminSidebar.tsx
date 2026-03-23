@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Trophy, Users, Swords, Bell, Wallet, UserCog,
-  ChevronLeft, Shield, LogOut, Zap
+  ChevronLeft, Shield, LogOut, Zap, Settings
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ const items = [
   { title: "Wallet / Txns", url: "/admin/wallet", icon: Wallet },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Live Scoring", url: "/admin/live-scoring", icon: Zap },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {
