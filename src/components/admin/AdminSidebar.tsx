@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Trophy, Users, Swords, Bell, Wallet, UserCog,
-  ChevronLeft, Shield, LogOut
+  ChevronLeft, Shield, LogOut, Zap
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
