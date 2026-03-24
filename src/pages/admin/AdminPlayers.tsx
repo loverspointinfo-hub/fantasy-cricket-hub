@@ -68,7 +68,7 @@ const AdminPlayers = () => {
 
   const set = (k: keyof PlayerForm, v: string) => setForm(p => ({ ...p, [k]: v }));
 
-  const roleColors: Record<string, string> = { batsman: "default", bowler: "secondary", "all-rounder": "outline", "wicket-keeper": "destructive" };
+  const roleColors: Record<string, string> = { BAT: "default", BOWL: "secondary", AR: "outline", WK: "destructive" };
 
   return (
     <div className="space-y-5">
