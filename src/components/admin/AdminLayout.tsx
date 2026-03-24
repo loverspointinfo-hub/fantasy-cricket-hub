@@ -18,6 +18,9 @@ const pageTitles: Record<string, string> = {
   "/admin/users": "User Management",
   "/admin/wallet": "Wallet & Transactions",
   "/admin/notifications": "Notifications",
+  "/admin/live-scoring": "Live Scoring",
+  "/admin/kyc": "KYC Verification",
+  "/admin/settings": "Site Settings",
 };
 
 const AdminLayout = () => {
