@@ -86,8 +86,9 @@ const AdminPlayers = () => {
                 <Select value={form.role} onValueChange={v => set("role", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="batsman">Batsman</SelectItem><SelectItem value="bowler">Bowler</SelectItem>
-                    <SelectItem value="all-rounder">All-rounder</SelectItem><SelectItem value="wicket-keeper">Wicket-keeper</SelectItem>
+                    {ROLE_OPTIONS.map(r => (
+                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
