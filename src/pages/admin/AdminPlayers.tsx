@@ -12,7 +12,13 @@ import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 interface PlayerForm { name: string; role: string; team: string; credit_value: string; photo_url: string; }
-const empty: PlayerForm = { name: "", role: "batsman", team: "", credit_value: "8", photo_url: "" };
+const ROLE_OPTIONS = [
+  { value: "BAT", label: "Batsman" },
+  { value: "BOWL", label: "Bowler" },
+  { value: "AR", label: "All-Rounder" },
+  { value: "WK", label: "Wicket-Keeper" },
+];
+const empty: PlayerForm = { name: "", role: "BAT", team: "", credit_value: "8", photo_url: "" };
 
 const AdminPlayers = () => {
   const qc = useQueryClient();
@@ -62,7 +68,7 @@ const AdminPlayers = () => {
 
   const set = (k: keyof PlayerForm, v: string) => setForm(p => ({ ...p, [k]: v }));
 
-  const roleColors: Record<string, string> = { batsman: "default", bowler: "secondary", "all-rounder": "outline", "wicket-keeper": "destructive" };
+  const roleColors: Record<string, string> = { BAT: "default", BOWL: "secondary", AR: "outline", WK: "destructive" };
 
   return (
     <div className="space-y-5">
@@ -80,8 +86,9 @@ const AdminPlayers = () => {
                 <Select value={form.role} onValueChange={v => set("role", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="batsman">Batsman</SelectItem><SelectItem value="bowler">Bowler</SelectItem>
-                    <SelectItem value="all-rounder">All-rounder</SelectItem><SelectItem value="wicket-keeper">Wicket-keeper</SelectItem>
+                    {ROLE_OPTIONS.map(r => (
+                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
