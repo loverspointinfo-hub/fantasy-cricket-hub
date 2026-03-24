@@ -96,7 +96,8 @@ const AdminContests = () => {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="mega">Mega</SelectItem><SelectItem value="h2h">Head-to-Head</SelectItem>
-                      <SelectItem value="small">Small</SelectItem><SelectItem value="practice">Practice</SelectItem>
+                      <SelectItem value="winner_takes_all">Winner Takes All</SelectItem><SelectItem value="practice">Practice</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
