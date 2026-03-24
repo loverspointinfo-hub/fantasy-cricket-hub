@@ -12,7 +12,13 @@ import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 interface PlayerForm { name: string; role: string; team: string; credit_value: string; photo_url: string; }
-const empty: PlayerForm = { name: "", role: "batsman", team: "", credit_value: "8", photo_url: "" };
+const ROLE_OPTIONS = [
+  { value: "BAT", label: "Batsman" },
+  { value: "BOWL", label: "Bowler" },
+  { value: "AR", label: "All-Rounder" },
+  { value: "WK", label: "Wicket-Keeper" },
+];
+const empty: PlayerForm = { name: "", role: "BAT", team: "", credit_value: "8", photo_url: "" };
 
 const AdminPlayers = () => {
   const qc = useQueryClient();
