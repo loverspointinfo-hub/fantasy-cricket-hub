@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, ChevronRight, Users, Star, Flame, Crown, Bell, Wallet, Timer } from "lucide-react";
 import BannerCarousel from "@/components/home/BannerCarousel";
+import { useCountdown } from "@/hooks/useCountdown";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
