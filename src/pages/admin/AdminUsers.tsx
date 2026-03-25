@@ -42,6 +42,38 @@ const AdminUsers = () => {
     },
   });
 
+  // Fetch all user roles to show admin badges
+  const { data: allUserRoles = [] } = useQuery({
+    queryKey: ["admin-user-roles"],
+    queryFn: async () => {
+      const { data } = await (supabase.from("user_roles") as any).select("*");
+      return data ?? [];
+    },
+  });
+
+  const toggleAdminRole = useMutation({
+    mutationFn: async ({ userId, isCurrentlyAdmin }: { userId: string; isCurrentlyAdmin: boolean }) => {
+      if (isCurrentlyAdmin) {
+        const { error } = await (supabase.from("user_roles") as any)
+          .delete()
+          .eq("user_id", userId)
+          .eq("role", "admin");
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase.from("user_roles") as any)
+          .insert({ user_id: userId, role: "admin" });
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { isCurrentlyAdmin }) => {
+      qc.invalidateQueries({ queryKey: ["admin-user-roles"] });
+      toast.success(isCurrentlyAdmin ? "Admin role removed" : "Admin role granted");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const isUserAdmin = (userId: string) => allUserRoles.some((r: any) => r.user_id === userId && r.role === "admin");
+
   const { data: userTeams = [] } = useQuery({
     queryKey: ["admin-user-teams", selectedUser?.id],
     queryFn: async () => {
