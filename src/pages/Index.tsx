@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, ChevronRight, Users, Star, Flame, Crown, Bell, Wallet, Timer } from "lucide-react";
+import { Trophy, ChevronRight, Bell, Wallet } from "lucide-react";
 import BannerCarousel from "@/components/home/BannerCarousel";
 import { useCountdown } from "@/hooks/useCountdown";
 import { cn } from "@/lib/utils";
