@@ -207,15 +207,33 @@ const AdminUsers = () => {
           {filtered.map((u: any) => {
             const w = getWallet(u.id);
             const total = (w?.deposit_balance ?? 0) + (w?.winning_balance ?? 0) + (w?.bonus_balance ?? 0);
+            const userIsAdmin = isUserAdmin(u.id);
             return (
               <Card key={u.id} className="glass-card p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">{u.username || "No username"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold truncate">{u.username || "No username"}</p>
+                      {userIsAdmin && (
+                        <Badge variant="default" className="text-[9px] gap-1 px-1.5 py-0">
+                          <Shield className="h-2.5 w-2.5" /> Admin
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">{u.full_name || "—"} • KYC: {u.kyc_status}</p>
                     <p className="text-xs text-primary font-semibold mt-0.5">Balance: ₹{total.toFixed(0)}</p>
                   </div>
                   <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn("h-8 w-8", userIsAdmin ? "text-amber-500" : "text-muted-foreground")}
+                      onClick={() => toggleAdminRole.mutate({ userId: u.id, isCurrentlyAdmin: userIsAdmin })}
+                      title={userIsAdmin ? "Remove admin role" : "Grant admin role"}
+                      disabled={toggleAdminRole.isPending}
+                    >
+                      {userIsAdmin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedUser(u)} title="View details">
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
