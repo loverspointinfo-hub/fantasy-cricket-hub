@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Wallet, Eye, Pencil, Trophy, Users, CreditCard, Plus, Minus, IndianRupee, TrendingUp, TrendingDown, Gamepad2 } from "lucide-react";
+import { Search, Wallet, Eye, Pencil, Trophy, Users, CreditCard, Plus, Minus, IndianRupee, TrendingUp, TrendingDown, Gamepad2, Shield, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 import { formatIST } from "@/lib/date-utils";
 import AdminTeamEditor from "@/components/admin/AdminTeamEditor";
