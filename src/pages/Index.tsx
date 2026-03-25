@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, ChevronRight, Users, Star, Flame, Crown, Bell, Wallet, Timer } from "lucide-react";
+import { Trophy, ChevronRight, Bell, Wallet } from "lucide-react";
+import BannerCarousel from "@/components/home/BannerCarousel";
 import { useCountdown } from "@/hooks/useCountdown";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,11 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import WelcomePopup from "@/components/WelcomePopup";
 
-const BANNERS = [
-  { title: "MEGA CONTEST", subtitle: "₹25 Lakhs Prize Pool", desc: "Join the biggest contest of the season", gradient: "gradient-primary", icon: Crown },
-  { title: "100% BONUS", subtitle: "On First Deposit", desc: "Use code WELCOME100", gradient: "gradient-premium", icon: Star },
-  { title: "WINNER TAKES ALL", subtitle: "₹1 Lakh Direct Win", desc: "Head-to-head showdown", gradient: "gradient-purple", icon: Flame },
-];
 
 const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number }) => {
   const navigate = useNavigate();
@@ -247,31 +243,8 @@ const Index = () => {
       </header>
 
       <div className="mx-auto max-w-lg px-4 py-5 space-y-5 relative z-10">
-        {/* Custom Admin Banner */}
-        {siteSettings?.banner_url && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl overflow-hidden border border-border/20">
-            <img src={siteSettings.banner_url} alt="Banner" className="w-full h-36 object-cover" />
-          </motion.div>
-        )}
-
-        {/* Promo Banners */}
-        <motion.div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory"
-          initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
-          {BANNERS.map((b, i) => (
-            <motion.div key={i} className={cn("relative min-w-[280px] rounded-2xl p-5 flex-shrink-0 overflow-hidden snap-start", b.gradient)}
-              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <div className="shimmer absolute inset-0 rounded-2xl" />
-              <b.icon className="absolute top-4 right-4 h-16 w-16 opacity-10 text-primary-foreground" />
-              <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground/60 relative z-10">{b.title}</p>
-              <p className="mt-1.5 font-display text-xl font-bold text-primary-foreground relative z-10">{b.subtitle}</p>
-              <p className="mt-0.5 text-[11px] text-primary-foreground/50 relative z-10">{b.desc}</p>
-              <Button size="sm" className="mt-3 text-[11px] font-bold rounded-xl relative z-10 border-0 h-8 px-4"
-                style={{ background: "hsl(0 0% 100% / 0.15)", backdropFilter: "blur(8px)", color: "white" }}>
-                Join Now <ChevronRight className="h-3 w-3 ml-0.5" />
-              </Button>
-            </motion.div>
-          ))}
-        </motion.div>
+        {/* Admin Banners Carousel */}
+        <BannerCarousel />
 
         {/* Tabs */}
         <div className="flex gap-1 rounded-2xl p-1 relative" style={{

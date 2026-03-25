@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      banners: {
+        Row: {
+          created_at: string | null
+          hyperlink: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string | null
+          hyperlink?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string | null
+          hyperlink?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          sort_order?: number
+        }
+        Relationships: []
+      }
       contest_entries: {
         Row: {
           contest_id: string

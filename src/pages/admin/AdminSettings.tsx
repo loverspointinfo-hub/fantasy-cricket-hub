@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Settings, Save, Upload, Trash2, Image, Type, MessageSquareQuote } from "lucide-react";
+import { Settings, Save, Type } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import AdminBannerManager from "@/components/admin/AdminBannerManager";
 
 const AdminSettings = () => {
   const qc = useQueryClient();
@@ -169,54 +169,9 @@ const AdminSettings = () => {
         </div>
       </Card>
 
-      {/* Banner Upload */}
-      <Card className="glass-card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Image className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-sm font-bold uppercase tracking-wider">Header Banner</h3>
-        </div>
-        <p className="text-xs text-muted-foreground">Upload a promotional banner that appears on the home page. Recommended size: 1200×400px.</p>
-
-        {bannerUrl ? (
-          <div className="space-y-3">
-            <div className="relative rounded-xl overflow-hidden border border-border/20">
-              <img src={bannerUrl} alt="Banner preview" className="w-full h-32 object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1 rounded-xl gap-1.5" onClick={() => fileRef.current?.click()}>
-                <Upload className="h-3.5 w-3.5" /> Replace
-              </Button>
-              <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-destructive" onClick={removeBanner}>
-                <Trash2 className="h-3.5 w-3.5" /> Remove
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <motion.button
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="w-full rounded-xl border-2 border-dashed border-border/30 hover:border-primary/30 p-8 flex flex-col items-center gap-3 transition-all"
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-          >
-            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Upload className="h-5 w-5 text-primary" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-semibold">{uploading ? "Uploading..." : "Upload Banner Image"}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">JPG, PNG, WebP • Max 5MB</p>
-            </div>
-          </motion.button>
-        )}
-
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleBannerUpload}
-        />
+      {/* Banner Management */}
+      <Card className="glass-card p-5">
+        <AdminBannerManager />
       </Card>
     </div>
   );
