@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Wallet, Eye, Pencil, Trophy, Users, CreditCard, Plus, Minus, IndianRupee, TrendingUp, TrendingDown, Gamepad2 } from "lucide-react";
+import { Search, Wallet, Eye, Pencil, Trophy, Users, CreditCard, Plus, Minus, IndianRupee, TrendingUp, TrendingDown, Gamepad2, Shield, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 import { formatIST } from "@/lib/date-utils";
 import AdminTeamEditor from "@/components/admin/AdminTeamEditor";
@@ -41,6 +41,38 @@ const AdminUsers = () => {
       return data ?? [];
     },
   });
+
+  // Fetch all user roles to show admin badges
+  const { data: allUserRoles = [] } = useQuery({
+    queryKey: ["admin-user-roles"],
+    queryFn: async () => {
+      const { data } = await (supabase.from("user_roles") as any).select("*");
+      return data ?? [];
+    },
+  });
+
+  const toggleAdminRole = useMutation({
+    mutationFn: async ({ userId, isCurrentlyAdmin }: { userId: string; isCurrentlyAdmin: boolean }) => {
+      if (isCurrentlyAdmin) {
+        const { error } = await (supabase.from("user_roles") as any)
+          .delete()
+          .eq("user_id", userId)
+          .eq("role", "admin");
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase.from("user_roles") as any)
+          .insert({ user_id: userId, role: "admin" });
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { isCurrentlyAdmin }) => {
+      qc.invalidateQueries({ queryKey: ["admin-user-roles"] });
+      toast.success(isCurrentlyAdmin ? "Admin role removed" : "Admin role granted");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const isUserAdmin = (userId: string) => allUserRoles.some((r: any) => r.user_id === userId && r.role === "admin");
 
   const { data: userTeams = [] } = useQuery({
     queryKey: ["admin-user-teams", selectedUser?.id],
@@ -175,15 +207,33 @@ const AdminUsers = () => {
           {filtered.map((u: any) => {
             const w = getWallet(u.id);
             const total = (w?.deposit_balance ?? 0) + (w?.winning_balance ?? 0) + (w?.bonus_balance ?? 0);
+            const userIsAdmin = isUserAdmin(u.id);
             return (
               <Card key={u.id} className="glass-card p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">{u.username || "No username"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold truncate">{u.username || "No username"}</p>
+                      {userIsAdmin && (
+                        <Badge variant="default" className="text-[9px] gap-1 px-1.5 py-0">
+                          <Shield className="h-2.5 w-2.5" /> Admin
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">{u.full_name || "—"} • KYC: {u.kyc_status}</p>
                     <p className="text-xs text-primary font-semibold mt-0.5">Balance: ₹{total.toFixed(0)}</p>
                   </div>
                   <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn("h-8 w-8", userIsAdmin ? "text-amber-500" : "text-muted-foreground")}
+                      onClick={() => toggleAdminRole.mutate({ userId: u.id, isCurrentlyAdmin: userIsAdmin })}
+                      title={userIsAdmin ? "Remove admin role" : "Grant admin role"}
+                      disabled={toggleAdminRole.isPending}
+                    >
+                      {userIsAdmin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedUser(u)} title="View details">
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
