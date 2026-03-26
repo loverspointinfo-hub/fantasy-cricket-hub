@@ -3,18 +3,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useMatchPlayers, MatchPlayer } from "@/hooks/useMatchPlayers";
 import { useUserTeams } from "@/hooks/useUserTeams";
-import { ArrowLeft, Check, Star, Crown, Users, Minus, Plus, Info, ExternalLink, Eye } from "lucide-react";
+import { ArrowLeft, Check, Crown, Users, Plus, Info, Eye, HelpCircle, CircleMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { item } from "@/lib/animations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import TeamPreview from "@/components/team/TeamPreview";
+import { useCountdown } from "@/hooks/useCountdown";
 
 const MAX_CREDITS = 100;
 const ROLE_LABELS: Record<string, string> = { BAT: "Batsman", BOWL: "Bowler", AR: "All-Rounder", WK: "Wicket-Keeper" };
+const ROLE_SHORT: Record<string, string> = { BAT: "BAT", BOWL: "BOWL", AR: "AR", WK: "WK" };
 const ROLE_CONSTRAINTS: Record<string, { min: number; max: number }> = {
   WK: { min: 1, max: 4 },
   BAT: { min: 3, max: 6 },
@@ -31,6 +32,7 @@ const CreateTeam = () => {
   const { data: match, isLoading: matchLoading } = useMatch(matchId || "");
   const { data: matchPlayers = [], isLoading } = useMatchPlayers(matchId || "");
   const { data: userTeams = [] } = useUserTeams(matchId || "");
+  const countdown = useCountdown(match?.entry_deadline ?? "");
 
   const isEditing = !!teamId;
   const editingTeam = useMemo(() => userTeams.find(t => t.id === teamId), [userTeams, teamId]);
@@ -43,7 +45,6 @@ const CreateTeam = () => {
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  // Block access when match is not upcoming (live/completed)
   useEffect(() => {
     if (match && match.status !== "upcoming") {
       toast.error("Team editing is locked — match is " + match.status);
@@ -54,7 +55,6 @@ const CreateTeam = () => {
     }
   }, [match, matchId, navigate]);
 
-  // Load existing team data when editing
   useEffect(() => {
     if (isEditing && editingTeam && !initialized) {
       const playerIds = new Set(editingTeam.team_players.map(tp => tp.player_id));
@@ -83,12 +83,19 @@ const CreateTeam = () => {
     return counts;
   }, [selectedPlayers]);
 
+  // Team-wise counts
+  const team1Count = useMemo(() => selectedPlayers.filter(p => p.player.team === match?.team1_short).length, [selectedPlayers, match]);
+  const team2Count = useMemo(() => selectedPlayers.filter(p => p.player.team === match?.team2_short).length, [selectedPlayers, match]);
+
   const canSelect = (mp: MatchPlayer) => {
     if (selected.has(mp.player_id)) return true;
     if (selected.size >= 11) return false;
     if (mp.player.credit_value > remainingCredits) return false;
     const rc = ROLE_CONSTRAINTS[mp.player.role];
     if (rc && roleCount[mp.player.role] >= rc.max) return false;
+    // Max 10 from one team
+    const sameTeamCount = selectedPlayers.filter(p => p.player.team === mp.player.team).length;
+    if (sameTeamCount >= 10) return false;
     return true;
   };
 
@@ -191,7 +198,6 @@ const CreateTeam = () => {
     }
   };
 
-  // Find captain/vc player names for header display
   const captainPlayer = selectedPlayers.find(mp => mp.player_id === captainId);
   const vcPlayer = selectedPlayers.find(mp => mp.player_id === viceCaptainId);
 
@@ -209,20 +215,18 @@ const CreateTeam = () => {
 
   if (isLoading || matchLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col">
-      <div className="floating-orb w-64 h-64 bg-neon-green -top-20 -right-20" />
-
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border/30" style={{
-        background: "linear-gradient(180deg, hsl(228 18% 5% / 0.95), hsl(228 18% 5% / 0.8))",
-        backdropFilter: "blur(20px)",
+    <div className="min-h-screen relative overflow-hidden flex flex-col bg-background">
+      {/* ───── HEADER ───── */}
+      <header className="sticky top-0 z-40" style={{
+        background: "linear-gradient(180deg, hsl(228 18% 6%), hsl(228 18% 5%))",
+        borderBottom: "1px solid hsl(228 12% 14%)",
       }}>
         <div className="mx-auto max-w-lg px-4 py-3 flex items-center gap-3">
           <button
@@ -233,18 +237,16 @@ const CreateTeam = () => {
           </button>
           <div className="flex-1">
             <p className="font-display text-sm font-bold">
-              {step === "select" ? (isEditing ? "Edit Team" : "Create Team") : step === "captain" ? "Select Captain" : "Team Preview"}
+              {step === "select" ? (isEditing ? "Edit Team" : "Create Team") : step === "captain" ? "Choose Captain & V. Captain" : "Team Preview"}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {match ? `${match.team1_short} vs ${match.team2_short}` : ""}
+              {!countdown.isExpired ? `${countdown.label} Left` : match?.league || ""}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Players</p>
-            <p className="font-display font-bold text-sm">
-              <span className="text-primary">{selected.size}</span>/11
-            </p>
-          </div>
+          <button className="h-8 w-8 rounded-full flex items-center justify-center"
+            style={{ background: "hsl(var(--neon-red))", }}>
+            <HelpCircle className="h-4 w-4 text-white" />
+          </button>
         </div>
       </header>
 
@@ -281,94 +283,161 @@ const CreateTeam = () => {
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
+                className="w-full font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden text-white"
+                style={{ background: "hsl(0 85% 50%)" }}
               >
-                <span className="shimmer absolute inset-0" />
-                <span className="relative z-10">{saving ? "Saving..." : isEditing ? "Update Team" : "Confirm & Save Team"}</span>
+                {saving ? "Saving..." : isEditing ? "Update Team" : "Confirm & Save Team"}
               </Button>
             </div>
           </div>
         </div>
       ) : step === "select" ? (
         <>
-          {/* Credit bar */}
-          <div className="mx-auto max-w-lg w-full px-4 py-3 border-b border-border/20" style={{
-            background: "hsl(228 16% 8% / 0.9)",
+          {/* ───── TEAM HEADER BAR ───── */}
+          <div className="mx-auto max-w-lg w-full" style={{
+            background: "hsl(228 16% 8%)",
+            borderBottom: "1px solid hsl(228 12% 14%)",
           }}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">Credits Used</span>
-              <span className="font-display font-bold text-sm">
-                <span className={cn(remainingCredits < 10 ? "text-neon-red" : "text-neon-green")}>
-                  {remainingCredits.toFixed(1)}
-                </span>
-                <span className="text-muted-foreground"> / {MAX_CREDITS}</span>
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-              <motion.div
-                className="h-full rounded-full gradient-primary"
-                animate={{ width: `${(usedCredits / MAX_CREDITS) * 100}%` }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
+            {/* Max from team notice */}
+            <div className="text-center py-1.5" style={{ background: "hsl(228 14% 11%)" }}>
+              <p className="text-[10px] text-muted-foreground">Max 10 Players from a team</p>
             </div>
 
-            <div className="flex gap-2 mt-3">
-              {ROLE_ORDER.map(role => {
-                const rc = ROLE_CONSTRAINTS[role];
-                const count = roleCount[role];
-                const isFull = count >= rc.max;
-                const isMin = count >= rc.min;
-                return (
-                  <div key={role} className={cn(
-                    "flex-1 text-center py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider",
-                    isFull ? "bg-primary/15 text-primary border border-primary/20" :
-                    isMin ? "bg-neon-green/10 text-neon-green border border-neon-green/20" :
-                    "bg-secondary text-muted-foreground border border-border/30"
-                  )}>
-                    {role} {count}/{rc.max}
+            {/* Team counts + credits */}
+            <div className="px-4 py-3 flex items-center justify-between">
+              <div className="text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Players</p>
+                <p className="font-display font-bold text-lg">
+                  <span className="text-primary">{selected.size}</span><span className="text-muted-foreground">/11</span>
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-[9px] font-bold"
+                    style={{ background: match?.team1_color || "hsl(228 16% 20%)", color: "white", border: "2px solid hsl(228 12% 25%)" }}>
+                    {match?.team1_short?.slice(0, 3)}
                   </div>
+                  <div className="text-center">
+                    <p className="font-display font-bold text-sm">{match?.team1_short}</p>
+                    <p className="text-xs text-muted-foreground">{team1Count}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="text-center">
+                    <p className="font-display font-bold text-sm">{match?.team2_short}</p>
+                    <p className="text-xs text-muted-foreground">{team2Count}</p>
+                  </div>
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-[9px] font-bold"
+                    style={{ background: match?.team2_color || "hsl(228 16% 20%)", color: "white", border: "2px solid hsl(228 12% 25%)" }}>
+                    {match?.team2_short?.slice(0, 3)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Credits Left</p>
+                <p className="font-display font-bold text-lg">
+                  <span className={cn(remainingCredits < 10 ? "text-[hsl(var(--neon-red))]" : "text-foreground")}>
+                    {remainingCredits.toFixed(1)}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {/* Player slot indicators */}
+            <div className="px-4 pb-2 flex items-center gap-1.5 justify-center">
+              {Array.from({ length: 11 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "h-6 w-6 rounded-md flex items-center justify-center text-[10px] font-bold transition-all",
+                    i < selected.size
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-muted-foreground/40 border border-border/30"
+                  )}
+                >
+                  {i + 1}
+                </div>
+              ))}
+              <button className="h-6 w-6 rounded-md flex items-center justify-center bg-secondary border border-border/30 ml-1">
+                <CircleMinus className="h-3.5 w-3.5 text-muted-foreground/40" />
+              </button>
+            </div>
+
+            {/* Scrolling tip */}
+            <div className="overflow-hidden" style={{ background: "hsl(152 100% 50% / 0.08)" }}>
+              <div className="py-1.5 px-4">
+                <p className="text-[10px] text-primary font-medium text-center animate-pulse">
+                  📢 Please do due research before creating team. Lineup feature is for reference.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ───── ROLE TABS ───── */}
+          <div className="mx-auto max-w-lg w-full" style={{
+            background: "hsl(228 16% 8%)",
+            borderBottom: "2px solid hsl(228 12% 14%)",
+          }}>
+            <div className="flex">
+              {ROLE_ORDER.map(role => {
+                const isActive = activeRole === role;
+                return (
+                  <button
+                    key={role}
+                    onClick={() => setActiveRole(role)}
+                    className={cn(
+                      "flex-1 py-2.5 text-xs font-bold transition-all relative text-center uppercase",
+                      isActive ? "text-primary" : "text-muted-foreground/50"
+                    )}
+                  >
+                    {ROLE_SHORT[role]}({roleCount[role]})
+                    {isActive && (
+                      <motion.div
+                        layoutId="role-tab-indicator"
+                        className="absolute bottom-0 left-0 right-0 h-[2px]"
+                        style={{ background: "hsl(var(--neon-red))" }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                  </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Role tabs */}
-          <div className="mx-auto max-w-lg w-full px-4 pt-3">
-            <div className="flex gap-1 rounded-xl bg-secondary/50 p-1 border border-border/30">
-              {ROLE_ORDER.map(role => (
-                <button
-                  key={role}
-                  onClick={() => setActiveRole(role)}
-                  className={cn(
-                    "flex-1 py-2 rounded-lg text-xs font-semibold transition-all relative",
-                    activeRole === role ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {activeRole === role && (
-                    <motion.div
-                      layoutId="role-tab"
-                      className="absolute inset-0 rounded-lg gradient-primary opacity-15"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10">{ROLE_LABELS[role]}</span>
-                </button>
-              ))}
-            </div>
+          {/* Role constraint hint */}
+          <div className="mx-auto max-w-lg w-full px-4 py-2 text-center" style={{ background: "hsl(228 14% 7%)" }}>
+            <p className="text-[11px] text-muted-foreground">
+              Pick {ROLE_CONSTRAINTS[activeRole].min}-{ROLE_CONSTRAINTS[activeRole].max} {ROLE_LABELS[activeRole]}
+              {" "}<Info className="h-3 w-3 inline -mt-0.5 text-muted-foreground/40" />
+            </p>
           </div>
 
-          {/* Player list */}
-          <div className="flex-1 mx-auto max-w-lg w-full px-4 py-3 space-y-2 overflow-y-auto pb-24">
+          {/* Column header */}
+          <div className="mx-auto max-w-lg w-full px-4 py-2 flex items-center" style={{
+            background: "hsl(var(--neon-red) / 0.06)",
+            borderBottom: "1px solid hsl(228 12% 14%)",
+          }}>
+            <span className="text-[10px] text-muted-foreground font-semibold flex-1 pl-14">Selected BY</span>
+            <span className="text-[10px] text-muted-foreground font-semibold w-20 text-center">Avg. Points</span>
+            <span className="text-[10px] text-muted-foreground font-semibold w-16 text-right">Credits</span>
+            <span className="w-8" />
+          </div>
+
+          {/* ───── PLAYER LIST ───── */}
+          <div className="flex-1 mx-auto max-w-lg w-full overflow-y-auto pb-28">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeRole}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-2"
               >
                 {playersForRole.length === 0 ? (
-                  <div className="glass-card flex flex-col items-center py-12 text-muted-foreground">
+                  <div className="flex flex-col items-center py-12 text-muted-foreground">
                     <Users className="h-8 w-8 opacity-20 mb-2" />
                     <p className="text-sm">No {ROLE_LABELS[activeRole]}s available</p>
                   </div>
@@ -377,77 +446,77 @@ const CreateTeam = () => {
                     const isSelected = selected.has(mp.player_id);
                     const canAdd = canSelect(mp);
                     return (
-                      <motion.div
+                      <div
                         key={mp.player_id}
-                        variants={item}
-                        initial="hidden"
-                        animate="show"
                         onClick={() => canAdd && togglePlayer(mp.player_id)}
                         className={cn(
-                          "glass-card p-3.5 flex items-center gap-3 cursor-pointer transition-all",
-                          isSelected && "border-primary/40 bg-primary/5",
+                          "px-4 py-3 flex items-center gap-3 cursor-pointer transition-all border-b",
+                          isSelected
+                            ? "bg-primary/5 border-primary/10"
+                            : "border-border/10 hover:bg-secondary/30",
                           !canAdd && !isSelected && "opacity-40 cursor-not-allowed"
                         )}
                       >
-                        {/* Player avatar with team + role badge */}
-                        <div className="relative">
-                          <div className={cn(
-                            "h-12 w-12 rounded-full flex items-center justify-center font-display font-bold text-xs overflow-hidden",
-                            isSelected ? "gradient-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                          )}>
+                        {/* Info icon */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate(`/player/${mp.player_id}`); }}
+                          className="h-5 w-5 rounded-full border border-border/40 flex items-center justify-center flex-shrink-0"
+                        >
+                          <Info className="h-3 w-3 text-muted-foreground/50" />
+                        </button>
+
+                        {/* Player avatar with team badge */}
+                        <div className="relative flex-shrink-0">
+                          <div className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden bg-secondary border-2 border-border/20">
                             {mp.player.photo_url ? (
                               <img src={mp.player.photo_url} alt={mp.player.name} className="h-full w-full object-cover" />
                             ) : (
-                              mp.player.name.split(" ").map(n => n[0]).join("").slice(0, 2)
+                              <span className="text-xs font-bold text-muted-foreground">
+                                {mp.player.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                              </span>
                             )}
                           </div>
-                          {/* Team + Role badge like reference */}
-                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-[1px]">
-                            <span className="text-[7px] font-bold px-1 py-[1px] rounded-l-sm text-white"
-                              style={{ background: "hsl(var(--neon-red))" }}>
+                          {/* Team badge */}
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
+                            <span className="text-[7px] font-bold px-1.5 py-[1px] rounded-sm text-white"
+                              style={{ background: mp.player.team === match?.team1_short ? (match?.team1_color || "hsl(var(--neon-red))") : (match?.team2_color || "hsl(228 18% 25%)") }}>
                               {mp.player.team?.slice(0, 3) || "???"}
                             </span>
-                            <span className="text-[7px] font-bold px-1 py-[1px] rounded-r-sm text-white"
-                              style={{ background: "hsl(228 18% 25%)" }}>
-                              {mp.player.role}
-                            </span>
                           </div>
                         </div>
 
+                        {/* Name + sel by */}
                         <div className="flex-1 min-w-0">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); navigate(`/player/${mp.player_id}`); }}
-                            className="text-sm font-semibold truncate text-left hover:text-primary transition-colors flex items-center gap-1"
-                          >
-                            {mp.player.name}
-                          </button>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-muted-foreground">
-                              {mp.fantasy_points || 0} pts
-                            </span>
-                            <span className="text-[10px] text-muted-foreground/40">•</span>
-                            <span className="text-[10px] text-muted-foreground">
-                              Sel by {mp.selected_by_percent}%
-                            </span>
-                          </div>
+                          <p className="text-sm font-semibold truncate">{mp.player.name}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Sel by {mp.selected_by_percent}%
+                          </p>
                         </div>
 
-                        <div className="text-right mr-2">
-                          <p className="font-display font-bold text-sm">{mp.player.credit_value}</p>
-                          <p className="text-[9px] text-muted-foreground uppercase">Credits</p>
+                        {/* Avg Points */}
+                        <div className="w-20 text-center">
+                          <p className="text-sm font-bold">{mp.fantasy_points || 0}</p>
                         </div>
 
+                        {/* Credits */}
+                        <div className="w-16 text-right">
+                          <p className="text-sm font-bold">{mp.player.credit_value}</p>
+                        </div>
+
+                        {/* Select indicator */}
                         <div className={cn(
-                          "h-7 w-7 rounded-lg flex items-center justify-center transition-all",
-                          isSelected ? "gradient-primary" : "bg-secondary border border-border/50"
+                          "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "border-2 border-[hsl(var(--neon-red))] text-[hsl(var(--neon-red))]"
                         )}>
                           {isSelected ? (
-                            <Check className="h-4 w-4 text-primary-foreground" />
+                            <Check className="h-4 w-4" />
                           ) : (
-                            <Plus className="h-4 w-4 text-muted-foreground" />
+                            <Plus className="h-4 w-4" />
                           )}
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   })
                 )}
@@ -455,7 +524,7 @@ const CreateTeam = () => {
             </AnimatePresence>
           </div>
 
-          {/* Bottom CTA */}
+          {/* ───── BOTTOM CTA ───── */}
           <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-3">
             <div className="mx-auto max-w-lg">
               {selected.size === 11 && !isValidTeam() && (
@@ -468,65 +537,80 @@ const CreateTeam = () => {
                   Select {11 - selected.size} more player{11 - selected.size > 1 ? "s" : ""}
                 </p>
               )}
-              <Button
-                onClick={handleContinue}
-                disabled={!isValidTeam()}
-                className="w-full gradient-primary font-bold rounded-xl h-12 text-base disabled:opacity-40 relative overflow-hidden"
-              >
-                <span className="shimmer absolute inset-0" />
-                <span className="relative z-10">Continue — Select Captain</span>
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (selectedPlayers.length > 0) {
+                      // Show team preview dialog inline
+                      setStep("preview");
+                    } else {
+                      toast.error("Select players first");
+                    }
+                  }}
+                  className="flex-1 rounded-xl h-12 text-sm font-bold border-[hsl(var(--neon-red))] text-[hsl(var(--neon-red))] hover:bg-[hsl(var(--neon-red)/0.05)]"
+                >
+                  Team Preview
+                </Button>
+                <Button
+                  onClick={handleContinue}
+                  disabled={!isValidTeam()}
+                  className="flex-1 font-bold rounded-xl h-12 text-sm disabled:opacity-40 text-white"
+                  style={{
+                    background: isValidTeam() ? "hsl(0 85% 50%)" : undefined,
+                  }}
+                >
+                  Continue
+                </Button>
+              </div>
             </div>
           </div>
         </>
       ) : (
-        /* Captain Selection - Dream11 style */
+        /* ───── CAPTAIN SELECTION ───── */
         <div className="flex-1 mx-auto max-w-lg w-full flex flex-col overflow-hidden">
-          {/* C/VC Info header with selected names */}
-          <div className="px-4 py-4 border-b border-border/20" style={{
-            background: "linear-gradient(180deg, hsl(228 16% 10%), hsl(228 16% 7%))",
+          {/* Team logos header */}
+          <div className="px-4 py-4 flex items-center justify-center gap-6" style={{
+            background: "hsl(var(--neon-red) / 0.06)",
+            borderBottom: "1px solid hsl(228 12% 14%)",
           }}>
-            <p className="text-center text-sm text-muted-foreground mb-3">Select Captain and Vice Captain</p>
-            <div className="flex items-center gap-0">
-              {/* Captain side */}
-              <div className="flex-1 flex items-center gap-3 rounded-l-xl px-3 py-2.5" style={{
-                background: "hsl(228 16% 14%)",
-                border: "1px solid hsl(228 12% 20%)",
-                borderRight: "none",
-              }}>
-                <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                  style={{
-                    background: captainId ? "linear-gradient(135deg, hsl(228 16% 20%), hsl(228 16% 12%))" : "hsl(228 16% 16%)",
-                    border: "2px solid hsl(228 12% 25%)",
-                  }}>
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full flex items-center justify-center text-[9px] font-bold"
+                style={{ background: match?.team1_color || "hsl(228 16% 20%)", color: "white", border: "2px solid hsl(228 12% 25%)" }}>
+                {match?.team1_short?.slice(0, 3)}
+              </div>
+              <span className="font-display font-bold text-sm">{match?.team1_short}</span>
+            </div>
+            <span className="text-muted-foreground font-bold text-xs">VS</span>
+            <div className="flex items-center gap-2">
+              <span className="font-display font-bold text-sm">{match?.team2_short}</span>
+              <div className="h-10 w-10 rounded-full flex items-center justify-center text-[9px] font-bold"
+                style={{ background: match?.team2_color || "hsl(228 16% 20%)", color: "white", border: "2px solid hsl(228 12% 25%)" }}>
+                {match?.team2_short?.slice(0, 3)}
+              </div>
+            </div>
+          </div>
+
+          {/* C/VC Info */}
+          <div className="px-4 py-3 text-center" style={{
+            background: "hsl(var(--neon-red) / 0.04)",
+            borderBottom: "1px solid hsl(228 12% 14%)",
+          }}>
+            <p className="text-sm text-muted-foreground mb-2">Choose Captain and Vice Captain</p>
+            <div className="flex items-center justify-center gap-8">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold"
+                  style={{ background: "hsl(var(--neon-red))", color: "white" }}>
                   C
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-primary font-semibold truncate">
-                    {captainPlayer ? captainPlayer.player.name : "Captain gets"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground font-bold">2x (double) points</p>
-                </div>
+                <span className="text-[11px] text-muted-foreground">Get 2x points</span>
               </div>
-              {/* VC side */}
-              <div className="flex-1 flex items-center gap-3 rounded-r-xl px-3 py-2.5" style={{
-                background: "hsl(228 16% 14%)",
-                border: "1px solid hsl(228 12% 20%)",
-                borderLeft: "1px solid hsl(228 12% 20%)",
-              }}>
-                <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                  style={{
-                    background: viceCaptainId ? "linear-gradient(135deg, hsl(228 16% 20%), hsl(228 16% 12%))" : "hsl(228 16% 16%)",
-                    border: "2px solid hsl(228 12% 25%)",
-                  }}>
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold"
+                  style={{ background: "hsl(152 80% 40%)", color: "white" }}>
                   VC
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-primary font-semibold truncate">
-                    {vcPlayer ? vcPlayer.player.name : "Vice Captain gets"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground font-bold">1.5x points</p>
-                </div>
+                <span className="text-[11px] text-muted-foreground">Get 1.5x points</span>
               </div>
             </div>
           </div>
@@ -537,15 +621,18 @@ const CreateTeam = () => {
           }}>
             <span className="text-[10px] text-muted-foreground font-semibold w-16">Type</span>
             <span className="text-[10px] text-muted-foreground font-semibold flex-1">Points</span>
-            <span className="text-[10px] text-muted-foreground font-semibold w-16 text-center">% C ↓</span>
-            <span className="text-[10px] text-muted-foreground font-semibold w-16 text-center">% VC</span>
+            <span className="text-[10px] text-muted-foreground font-semibold w-16 text-center">% C BY</span>
+            <span className="text-[10px] text-muted-foreground font-semibold w-16 text-center">% VC BY</span>
           </div>
 
           {/* Player list */}
-          <div className="flex-1 overflow-y-auto pb-24">
+          <div className="flex-1 overflow-y-auto pb-28">
             {selectedPlayers.map(mp => {
               const isCaptain = captainId === mp.player_id;
               const isVC = viceCaptainId === mp.player_id;
+              // Mock C/VC percentages based on selected_by_percent
+              const cPercent = (mp.selected_by_percent * 0.4).toFixed(2);
+              const vcPercent = (mp.selected_by_percent * 0.25).toFixed(2);
               return (
                 <div
                   key={mp.player_id}
@@ -554,111 +641,111 @@ const CreateTeam = () => {
                     (isCaptain || isVC) && "bg-primary/5"
                   )}
                 >
-                  {/* Player info */}
-                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                    {/* Avatar with team+role badge */}
-                    <div className="relative flex-shrink-0">
-                      <div className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden bg-secondary">
-                        {mp.player.photo_url ? (
-                          <img src={mp.player.photo_url} alt={mp.player.name} className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="text-xs font-bold text-muted-foreground">
-                            {mp.player.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                          </span>
-                        )}
-                      </div>
-                      {/* Info icon */}
-                      <div className="absolute -top-0.5 -left-0.5 h-4 w-4 rounded-full bg-muted flex items-center justify-center border border-border/30 cursor-pointer"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/player/${mp.player_id}`); }}
-                      >
-                        <span className="text-[8px] font-bold text-muted-foreground">i</span>
-                      </div>
-                      {/* Team + Role badges */}
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-[1px]">
-                        <span className="text-[7px] font-bold px-1 py-[1px] rounded-l-sm text-white"
-                          style={{ background: "hsl(var(--neon-red))" }}>
-                          {mp.player.team?.slice(0, 3) || "???"}
-                        </span>
-                        <span className="text-[7px] font-bold px-1 py-[1px] rounded-r-sm text-white"
-                          style={{ background: "hsl(228 18% 25%)" }}>
-                          {mp.player.role}
-                        </span>
-                      </div>
-                    </div>
+                  {/* Info icon */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); navigate(`/player/${mp.player_id}`); }}
+                    className="h-5 w-5 rounded-full border border-border/40 flex items-center justify-center flex-shrink-0 mr-2"
+                  >
+                    <Info className="h-3 w-3 text-muted-foreground/50" />
+                  </button>
 
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate">{mp.player.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{mp.fantasy_points || 0} pts</p>
+                  {/* Player avatar */}
+                  <div className="relative flex-shrink-0 mr-2.5">
+                    <div className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden bg-secondary border-2 border-border/20">
+                      {mp.player.photo_url ? (
+                        <img src={mp.player.photo_url} alt={mp.player.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-bold text-muted-foreground">
+                          {mp.player.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
+                      <span className="text-[7px] font-bold px-1.5 py-[1px] rounded-sm text-white"
+                        style={{ background: mp.player.team === match?.team1_short ? (match?.team1_color || "hsl(var(--neon-red))") : (match?.team2_color || "hsl(228 18% 25%)") }}>
+                        {mp.player.team?.slice(0, 3) || "???"}
+                      </span>
                     </div>
                   </div>
 
-                  {/* C button */}
-                  <button
-                    onClick={() => {
-                      if (isCaptain) {
-                        setCaptainId(null);
-                      } else {
-                        if (viceCaptainId === mp.player_id) setViceCaptainId(null);
-                        setCaptainId(mp.player_id);
-                      }
-                    }}
-                    className={cn(
-                      "h-10 w-10 rounded-full flex flex-col items-center justify-center text-[11px] font-bold transition-all mx-3 flex-shrink-0",
-                      isCaptain
-                        ? "bg-foreground text-background shadow-lg"
-                        : "border-2 border-border/50 text-muted-foreground hover:border-foreground/30"
-                    )}
-                  >
-                    {isCaptain ? "2x" : "C"}
-                  </button>
+                  {/* Name + points */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{mp.player.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{mp.fantasy_points || 0}</p>
+                  </div>
 
-                  {/* VC button */}
-                  <button
-                    onClick={() => {
-                      if (isVC) {
-                        setViceCaptainId(null);
-                      } else {
-                        if (captainId === mp.player_id) setCaptainId(null);
-                        setViceCaptainId(mp.player_id);
-                      }
-                    }}
-                    className={cn(
-                      "h-10 w-10 rounded-full flex flex-col items-center justify-center text-[11px] font-bold transition-all flex-shrink-0",
-                      isVC
-                        ? "bg-foreground text-background shadow-lg"
-                        : "border-2 border-border/50 text-muted-foreground hover:border-foreground/30"
-                    )}
-                  >
-                    {isVC ? "1.5x" : "VC"}
-                  </button>
+                  {/* C button with % */}
+                  <div className="flex flex-col items-center mx-2 w-14">
+                    <button
+                      onClick={() => {
+                        if (isCaptain) {
+                          setCaptainId(null);
+                        } else {
+                          if (viceCaptainId === mp.player_id) setViceCaptainId(null);
+                          setCaptainId(mp.player_id);
+                        }
+                      }}
+                      className={cn(
+                        "h-9 w-9 rounded-full flex items-center justify-center text-[11px] font-bold transition-all",
+                        isCaptain
+                          ? "text-white"
+                          : "border-2 border-border/50 text-muted-foreground hover:border-foreground/30"
+                      )}
+                      style={isCaptain ? { background: "hsl(var(--neon-red))" } : undefined}
+                    >
+                      C
+                    </button>
+                    <span className="text-[9px] text-muted-foreground mt-0.5">{cPercent}%</span>
+                  </div>
+
+                  {/* VC button with % */}
+                  <div className="flex flex-col items-center w-14">
+                    <button
+                      onClick={() => {
+                        if (isVC) {
+                          setViceCaptainId(null);
+                        } else {
+                          if (captainId === mp.player_id) setCaptainId(null);
+                          setViceCaptainId(mp.player_id);
+                        }
+                      }}
+                      className={cn(
+                        "h-9 w-9 rounded-full flex items-center justify-center text-[11px] font-bold transition-all",
+                        isVC
+                          ? "text-white"
+                          : "border-2 border-border/50 text-muted-foreground hover:border-foreground/30"
+                      )}
+                      style={isVC ? { background: "hsl(152 80% 40%)" } : undefined}
+                    >
+                      VC
+                    </button>
+                    <span className="text-[9px] text-muted-foreground mt-0.5">{vcPercent}%</span>
+                  </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Bottom CTA - Preview + Save */}
+          {/* Bottom CTA */}
           <div className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-3">
             <div className="mx-auto max-w-lg flex gap-2">
               <Button
                 variant="outline"
                 onClick={() => { if (captainId && viceCaptainId) setStep("preview"); else toast.error("Select both Captain and Vice-Captain"); }}
                 disabled={!captainId || !viceCaptainId}
-                className="flex-1 rounded-xl h-12 text-sm font-bold border-border/50 hover:border-primary/50 disabled:opacity-40"
+                className="flex-1 rounded-xl h-12 text-sm font-bold border-[hsl(var(--neon-red))] text-[hsl(var(--neon-red))] hover:bg-[hsl(var(--neon-red)/0.05)] disabled:opacity-40 disabled:border-border/50 disabled:text-muted-foreground"
               >
-                <Eye className="h-4 w-4 mr-1.5" /> Preview
+                Team Preview
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !captainId || !viceCaptainId}
-                className="flex-1 font-bold rounded-xl h-12 text-sm disabled:opacity-40 relative overflow-hidden"
+                className="flex-1 font-bold rounded-xl h-12 text-sm disabled:opacity-40 text-white"
                 style={{
-                  background: captainId && viceCaptainId
-                    ? "hsl(0 85% 50%)"
-                    : undefined,
-                  color: captainId && viceCaptainId ? "white" : undefined,
+                  background: captainId && viceCaptainId ? "hsl(0 85% 50%)" : undefined,
                 }}
               >
-                <span className="relative z-10">{saving ? "Saving..." : "Save"}</span>
+                {saving ? "Saving..." : "Continue"}
               </Button>
             </div>
           </div>

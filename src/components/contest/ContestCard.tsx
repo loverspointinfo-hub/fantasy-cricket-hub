@@ -1,16 +1,16 @@
-import { Trophy, Users, ChevronRight, Crown, Swords, Shield, CheckCircle2, Flame, Award, BarChart3 } from "lucide-react";
+import { Trophy, Users, ChevronRight, Crown, Swords, Shield, CheckCircle2, Flame, Award, BarChart3, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { item } from "@/lib/animations";
 import { Contest } from "@/hooks/useContests";
 
-const typeConfig: Record<string, { label: string; color: string; bg: string; icon: typeof Trophy }> = {
-  mega: { label: "Mega", color: "text-[hsl(var(--neon-green))]", bg: "bg-[hsl(var(--neon-green)/0.1)]", icon: Crown },
-  h2h: { label: "H2H", color: "text-[hsl(var(--neon-cyan))]", bg: "bg-[hsl(var(--neon-cyan)/0.1)]", icon: Swords },
-  practice: { label: "Practice", color: "text-muted-foreground", bg: "bg-secondary", icon: Shield },
-  winner_takes_all: { label: "Winner Takes All", color: "text-[hsl(var(--neon-orange))]", bg: "bg-[hsl(var(--neon-orange)/0.1)]", icon: Trophy },
-  private: { label: "Private", color: "text-[hsl(var(--neon-purple))]", bg: "bg-[hsl(var(--neon-purple)/0.1)]", icon: Users },
+const typeConfig: Record<string, { label: string; icon: typeof Trophy }> = {
+  mega: { label: "Grand League", icon: Crown },
+  h2h: { label: "H2H Battle", icon: Swords },
+  practice: { label: "Practice", icon: Shield },
+  winner_takes_all: { label: "Winner Takes All", icon: Trophy },
+  private: { label: "Private Contest", icon: Users },
 };
 
 interface ContestCardProps {
@@ -39,107 +39,114 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
     ? (contest.prize_breakdown as any[])[0]?.amount || (contest.prize_breakdown as any[])[0]?.prize
     : null;
 
+  const maxEntryLabel = contest.type === "h2h" ? "1" : contest.max_entries <= 10 ? `${contest.max_entries}` : "30";
+
   return (
     <motion.div
       variants={item}
       className={cn(
         "group relative rounded-2xl overflow-hidden transition-all duration-300",
-        disabled && !isJoined ? "opacity-50 cursor-default" : "cursor-pointer hover:-translate-y-0.5"
+        disabled && !isJoined ? "opacity-50 cursor-default" : "cursor-pointer"
       )}
-      onClick={disabled && !isJoined ? undefined : onJoin}
       style={{
-        background: "linear-gradient(145deg, hsl(228 16% 12%), hsl(228 18% 8%))",
-        border: "1px solid hsl(228 12% 18% / 0.5)",
-        boxShadow: "0 4px 20px hsl(228 18% 3% / 0.4)",
+        background: "hsl(228 16% 10%)",
+        border: "1px solid hsl(228 12% 16%)",
       }}
     >
-      {/* Prize & Entry row */}
-      <div className="px-4 pt-4 pb-2 flex items-start justify-between">
-        <div>
-          <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.2em] mb-0.5">
-            {contest.is_guaranteed ? "Prize Pool" : "Max Prize Pool"}
-          </p>
-          <p className="font-display text-2xl font-black text-foreground leading-none">
-            {formatPrize(contest.prize_pool)}
-          </p>
+      {/* Contest name header */}
+      <div className="px-4 pt-3 pb-2 flex items-center gap-2"
+        style={{ borderBottom: "1px solid hsl(228 12% 14%)" }}>
+        <div className="h-8 w-8 rounded-full flex items-center justify-center"
+          style={{ background: "hsl(0 85% 50% / 0.12)" }}>
+          <config.icon className="h-4 w-4 text-[hsl(var(--neon-red))]" />
         </div>
-        <div className="flex items-center gap-1.5">
-          {isJoined && (
-            <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-bold gap-1 px-2 py-0.5">
-              <CheckCircle2 className="h-2.5 w-2.5" /> Joined
-            </Badge>
-          )}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-foreground truncate">{contest.name || config.label}</p>
+          <p className="text-[10px] text-muted-foreground">{config.label}</p>
         </div>
+        {isJoined && (
+          <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-bold gap-1 px-2 py-0.5">
+            <CheckCircle2 className="h-2.5 w-2.5" /> Joined
+          </Badge>
+        )}
       </div>
 
-      {/* Progress bar */}
-      <div className="px-4 pt-1 pb-1.5">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 relative h-[5px] rounded-full overflow-hidden bg-secondary/60">
-            <motion.div
-              className="absolute inset-y-0 left-0 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${fillPercent}%` }}
-              transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-              style={{
-                background: isAlmostFull
-                  ? "linear-gradient(90deg, hsl(var(--neon-orange)), hsl(var(--neon-red)))"
-                  : "linear-gradient(90deg, hsl(var(--neon-red)), hsl(var(--neon-orange)))",
-              }}
-            />
-          </div>
-          {/* Entry fee button */}
+      {/* Prize pool + Entry fee row */}
+      <div className="px-4 pt-3 pb-2 flex items-end justify-between">
+        <div>
+          <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mb-0.5">
+            {contest.is_guaranteed ? "Prize Pool" : "Current Prize Pool"}
+          </p>
+          <p className="font-display text-2xl font-black text-foreground leading-none">
+            {contest.prize_pool}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mb-1">Entry Fee</p>
           <button
             className={cn(
-              "rounded-lg px-4 py-1.5 text-[12px] font-bold transition-all flex-shrink-0",
+              "rounded-lg px-5 py-2 text-[13px] font-bold transition-all",
               disabled && !isJoined
                 ? "bg-muted text-muted-foreground"
                 : "text-white hover:opacity-90 active:scale-95"
             )}
             style={disabled && !isJoined ? undefined : {
-              background: "linear-gradient(135deg, hsl(var(--neon-red)), hsl(0 85% 45%))",
-              boxShadow: "0 2px 8px hsl(0 85% 50% / 0.3)",
+              background: "hsl(152 80% 40%)",
+              boxShadow: "0 2px 8px hsl(152 80% 40% / 0.3)",
             }}
             onClick={(e) => { e.stopPropagation(); if (!disabled || isJoined) onJoin(); }}
           >
-            {contest.entry_fee === 0 ? "FREE" : (
-              <span className="flex items-center gap-1">🪙 {contest.entry_fee}</span>
-            )}
+            {contest.entry_fee === 0 ? "FREE" : `₹${contest.entry_fee}`}
           </button>
-        </div>
-        <div className="flex justify-between mt-1.5">
-          <span className={cn("text-[10px]", isAlmostFull ? "text-[hsl(var(--neon-orange))]" : "text-muted-foreground/60")}>
-            {isAlmostFull && <Flame className="h-3 w-3 inline mr-0.5 -mt-0.5" />}
-            {spotsLeft} seats left
-          </span>
-          <span className="text-[10px] text-muted-foreground/50">{contest.max_entries} spots</span>
         </div>
       </div>
 
-      {/* Footer stats */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-t border-border/10"
-        style={{ background: "hsl(228 16% 6% / 0.5)" }}>
-        <div className="flex items-center gap-3">
-          {firstPrize && (
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
-              <span className="font-bold italic text-[hsl(var(--gold))]">1st</span>{" "}
-              {typeof firstPrize === "number" ? formatPrize(firstPrize) : firstPrize}
-            </span>
-          )}
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
-            <Award className="h-3 w-3" /> {winPercent}%
-          </span>
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
-            <Users className="h-3 w-3" /> {winnersCount}
-          </span>
+      {/* Progress bar */}
+      <div className="px-4 pt-1 pb-2">
+        <div className="relative h-[5px] rounded-full overflow-hidden bg-secondary/60">
+          <motion.div
+            className="absolute inset-y-0 left-0 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${fillPercent}%` }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+            style={{
+              background: isAlmostFull
+                ? "linear-gradient(90deg, hsl(var(--neon-orange)), hsl(var(--neon-red)))"
+                : "linear-gradient(90deg, hsl(var(--neon-red)), hsl(var(--neon-orange)))",
+            }}
+          />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex justify-between mt-1.5">
+          <span className={cn("text-[11px] font-semibold", isAlmostFull ? "text-[hsl(var(--neon-orange))]" : "text-[hsl(var(--neon-red))]")}>
+            {isAlmostFull && <Flame className="h-3 w-3 inline mr-0.5 -mt-0.5" />}
+            {spotsLeft} Spots Left
+          </span>
+          <span className="text-[11px] text-muted-foreground/60">{contest.max_entries} Spots</span>
+        </div>
+      </div>
+
+      {/* Footer stats row */}
+      <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border/10"
+        style={{ background: "hsl(228 16% 7%)" }}>
+        {firstPrize && (
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Info className="h-3 w-3 text-[hsl(var(--neon-red))]" />
+            <span className="font-semibold">₹{typeof firstPrize === "number" ? firstPrize : firstPrize}</span>
+          </span>
+        )}
+        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <Users className="h-3 w-3" /> Upto {maxEntryLabel}
+        </span>
+        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <Trophy className="h-3 w-3" /> {winnersCount} Winner{winnersCount > 1 ? "s" : ""}
+        </span>
+        <span className="ml-auto flex items-center gap-1 text-[11px] font-semibold">
           {contest.is_guaranteed ? (
-            <span className="text-[10px] font-bold text-primary flex items-center gap-0.5">✅ Guaranteed</span>
+            <span className="text-primary">✅ Guaranteed</span>
           ) : (
-            <span className="text-[10px] text-muted-foreground/50 flex items-center gap-0.5">📈 Flexible</span>
+            <span className="text-muted-foreground/60">📈 Flexible</span>
           )}
-        </div>
+        </span>
       </div>
 
       {/* Leaderboard link */}
