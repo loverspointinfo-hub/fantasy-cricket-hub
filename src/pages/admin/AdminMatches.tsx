@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
@@ -18,11 +18,13 @@ import MatchLineupManager from "@/components/admin/MatchLineupManager";
 
 interface MatchForm {
   team1_name: string; team1_short: string; team2_name: string; team2_short: string;
+  team1_logo: string; team2_logo: string;
   league: string; match_time: string; entry_deadline: string; venue: string; sport: string; status: string;
 }
 
 const empty: MatchForm = {
   team1_name: "", team1_short: "", team2_name: "", team2_short: "",
+  team1_logo: "", team2_logo: "",
   league: "", match_time: "", entry_deadline: "", venue: "", sport: "cricket", status: "upcoming",
 };
 
