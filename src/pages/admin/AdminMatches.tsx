@@ -41,6 +41,25 @@ const AdminMatches = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [lineupMatch, setLineupMatch] = useState<any>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const logoRef1 = useRef<HTMLInputElement>(null);
+  const logoRef2 = useRef<HTMLInputElement>(null);
+  const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
+
+  const uploadLogo = async (file: File, team: "team1_logo" | "team2_logo") => {
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Max 2MB"); return; }
+    setUploadingLogo(team);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${team}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("team-logos").upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("team-logos").getPublicUrl(fileName);
+      set(team, urlData.publicUrl);
+      toast.success("Logo uploaded");
+    } catch (err: any) { toast.error(err.message); }
+    finally { setUploadingLogo(null); }
+  };
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["admin-matches"],
