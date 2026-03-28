@@ -276,9 +276,11 @@ export type Database = {
           sport: string | null
           status: string | null
           team1_color: string | null
+          team1_logo: string | null
           team1_name: string
           team1_short: string
           team2_color: string | null
+          team2_logo: string | null
           team2_name: string
           team2_short: string
           venue: string | null
@@ -293,9 +295,11 @@ export type Database = {
           sport?: string | null
           status?: string | null
           team1_color?: string | null
+          team1_logo?: string | null
           team1_name: string
           team1_short: string
           team2_color?: string | null
+          team2_logo?: string | null
           team2_name: string
           team2_short: string
           venue?: string | null
@@ -310,9 +314,11 @@ export type Database = {
           sport?: string | null
           status?: string | null
           team1_color?: string | null
+          team1_logo?: string | null
           team1_name?: string
           team1_short?: string
           team2_color?: string | null
+          team2_logo?: string | null
           team2_name?: string
           team2_short?: string
           venue?: string | null
