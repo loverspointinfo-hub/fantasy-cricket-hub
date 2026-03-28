@@ -166,6 +166,33 @@ const AdminMatches = () => {
               <div><Label className="text-xs text-muted-foreground">Team 1 Short</Label><Input value={form.team1_short} onChange={e => set("team1_short", e.target.value)} maxLength={4} placeholder="MI" /></div>
               <div><Label className="text-xs text-muted-foreground">Team 2 Name</Label><Input value={form.team2_name} onChange={e => set("team2_name", e.target.value)} placeholder="e.g. Chennai Super Kings" /></div>
               <div><Label className="text-xs text-muted-foreground">Team 2 Short</Label><Input value={form.team2_short} onChange={e => set("team2_short", e.target.value)} maxLength={4} placeholder="CSK" /></div>
+
+              {/* Team Logo uploads */}
+              {(["team1_logo", "team2_logo"] as const).map((key, i) => (
+                <div key={key} className="col-span-1">
+                  <Label className="text-xs text-muted-foreground">Team {i + 1} Logo</Label>
+                  <input type="file" accept="image/*" className="hidden" ref={i === 0 ? logoRef1 : logoRef2}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f, key); }} />
+                  <div className="flex items-center gap-2 mt-1">
+                    {form[key] ? (
+                      <div className="relative">
+                        <img src={form[key]} alt="" className="h-10 w-10 rounded-full object-cover border border-border/30" />
+                        <button type="button" onClick={() => set(key, "")}
+                          className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive flex items-center justify-center">
+                          <X className="h-2.5 w-2.5 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <Button type="button" variant="outline" size="sm" className="gap-1 text-xs rounded-lg"
+                        disabled={uploadingLogo === key}
+                        onClick={() => (i === 0 ? logoRef1 : logoRef2).current?.click()}>
+                        <Upload className="h-3 w-3" /> {uploadingLogo === key ? "Uploading..." : "Upload"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
               <div><Label className="text-xs text-muted-foreground">League</Label><Input value={form.league} onChange={e => set("league", e.target.value)} placeholder="IPL 2025" /></div>
               <div><Label className="text-xs text-muted-foreground">Venue</Label><Input value={form.venue} onChange={e => set("venue", e.target.value)} placeholder="Wankhede Stadium" /></div>
               <div><Label className="text-xs text-muted-foreground">Match Time (IST)</Label><Input type="datetime-local" value={form.match_time} onChange={e => set("match_time", e.target.value)} /></div>
