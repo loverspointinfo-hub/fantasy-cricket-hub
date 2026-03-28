@@ -9,6 +9,8 @@ export interface Match {
   team2_short: string;
   team1_color: string;
   team2_color: string;
+  team1_logo: string | null;
+  team2_logo: string | null;
   league: string;
   sport: string;
   venue: string | null;
