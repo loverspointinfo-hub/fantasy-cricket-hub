@@ -92,6 +92,7 @@ const AdminMatches = () => {
   const openEdit = (m: any) => {
     setForm({
       team1_name: m.team1_name, team1_short: m.team1_short, team2_name: m.team2_name, team2_short: m.team2_short,
+      team1_logo: m.team1_logo || "", team2_logo: m.team2_logo || "",
       league: m.league, match_time: m.match_time ? utcToISTInput(m.match_time) : "", entry_deadline: m.entry_deadline ? utcToISTInput(m.entry_deadline) : "",
       venue: m.venue || "", sport: m.sport || "cricket", status: m.status || "upcoming",
     });
