@@ -132,42 +132,87 @@ const MatchDetail = () => {
         background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.9))",
         backdropFilter: "blur(24px) saturate(1.5)",
       }}>
-        <div className="mx-auto max-w-lg px-4 py-3 flex items-center gap-3">
+        {/* Top bar with back button and league */}
+        <div className="mx-auto max-w-lg px-4 pt-3 pb-1 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-2 -ml-1 rounded-xl hover:bg-secondary/80 active:scale-95 transition-all">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="flex-1 min-w-0">
-            <p className="font-display text-base font-bold truncate">
-              {match.team1_short} <span className="text-muted-foreground/40 mx-1">vs</span> {match.team2_short}
-            </p>
-            <p className="text-[10px] text-muted-foreground tracking-wide">
-              {isLive ? "" : !countdown.isExpired ? countdown.label + " left" : match.league}
-            </p>
+          <div className="flex-1 min-w-0 text-center">
+            <p className="text-xs font-semibold text-muted-foreground tracking-wide truncate">{match.league}</p>
           </div>
-          <div className="flex items-center gap-2">
-            {isLive && (
-              <Badge className="bg-[hsl(var(--neon-red)/0.15)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.25)] text-[10px] font-bold gap-1 animate-pulse">
-                <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))]" /> LIVE
-              </Badge>
-            )}
-            {match.status === "upcoming" && !countdown.isExpired && (
-              <div className={cn(
-                "flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-bold",
-                isUrgent ? "text-[hsl(var(--neon-red))]" : "text-primary"
-              )} style={{
-                background: isUrgent ? "hsl(var(--neon-red) / 0.08)" : "hsl(var(--primary) / 0.08)",
-                border: `1px solid ${isUrgent ? "hsl(var(--neon-red) / 0.15)" : "hsl(var(--primary) / 0.15)"}`,
-              }}>
-                <Timer className={cn("h-3 w-3", isUrgent && "animate-pulse")} />
-                <span className="font-display tracking-wide">{countdown.label}</span>
+          <button className="h-8 w-8 rounded-xl flex items-center justify-center" style={{
+            background: "hsl(228 16% 11%)", border: "1px solid hsl(228 12% 18% / 0.5)",
+          }}>
+            <HelpCircle className="h-4 w-4 text-muted-foreground/60" />
+          </button>
+        </div>
+
+        {/* Team VS Team with countdown */}
+        <div className="mx-auto max-w-lg px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Team 1 */}
+            <div className="flex flex-col items-center gap-1.5 flex-1">
+              <div className="h-14 w-14 rounded-full flex items-center justify-center text-lg font-bold font-display border-2 border-border/30"
+                style={{ background: `linear-gradient(135deg, ${match.team1_color || 'hsl(220, 70%, 50%)'})` }}>
+                {match.team1_short?.charAt(0)}
               </div>
-            )}
-            <button className="h-8 w-8 rounded-xl flex items-center justify-center" style={{
-              background: "hsl(228 16% 11%)", border: "1px solid hsl(228 12% 18% / 0.5)",
-            }}>
-              <HelpCircle className="h-4 w-4 text-muted-foreground/60" />
-            </button>
+              <span className="text-sm font-bold font-display tracking-wide">{match.team1_short}</span>
+              <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">{match.team1_name}</span>
+            </div>
+
+            {/* Center - VS & Countdown */}
+            <div className="flex flex-col items-center gap-1 px-2">
+              {isLive ? (
+                <Badge className="bg-[hsl(var(--neon-red)/0.15)] text-[hsl(var(--neon-red))] border-[hsl(var(--neon-red)/0.25)] text-xs font-bold gap-1.5 animate-pulse px-3 py-1">
+                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--neon-red))]" /> LIVE
+                </Badge>
+              ) : !countdown.isExpired ? (
+                <>
+                  <div className="flex items-center gap-1 mb-1">
+                    {[
+                      { val: countdown.hours + countdown.days * 24, unit: "h" },
+                      { val: countdown.minutes, unit: "m" },
+                      { val: countdown.seconds, unit: "s" },
+                    ].map((t, i) => (
+                      <div key={i} className="flex items-center">
+                        {i > 0 && <span className="text-muted-foreground/40 text-xs mx-0.5">:</span>}
+                        <div className="flex flex-col items-center">
+                          <span className={cn(
+                            "font-display font-bold text-lg tabular-nums leading-none",
+                            isUrgent ? "text-[hsl(var(--neon-red))]" : "text-primary"
+                          )}>
+                            {String(t.val).padStart(2, "0")}
+                          </span>
+                          <span className="text-[8px] text-muted-foreground/50 uppercase">{t.unit}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{formatMatchTime(match.match_time)}</span>
+                </>
+              ) : (
+                <span className="text-xs text-muted-foreground font-semibold">Closed</span>
+              )}
+            </div>
+
+            {/* Team 2 */}
+            <div className="flex flex-col items-center gap-1.5 flex-1">
+              <div className="h-14 w-14 rounded-full flex items-center justify-center text-lg font-bold font-display border-2 border-border/30"
+                style={{ background: `linear-gradient(135deg, ${match.team2_color || 'hsl(0, 70%, 50%)'})` }}>
+                {match.team2_short?.charAt(0)}
+              </div>
+              <span className="text-sm font-bold font-display tracking-wide">{match.team2_short}</span>
+              <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">{match.team2_name}</span>
+            </div>
           </div>
+
+          {/* Venue info */}
+          {match.venue && (
+            <div className="flex items-center justify-center gap-1.5 mt-2 pt-2 border-t border-border/10">
+              <MapPin className="h-3 w-3 text-muted-foreground/50" />
+              <span className="text-[10px] text-muted-foreground/60 truncate max-w-[250px]">{match.venue}</span>
+            </div>
+          )}
         </div>
 
         {/* Detail tabs - Contest / My Contest / Team */}
