@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
@@ -18,11 +18,13 @@ import MatchLineupManager from "@/components/admin/MatchLineupManager";
 
 interface MatchForm {
   team1_name: string; team1_short: string; team2_name: string; team2_short: string;
+  team1_logo: string; team2_logo: string;
   league: string; match_time: string; entry_deadline: string; venue: string; sport: string; status: string;
 }
 
 const empty: MatchForm = {
   team1_name: "", team1_short: "", team2_name: "", team2_short: "",
+  team1_logo: "", team2_logo: "",
   league: "", match_time: "", entry_deadline: "", venue: "", sport: "cricket", status: "upcoming",
 };
 
@@ -39,6 +41,25 @@ const AdminMatches = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [lineupMatch, setLineupMatch] = useState<any>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const logoRef1 = useRef<HTMLInputElement>(null);
+  const logoRef2 = useRef<HTMLInputElement>(null);
+  const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
+
+  const uploadLogo = async (file: File, team: "team1_logo" | "team2_logo") => {
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Max 2MB"); return; }
+    setUploadingLogo(team);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${team}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("team-logos").upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("team-logos").getPublicUrl(fileName);
+      set(team, urlData.publicUrl);
+      toast.success("Logo uploaded");
+    } catch (err: any) { toast.error(err.message); }
+    finally { setUploadingLogo(null); }
+  };
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["admin-matches"],
@@ -90,6 +111,7 @@ const AdminMatches = () => {
   const openEdit = (m: any) => {
     setForm({
       team1_name: m.team1_name, team1_short: m.team1_short, team2_name: m.team2_name, team2_short: m.team2_short,
+      team1_logo: m.team1_logo || "", team2_logo: m.team2_logo || "",
       league: m.league, match_time: m.match_time ? utcToISTInput(m.match_time) : "", entry_deadline: m.entry_deadline ? utcToISTInput(m.entry_deadline) : "",
       venue: m.venue || "", sport: m.sport || "cricket", status: m.status || "upcoming",
     });
@@ -144,6 +166,33 @@ const AdminMatches = () => {
               <div><Label className="text-xs text-muted-foreground">Team 1 Short</Label><Input value={form.team1_short} onChange={e => set("team1_short", e.target.value)} maxLength={4} placeholder="MI" /></div>
               <div><Label className="text-xs text-muted-foreground">Team 2 Name</Label><Input value={form.team2_name} onChange={e => set("team2_name", e.target.value)} placeholder="e.g. Chennai Super Kings" /></div>
               <div><Label className="text-xs text-muted-foreground">Team 2 Short</Label><Input value={form.team2_short} onChange={e => set("team2_short", e.target.value)} maxLength={4} placeholder="CSK" /></div>
+
+              {/* Team Logo uploads */}
+              {(["team1_logo", "team2_logo"] as const).map((key, i) => (
+                <div key={key} className="col-span-1">
+                  <Label className="text-xs text-muted-foreground">Team {i + 1} Logo</Label>
+                  <input type="file" accept="image/*" className="hidden" ref={i === 0 ? logoRef1 : logoRef2}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f, key); }} />
+                  <div className="flex items-center gap-2 mt-1">
+                    {form[key] ? (
+                      <div className="relative">
+                        <img src={form[key]} alt="" className="h-10 w-10 rounded-full object-cover border border-border/30" />
+                        <button type="button" onClick={() => set(key, "")}
+                          className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive flex items-center justify-center">
+                          <X className="h-2.5 w-2.5 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <Button type="button" variant="outline" size="sm" className="gap-1 text-xs rounded-lg"
+                        disabled={uploadingLogo === key}
+                        onClick={() => (i === 0 ? logoRef1 : logoRef2).current?.click()}>
+                        <Upload className="h-3 w-3" /> {uploadingLogo === key ? "Uploading..." : "Upload"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
               <div><Label className="text-xs text-muted-foreground">League</Label><Input value={form.league} onChange={e => set("league", e.target.value)} placeholder="IPL 2025" /></div>
               <div><Label className="text-xs text-muted-foreground">Venue</Label><Input value={form.venue} onChange={e => set("venue", e.target.value)} placeholder="Wankhede Stadium" /></div>
               <div><Label className="text-xs text-muted-foreground">Match Time (IST)</Label><Input type="datetime-local" value={form.match_time} onChange={e => set("match_time", e.target.value)} /></div>
