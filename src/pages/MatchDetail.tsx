@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { staggerContainer, item } from "@/lib/animations";
-import { formatIST } from "@/lib/date-utils";
+import { formatIST, formatMatchTime } from "@/lib/date-utils";
 import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
