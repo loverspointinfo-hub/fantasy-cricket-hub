@@ -152,10 +152,14 @@ const MatchDetail = () => {
           <div className="flex items-center justify-between">
             {/* Team 1 */}
             <div className="flex flex-col items-center gap-1.5 flex-1">
-              <div className="h-14 w-14 rounded-full flex items-center justify-center text-lg font-bold font-display border-2 border-border/30"
-                style={{ background: `linear-gradient(135deg, ${match.team1_color || 'hsl(220, 70%, 50%)'})` }}>
-                {match.team1_short?.charAt(0)}
-              </div>
+              {match.team1_logo ? (
+                <img src={match.team1_logo} alt={match.team1_short} className="h-14 w-14 rounded-full object-cover border-2 border-border/30" />
+              ) : (
+                <div className="h-14 w-14 rounded-full flex items-center justify-center text-lg font-bold font-display border-2 border-border/30"
+                  style={{ background: `linear-gradient(135deg, ${match.team1_color || 'hsl(220, 70%, 50%)'})` }}>
+                  {match.team1_short?.charAt(0)}
+                </div>
+              )}
               <span className="text-sm font-bold font-display tracking-wide">{match.team1_short}</span>
               <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">{match.team1_name}</span>
             </div>

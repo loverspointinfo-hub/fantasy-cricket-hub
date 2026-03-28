@@ -62,12 +62,16 @@ const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number 
           <div className="flex-1 space-y-3">
             {/* Team 1 */}
             <div className="flex items-center gap-3">
-              <div className={cn(
-                "h-10 w-10 rounded-xl flex items-center justify-center text-[9px] font-bold font-display text-white shadow-lg bg-gradient-to-br flex-shrink-0",
-                match.team1_color || "from-blue-500 to-blue-700"
-              )}>
-                {match.team1_short}
-              </div>
+              {match.team1_logo ? (
+                <img src={match.team1_logo} alt={match.team1_short} className="h-10 w-10 rounded-xl object-cover shadow-lg flex-shrink-0 border border-border/20" />
+              ) : (
+                <div className={cn(
+                  "h-10 w-10 rounded-xl flex items-center justify-center text-[9px] font-bold font-display text-white shadow-lg bg-gradient-to-br flex-shrink-0",
+                  match.team1_color || "from-blue-500 to-blue-700"
+                )}>
+                  {match.team1_short}
+                </div>
+              )}
               <div className="min-w-0">
                 <p className="text-[13px] font-bold text-foreground leading-tight">{match.team1_short}</p>
                 <p className="text-[10px] text-muted-foreground/60 truncate">{match.team1_name}</p>
@@ -75,12 +79,16 @@ const MatchCard = ({ match, playerCount }: { match: Match; playerCount?: number 
             </div>
             {/* Team 2 */}
             <div className="flex items-center gap-3">
-              <div className={cn(
-                "h-10 w-10 rounded-xl flex items-center justify-center text-[9px] font-bold font-display text-white shadow-lg bg-gradient-to-br flex-shrink-0",
-                match.team2_color || "from-red-500 to-red-700"
-              )}>
-                {match.team2_short}
-              </div>
+              {match.team2_logo ? (
+                <img src={match.team2_logo} alt={match.team2_short} className="h-10 w-10 rounded-xl object-cover shadow-lg flex-shrink-0 border border-border/20" />
+              ) : (
+                <div className={cn(
+                  "h-10 w-10 rounded-xl flex items-center justify-center text-[9px] font-bold font-display text-white shadow-lg bg-gradient-to-br flex-shrink-0",
+                  match.team2_color || "from-red-500 to-red-700"
+                )}>
+                  {match.team2_short}
+                </div>
+              )}
               <div className="min-w-0">
                 <p className="text-[13px] font-bold text-foreground leading-tight">{match.team2_short}</p>
                 <p className="text-[10px] text-muted-foreground/60 truncate">{match.team2_name}</p>
