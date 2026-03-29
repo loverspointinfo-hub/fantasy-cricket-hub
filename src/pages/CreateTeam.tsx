@@ -166,11 +166,17 @@ const CreateTeam = () => {
 
         toast.success("Team updated successfully!");
       } else {
+        // Auto-name: "1st Team", "2nd Team", "3rd Team", etc.
+        const teamNumber = userTeams.length + 1;
+        const suffix = teamNumber === 1 ? "st" : teamNumber === 2 ? "nd" : teamNumber === 3 ? "rd" : "th";
+        const autoName = `${teamNumber}${suffix} Team`;
+
         const { data: team, error: teamError } = await (supabase
           .from("user_teams" as any)
           .insert({
             user_id: user.id,
             match_id: matchId!,
+            name: autoName,
             captain_id: captainId,
             vice_captain_id: viceCaptainId,
             total_credits: usedCredits,
