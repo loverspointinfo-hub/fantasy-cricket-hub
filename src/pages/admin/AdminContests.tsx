@@ -135,10 +135,15 @@ const AdminContests = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{c.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {c.match?.team1_short} vs {c.match?.team2_short} • ₹{c.entry_fee} entry • ₹{c.prize_pool} pool • {c.current_entries}/{c.max_entries}
+                  {c.match?.team1_short} vs {c.match?.team2_short} • ₹{c.entry_fee} entry • ₹{c.prize_pool} pool
                 </p>
               </div>
-              <Badge className="text-[10px]">{c.status}</Badge>
+              <div className="flex flex-col items-center gap-1 min-w-[60px]">
+                <Badge variant="secondary" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">
+                  {c.current_entries ?? 0}/{c.max_entries} Joined
+                </Badge>
+                <Badge className="text-[10px]">{c.status}</Badge>
+              </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}><Pencil className="h-3.5 w-3.5" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => del.mutate(c.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
