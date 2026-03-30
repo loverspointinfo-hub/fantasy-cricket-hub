@@ -131,7 +131,7 @@ const PlayerComparisonSheet = ({ open, onOpenChange, players }: PlayerComparison
                               "text-sm font-bold",
                               isBest ? "text-primary" : "text-foreground"
                             )}>
-                              {stat.format(val as any)}
+                              {typeof val === "number" ? stat.format(val) : stat.format(val as string)}
                             </span>
                           </div>
                         );
