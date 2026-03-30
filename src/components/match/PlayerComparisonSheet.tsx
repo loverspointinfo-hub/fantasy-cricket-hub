@@ -110,32 +110,25 @@ const PlayerComparisonSheet = ({ open, onOpenChange, players }: PlayerComparison
             <div className="space-y-0">
               {stats.map(stat => {
                 const values = selectedPlayers.map(mp => {
-                  if (stat.key === "credit_value") return mp.player.credit_value;
+                  if (stat.key === "credit_value") return String(mp.player.credit_value);
                   if (stat.key === "role") return mp.player.role;
                   if (stat.key === "team") return mp.player.team;
-                  return (mp as any)[stat.key] ?? 0;
+                  if (stat.key === "fantasy_points") return String(mp.fantasy_points ?? 0);
+                  if (stat.key === "selected_by_percent") return String(mp.selected_by_percent ?? 0);
+                  return "0";
                 });
-
-                const numValues = values.filter(v => typeof v === "number") as number[];
-                const maxVal = numValues.length > 0 ? Math.max(...numValues) : 0;
 
                 return (
                   <div key={stat.key} className="flex items-center border-b border-border/10 py-3">
                     <span className="text-[10px] text-muted-foreground w-20 shrink-0">{stat.label}</span>
                     <div className="flex-1 flex gap-2">
-                      {values.map((val, i) => {
-                        const isBest = typeof val === "number" && val === maxVal && numValues.filter(v => v === maxVal).length === 1;
-                        return (
-                          <div key={i} className="flex-1 text-center">
-                            <span className={cn(
-                              "text-sm font-bold",
-                              isBest ? "text-primary" : "text-foreground"
-                            )}>
-                              {typeof val === "number" ? stat.format(val) : stat.format(val as string)}
-                            </span>
-                          </div>
-                        );
-                      })}
+                      {values.map((val, i) => (
+                        <div key={i} className="flex-1 text-center">
+                          <span className="text-sm font-bold text-foreground">
+                            {val}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
