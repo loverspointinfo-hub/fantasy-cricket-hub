@@ -7,6 +7,7 @@ import { useRef, useCallback, useState } from "react";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const ROLE_LABELS: Record<string, string> = {
   WK: "WICKET-KEEPER",
