@@ -434,6 +434,7 @@ const TeamPreview = ({
                         isCaptain={captainId === mp.player_id}
                         isVC={viceCaptainId === mp.player_id}
                         teamSide={mp.player.team === team1Short ? "team1" : "team2"}
+                        fantasyPoints={mp.fantasy_points || 0}
                       />
                     ))}
                   </div>
