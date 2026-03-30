@@ -138,7 +138,7 @@ const AdminContests = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{c.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {c.match?.team1_short} vs {c.match?.team2_short} • ₹{c.entry_fee} entry • ₹{c.prize_pool} pool
+                  {c.match?.team1_short} vs {c.match?.team2_short} • ₹{c.entry_fee} entry • ₹{c.prize_pool} pool • Max {c.max_teams_per_user ?? 1} team/user
                 </p>
               </div>
               <div className="flex flex-col items-center gap-1 min-w-[60px]">
