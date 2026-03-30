@@ -1,4 +1,4 @@
-import { Crown, Star, Trash2, Edit3, ChevronDown, ChevronUp, Eye, Pencil } from "lucide-react";
+import { Crown, Star, Trash2, Edit3, ChevronDown, ChevronUp, Eye, Pencil, Copy } from "lucide-react";
 import { UserTeam } from "@/hooks/useUserTeams";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -26,12 +26,13 @@ interface SavedTeamCardProps {
   team: UserTeam;
   onDelete?: (teamId: string) => void;
   onEdit?: (teamId: string) => void;
+  onClone?: (team: UserTeam) => void;
   deleting?: boolean;
   team1Short?: string;
   team2Short?: string;
 }
 
-const SavedTeamCard = ({ team, onDelete, onEdit, deleting, team1Short, team2Short }: SavedTeamCardProps) => {
+const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short }: SavedTeamCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editNameOpen, setEditNameOpen] = useState(false);
