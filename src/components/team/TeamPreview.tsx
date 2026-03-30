@@ -7,6 +7,7 @@ import { useRef, useCallback, useState } from "react";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const ROLE_LABELS: Record<string, string> = {
   WK: "WICKET-KEEPER",
@@ -146,6 +147,8 @@ const TeamPreview = ({
   onClose,
 }: TeamPreviewProps) => {
   const previewRef = useRef<HTMLDivElement>(null);
+  const { data: siteSettings } = useSiteSettings();
+  const siteName = siteSettings?.site_name || "FANTASY11";
   const [isGenerating, setIsGenerating] = useState(false);
   const canShare = typeof navigator !== "undefined" && !!navigator.share;
 
@@ -325,51 +328,82 @@ const TeamPreview = ({
           </div>
         </motion.div>
 
-        {/* Cricket Field */}
+        {/* Cricket Field - Realistic ground */}
         <div className="relative px-1 py-8 min-h-[420px] overflow-hidden" style={{
-          background: "linear-gradient(180deg, #1a6b35 0%, #15582c 25%, #104a22 50%, #0c3c1a 75%, #082e14 100%)",
+          background: "radial-gradient(ellipse at 50% 40%, #2d8a4e 0%, #1f7a3d 20%, #18632f 40%, #114e24 60%, #0b3a1a 80%, #072d13 100%)",
         }}>
-          {/* Grass stripes */}
+          {/* Realistic grass mowing pattern */}
           <div
-            className="absolute inset-0 pointer-events-none opacity-[0.04]"
+            className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage:
-                "repeating-linear-gradient(0deg, transparent, transparent 20px, white 20px, white 21px)",
+                "repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.025) 28px, rgba(255,255,255,0.025) 30px, transparent 30px, transparent 58px, rgba(0,0,0,0.03) 58px, rgba(0,0,0,0.03) 60px)",
             }}
           />
 
-          {/* Outer boundary oval */}
+          {/* Stadium floodlight glow - top */}
+          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[200px] pointer-events-none" style={{
+            background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,230,0.06) 0%, transparent 70%)",
+          }} />
+
+          {/* Stadium floodlight glow - bottom */}
+          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[400px] h-[150px] pointer-events-none" style={{
+            background: "radial-gradient(ellipse at 50% 100%, rgba(255,255,230,0.04) 0%, transparent 70%)",
+          }} />
+
+          {/* Side light spill */}
+          <div className="absolute top-1/4 -left-10 w-[150px] h-[300px] pointer-events-none" style={{
+            background: "radial-gradient(ellipse at 0% 50%, rgba(255,255,200,0.03) 0%, transparent 70%)",
+          }} />
+          <div className="absolute top-1/4 -right-10 w-[150px] h-[300px] pointer-events-none" style={{
+            background: "radial-gradient(ellipse at 100% 50%, rgba(255,255,200,0.03) 0%, transparent 70%)",
+          }} />
+
+          {/* Outer boundary rope */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[94%] h-[96%] rounded-[50%] border border-white/[0.06]" />
+            <div className="w-[95%] h-[97%] rounded-[50%]" style={{
+              border: "2px solid rgba(255,255,255,0.07)",
+              boxShadow: "0 0 8px rgba(255,255,255,0.03), inset 0 0 8px rgba(255,255,255,0.02)",
+            }} />
           </div>
 
-          {/* Inner 30-yard circle */}
+          {/* 30-yard circle */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[55%] h-[58%] rounded-[50%] border border-dashed border-white/[0.05]" />
+            <div className="w-[56%] h-[60%] rounded-[50%]" style={{
+              border: "1.5px dashed rgba(255,255,255,0.06)",
+            }} />
           </div>
 
-          {/* Pitch strip */}
+          {/* Pitch rectangle - realistic clay color */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[24px] h-[100px] rounded-[2px] bg-[hsl(42,25%,35%,0.12)] border border-white/[0.06]">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[40px] h-[1px] bg-white/10" />
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[40px] h-[1px] bg-white/10" />
+            <div className="w-[28px] h-[110px] rounded-[2px] relative" style={{
+              background: "linear-gradient(180deg, #c4a44a22 0%, #b8953e18 50%, #c4a44a22 100%)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 0 12px rgba(196,164,74,0.08)",
+            }}>
+              {/* Popping crease */}
+              <div className="absolute top-[8px] left-1/2 -translate-x-1/2 w-[42px] h-[1.5px]" style={{
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+              }} />
+              <div className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[42px] h-[1.5px]" style={{
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+              }} />
+              {/* Bowling crease */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[36px] h-[1px] bg-white/10" />
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[36px] h-[1px] bg-white/10" />
               {/* Stumps */}
               <div className="absolute top-[2px] left-1/2 -translate-x-1/2 flex gap-[3px]">
-                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
-                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
-                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
+                <div className="w-[1.5px] h-[4px] rounded-full bg-white/20" />
+                <div className="w-[1.5px] h-[4px] rounded-full bg-white/25" />
+                <div className="w-[1.5px] h-[4px] rounded-full bg-white/20" />
               </div>
               <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 flex gap-[3px]">
-                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
-                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
-                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
+                <div className="w-[1.5px] h-[4px] rounded-full bg-white/20" />
+                <div className="w-[1.5px] h-[4px] rounded-full bg-white/25" />
+                <div className="w-[1.5px] h-[4px] rounded-full bg-white/20" />
               </div>
             </div>
           </div>
-
-          {/* Ambient light spots */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[120px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[250px] h-[100px] bg-white/[0.015] rounded-full blur-3xl pointer-events-none" />
 
           {/* Players by role */}
           <div className="relative z-10 flex flex-col gap-6">
@@ -377,11 +411,11 @@ const TeamPreview = ({
               rolePlayers.length > 0 ? (
                 <motion.div key={role} variants={item} className="flex flex-col items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <div className="h-[1px] w-6 bg-gradient-to-r from-transparent to-white/20" />
-                    <p className="text-[9px] uppercase tracking-[0.3em] text-white/35 font-bold">
+                    <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-white/15" />
+                    <p className="text-[9px] uppercase tracking-[0.3em] text-white/30 font-bold">
                       {label}
                     </p>
-                    <div className="h-[1px] w-6 bg-gradient-to-l from-transparent to-white/20" />
+                    <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-white/15" />
                   </div>
                   <div className="flex items-start justify-center gap-2 sm:gap-3 flex-wrap">
                     {rolePlayers.map((mp) => (
@@ -400,11 +434,15 @@ const TeamPreview = ({
           </div>
         </div>
 
-        {/* Watermark footer */}
-        <div className="bg-gradient-to-r from-[hsl(228,18%,7%)] to-[hsl(228,20%,9%)] px-4 py-2 flex items-center justify-center gap-1.5 border-t border-white/5">
-          <div className="h-1 w-1 rounded-full bg-[hsl(var(--primary))]" />
-          <span className="text-[9px] text-white/25 font-bold tracking-[0.2em] uppercase">BatWiz Fantasy</span>
-          <div className="h-1 w-1 rounded-full bg-[hsl(var(--primary))]" />
+        {/* Watermark footer with site name */}
+        <div className="px-4 py-2.5 flex items-center justify-center gap-2 border-t border-white/5" style={{
+          background: "linear-gradient(135deg, hsl(228,18%,7%) 0%, hsl(228,22%,10%) 100%)",
+        }}>
+          <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+          <span className="text-[10px] text-white/30 font-bold tracking-[0.25em] uppercase font-display">
+            {siteName}
+          </span>
+          <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
         </div>
       </div>
     </motion.div>
