@@ -1,4 +1,4 @@
-import { X, Download, Share2 } from "lucide-react";
+import { X, Download, Share2, Crown, Shield } from "lucide-react";
 import { MatchPlayer } from "@/hooks/useMatchPlayers";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 const ROLE_LABELS: Record<string, string> = {
-  WK: "WICKET-KEEPERS",
+  WK: "WICKET-KEEPER",
   BAT: "BATTERS",
   AR: "ALL-ROUNDERS",
   BOWL: "BOWLERS",
@@ -50,35 +50,46 @@ const PlayerAvatar = ({
     .slice(0, 2);
 
   return (
-    <motion.div variants={item} className="flex flex-col items-center gap-0.5 w-[80px] sm:w-[88px]">
-      {/* Avatar with badge */}
-      <div className="relative mb-1">
+    <motion.div variants={item} className="flex flex-col items-center gap-0.5 w-[72px] sm:w-[82px]">
+      <div className="relative mb-0.5">
         {/* C / VC badge */}
         {(isCaptain || isVC) && (
           <div
             className={cn(
-              "absolute -top-1.5 -left-1.5 z-20 h-[22px] w-[22px] rounded-full flex items-center justify-center text-[9px] font-black border-2 shadow-md",
+              "absolute -top-1 -left-1 z-20 h-5 w-5 rounded-full flex items-center justify-center text-[8px] font-black border-[1.5px] shadow-lg",
               isCaptain
-                ? "bg-[hsl(var(--gold))] border-[hsl(var(--gold))] text-black"
-                : "bg-primary border-primary text-primary-foreground"
+                ? "bg-gradient-to-br from-yellow-400 to-amber-500 border-yellow-300 text-black"
+                : "bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-300 text-white"
             )}
           >
             {isCaptain ? "C" : "VC"}
           </div>
         )}
 
-        {/* Player image circle */}
+        {/* Glow ring for C/VC */}
+        {(isCaptain || isVC) && (
+          <div
+            className={cn(
+              "absolute inset-0 rounded-full animate-pulse",
+              isCaptain
+                ? "shadow-[0_0_20px_4px_rgba(251,191,36,0.35)]"
+                : "shadow-[0_0_20px_4px_rgba(96,165,250,0.3)]"
+            )}
+          />
+        )}
+
+        {/* Player image */}
         <div
           className={cn(
-            "h-[60px] w-[60px] sm:h-[68px] sm:w-[68px] rounded-full flex items-center justify-center overflow-hidden border-[2.5px] shadow-xl transition-transform hover:scale-105",
+            "h-[52px] w-[52px] sm:h-[58px] sm:w-[58px] rounded-full flex items-center justify-center overflow-hidden border-2 transition-transform hover:scale-110",
             isCaptain
-              ? "border-[hsl(var(--gold))] shadow-[0_0_16px_hsl(var(--gold)/0.4)]"
+              ? "border-yellow-400 ring-2 ring-yellow-400/30"
               : isVC
-              ? "border-primary shadow-[0_0_16px_hsl(var(--primary)/0.4)]"
-              : "border-white/40"
+              ? "border-blue-400 ring-2 ring-blue-400/30"
+              : "border-white/30"
           )}
           style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
+            background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.02))",
           }}
         >
           {player.photo_url ? (
@@ -95,7 +106,7 @@ const PlayerAvatar = ({
           ) : null}
           <span
             className={cn(
-              "text-white font-bold text-sm",
+              "text-white font-bold text-xs",
               player.photo_url ? "hidden" : ""
             )}
           >
@@ -107,17 +118,17 @@ const PlayerAvatar = ({
       {/* Name pill */}
       <div
         className={cn(
-          "px-2.5 py-[3px] rounded-md text-[10px] sm:text-[11px] font-bold text-center whitespace-nowrap max-w-[80px] truncate shadow-sm",
+          "px-2 py-[2px] rounded-md text-[9px] sm:text-[10px] font-bold text-center whitespace-nowrap max-w-[72px] truncate",
           teamSide === "team1"
-            ? "bg-white text-gray-900"
-            : "bg-black/70 text-white border border-white/10"
+            ? "bg-white text-gray-900 shadow-sm"
+            : "bg-gray-900/80 text-white border border-white/15 shadow-sm"
         )}
       >
         {shortName}
       </div>
 
       {/* Credits */}
-      <span className="text-[10px] text-white/70 font-semibold mt-0.5">
+      <span className="text-[9px] text-white/50 font-semibold">
         {player.credit_value} Cr
       </span>
     </motion.div>
@@ -184,24 +195,27 @@ const TeamPreview = ({
   const team1Count = players.filter((p) => p.player.team === team1Short).length;
   const team2Count = players.filter((p) => p.player.team === team2Short).length;
 
+  const captainPlayer = players.find((p) => p.player_id === captainId);
+  const vcPlayer = players.find((p) => p.player_id === viceCaptainId);
+
   return (
     <motion.div
       variants={staggerContainer}
       initial="hidden"
       animate="show"
-      className="flex flex-col rounded-2xl overflow-hidden border border-border/20 shadow-2xl"
+      className="flex flex-col rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
     >
-      {/* Header */}
+      {/* Top action bar */}
       <motion.div
         variants={item}
-        className="bg-gradient-to-r from-[hsl(160,30%,12%)] to-[hsl(160,20%,16%)] px-4 py-3 flex items-center gap-3"
+        className="bg-gradient-to-r from-[hsl(var(--card))] to-[hsl(228,20%,10%)] px-4 py-2.5 flex items-center gap-3"
       >
         {onClose && (
-          <button onClick={onClose} className="text-white/60 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-white/50 hover:text-white transition-colors">
             <X className="h-5 w-5" />
           </button>
         )}
-        <h3 className="font-display font-black text-sm flex-1 truncate text-white uppercase tracking-wide">
+        <h3 className="font-display font-black text-sm flex-1 truncate text-white uppercase tracking-wider">
           {teamName || "MY TEAM"}
         </h3>
         <div className="flex items-center gap-1">
@@ -211,8 +225,7 @@ const TeamPreview = ({
               size="icon"
               onClick={handleShare}
               disabled={isGenerating}
-              className="h-8 w-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
-              title="Share team"
+              className="h-8 w-8 rounded-lg text-white/40 hover:text-white hover:bg-white/10"
             >
               <Share2 className="h-4 w-4" />
             </Button>
@@ -222,8 +235,7 @@ const TeamPreview = ({
             size="icon"
             onClick={handleDownload}
             disabled={isGenerating}
-            className="h-8 w-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
-            title="Download as image"
+            className="h-8 w-8 rounded-lg text-white/40 hover:text-white hover:bg-white/10"
           >
             <Download className="h-4 w-4" />
           </Button>
@@ -231,95 +243,147 @@ const TeamPreview = ({
       </motion.div>
 
       {/* Capturable area */}
-      <div ref={previewRef}>
-        {/* Stats Strip */}
+      <div ref={previewRef} className="bg-[hsl(228,18%,5%)]">
+        {/* Stats strip with C/VC info */}
         <motion.div
           variants={item}
-          className="bg-gradient-to-r from-[hsl(160,25%,14%)] to-[hsl(160,20%,18%)] px-5 py-2.5 flex items-center justify-between"
+          className="relative overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, hsl(160,35%,14%) 0%, hsl(200,30%,12%) 50%, hsl(228,25%,10%) 100%)",
+          }}
         >
-          <div className="text-center">
-            <p className="text-[10px] text-emerald-400 font-medium tracking-wide">Players</p>
-            <p className="font-display font-black text-base text-white">
-              {players.length}<span className="text-white/40">/11</span>
-            </p>
+          {/* Decorative mesh */}
+          <div className="absolute inset-0 opacity-30" style={{
+            backgroundImage: "radial-gradient(ellipse at 20% 50%, hsl(152,100%,50%,0.08), transparent 60%), radial-gradient(ellipse at 80% 30%, hsl(195,100%,55%,0.06), transparent 50%)",
+          }} />
+
+          <div className="relative px-4 py-3 flex items-center justify-between">
+            {/* Team 1 info */}
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
+                <span className="text-[10px] font-black text-white">{team1Short || "T1"}</span>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-black text-white leading-none">{team1Count}</p>
+                <p className="text-[8px] text-white/40 font-semibold uppercase tracking-wider">Players</p>
+              </div>
+            </div>
+
+            {/* Center - C & VC pills */}
+            <div className="flex flex-col items-center gap-1.5">
+              {captainPlayer && (
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 rounded-full px-2.5 py-0.5">
+                  <Crown className="h-3 w-3 text-yellow-400" />
+                  <span className="text-[9px] font-bold text-yellow-300 truncate max-w-[80px]">
+                    {captainPlayer.player.name.split(" ").slice(-1)[0]}
+                  </span>
+                  <span className="text-[8px] font-black bg-yellow-400 text-black px-1 rounded-sm">2x</span>
+                </div>
+              )}
+              {vcPlayer && (
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-500/30 rounded-full px-2.5 py-0.5">
+                  <Shield className="h-3 w-3 text-blue-400" />
+                  <span className="text-[9px] font-bold text-blue-300 truncate max-w-[80px]">
+                    {vcPlayer.player.name.split(" ").slice(-1)[0]}
+                  </span>
+                  <span className="text-[8px] font-black bg-blue-400 text-white px-1 rounded-sm">1.5x</span>
+                </div>
+              )}
+            </div>
+
+            {/* Team 2 info */}
+            <div className="flex items-center gap-2">
+              <div className="text-center">
+                <p className="text-lg font-black text-white leading-none">{team2Count}</p>
+                <p className="text-[8px] text-white/40 font-semibold uppercase tracking-wider">Players</p>
+              </div>
+              <div className="h-9 w-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
+                <span className="text-[10px] font-black text-white">{team2Short || "T2"}</span>
+              </div>
+            </div>
           </div>
 
-          {team1Short && team2Short && (
-            <div className="flex items-center gap-2.5">
-              <span className="text-[11px] font-black px-2.5 py-1 rounded-md bg-white/10 text-white border border-white/10">
-                {team1Short}
-              </span>
-              <span className="font-display font-black text-lg text-white">
-                {team1Count} <span className="text-white/40">:</span> {team2Count}
-              </span>
-              <span className="text-[11px] font-black px-2.5 py-1 rounded-md bg-white/10 text-white border border-white/10">
-                {team2Short}
+          {/* Credits bar */}
+          <div className="flex items-center justify-between px-4 py-1.5 bg-black/20 border-t border-white/5">
+            <span className="text-[9px] text-white/40 font-semibold uppercase tracking-wider">Credits Used</span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${(totalCredits / 100) * 100}%`,
+                    background: totalCredits > 95
+                      ? "linear-gradient(90deg, hsl(0,85%,55%), hsl(28,100%,58%))"
+                      : "linear-gradient(90deg, hsl(152,100%,50%), hsl(195,100%,55%))",
+                  }}
+                />
+              </div>
+              <span className="text-[10px] font-black text-white">
+                {totalCredits}<span className="text-white/30">/100</span>
               </span>
             </div>
-          )}
-
-          <div className="text-center">
-            <p className="text-[10px] text-emerald-400 font-medium tracking-wide">Credits Left</p>
-            <p className="font-display font-black text-base text-white">
-              {(100 - totalCredits).toFixed(1)}
-            </p>
           </div>
         </motion.div>
 
         {/* Cricket Field */}
-        <div className="relative px-2 py-10 min-h-[460px] overflow-hidden" style={{
-          background: "linear-gradient(180deg, #1a5e32 0%, #145228 30%, #0f4420 60%, #0a3618 100%)",
+        <div className="relative px-1 py-8 min-h-[420px] overflow-hidden" style={{
+          background: "linear-gradient(180deg, #1a6b35 0%, #15582c 25%, #104a22 50%, #0c3c1a 75%, #082e14 100%)",
         }}>
           {/* Grass stripes */}
           <div
-            className="absolute inset-0 pointer-events-none opacity-[0.06]"
+            className="absolute inset-0 pointer-events-none opacity-[0.04]"
             style={{
               backgroundImage:
-                "repeating-linear-gradient(0deg, transparent, transparent 24px, white 24px, white 25px)",
+                "repeating-linear-gradient(0deg, transparent, transparent 20px, white 20px, white 21px)",
             }}
           />
 
-          {/* Outer boundary */}
+          {/* Outer boundary oval */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[92%] h-[94%] rounded-[50%] border-[2px] border-white/8" />
+            <div className="w-[94%] h-[96%] rounded-[50%] border border-white/[0.06]" />
           </div>
 
-          {/* 30-yard circle */}
+          {/* Inner 30-yard circle */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[58%] h-[62%] rounded-[50%] border border-dashed border-white/6" />
+            <div className="w-[55%] h-[58%] rounded-[50%] border border-dashed border-white/[0.05]" />
           </div>
 
-          {/* Pitch */}
+          {/* Pitch strip */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[30px] h-[130px] border border-white/10 rounded-[3px] bg-[hsl(42,20%,45%,0.08)]">
-              {/* Crease lines */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[48px] h-[1.5px] bg-white/12" />
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[48px] h-[1.5px] bg-white/12" />
-              <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[40px] h-[1px] bg-white/8" />
-              <div className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[40px] h-[1px] bg-white/8" />
+            <div className="w-[24px] h-[100px] rounded-[2px] bg-[hsl(42,25%,35%,0.12)] border border-white/[0.06]">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[40px] h-[1px] bg-white/10" />
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[40px] h-[1px] bg-white/10" />
               {/* Stumps */}
-              <div className="absolute top-[3px] left-1/2 -translate-x-1/2 flex gap-[4px]">
-                <div className="w-[2px] h-[3px] rounded-full bg-white/20" />
-                <div className="w-[2px] h-[3px] rounded-full bg-white/20" />
-                <div className="w-[2px] h-[3px] rounded-full bg-white/20" />
+              <div className="absolute top-[2px] left-1/2 -translate-x-1/2 flex gap-[3px]">
+                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
+                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
+                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
               </div>
-              <div className="absolute bottom-[3px] left-1/2 -translate-x-1/2 flex gap-[4px]">
-                <div className="w-[2px] h-[3px] rounded-full bg-white/20" />
-                <div className="w-[2px] h-[3px] rounded-full bg-white/20" />
-                <div className="w-[2px] h-[3px] rounded-full bg-white/20" />
+              <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 flex gap-[3px]">
+                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
+                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
+                <div className="w-[1.5px] h-[3px] rounded-full bg-white/15" />
               </div>
             </div>
           </div>
 
+          {/* Ambient light spots */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[120px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[250px] h-[100px] bg-white/[0.015] rounded-full blur-3xl pointer-events-none" />
+
           {/* Players by role */}
-          <div className="relative z-10 flex flex-col gap-8">
+          <div className="relative z-10 flex flex-col gap-6">
             {grouped.map(({ role, label, players: rolePlayers }) =>
               rolePlayers.length > 0 ? (
-                <motion.div key={role} variants={item} className="flex flex-col items-center gap-4">
-                  <p className="text-[11px] uppercase tracking-[0.25em] text-white/45 font-bold">
-                    {label}
-                  </p>
-                  <div className="flex items-start justify-center gap-3 sm:gap-4 flex-wrap">
+                <motion.div key={role} variants={item} className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-[1px] w-6 bg-gradient-to-r from-transparent to-white/20" />
+                    <p className="text-[9px] uppercase tracking-[0.3em] text-white/35 font-bold">
+                      {label}
+                    </p>
+                    <div className="h-[1px] w-6 bg-gradient-to-l from-transparent to-white/20" />
+                  </div>
+                  <div className="flex items-start justify-center gap-2 sm:gap-3 flex-wrap">
                     {rolePlayers.map((mp) => (
                       <PlayerAvatar
                         key={mp.player_id}
@@ -336,9 +400,11 @@ const TeamPreview = ({
           </div>
         </div>
 
-        {/* Watermark */}
-        <div className="bg-gradient-to-r from-[hsl(160,25%,12%)] to-[hsl(160,20%,16%)] px-4 py-2 flex items-center justify-center">
-          <span className="text-[10px] text-white/30 font-semibold tracking-wider">Made with BatWiz</span>
+        {/* Watermark footer */}
+        <div className="bg-gradient-to-r from-[hsl(228,18%,7%)] to-[hsl(228,20%,9%)] px-4 py-2 flex items-center justify-center gap-1.5 border-t border-white/5">
+          <div className="h-1 w-1 rounded-full bg-[hsl(var(--primary))]" />
+          <span className="text-[9px] text-white/25 font-bold tracking-[0.2em] uppercase">BatWiz Fantasy</span>
+          <div className="h-1 w-1 rounded-full bg-[hsl(var(--primary))]" />
         </div>
       </div>
     </motion.div>
