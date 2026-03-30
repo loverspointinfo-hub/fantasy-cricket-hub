@@ -33,11 +33,13 @@ const PlayerAvatar = ({
   isCaptain,
   isVC,
   teamSide,
+  fantasyPoints,
 }: {
   player: MatchPlayer["player"];
   isCaptain: boolean;
   isVC: boolean;
   teamSide: "team1" | "team2";
+  fantasyPoints: number;
 }) => {
   const shortName =
     player.name.split(" ").length > 1
@@ -127,6 +129,13 @@ const PlayerAvatar = ({
       >
         {shortName}
       </div>
+
+      {/* Points badge */}
+      {fantasyPoints > 0 && (
+        <span className="text-[9px] font-bold text-primary tabular-nums">
+          {isCaptain ? fantasyPoints * 2 : isVC ? fantasyPoints * 1.5 : fantasyPoints} pts
+        </span>
+      )}
 
       {/* Credits */}
       <span className="text-[9px] text-white/50 font-semibold">
@@ -425,6 +434,7 @@ const TeamPreview = ({
                         isCaptain={captainId === mp.player_id}
                         isVC={viceCaptainId === mp.player_id}
                         teamSide={mp.player.team === team1Short ? "team1" : "team2"}
+                        fantasyPoints={mp.fantasy_points || 0}
                       />
                     ))}
                   </div>
