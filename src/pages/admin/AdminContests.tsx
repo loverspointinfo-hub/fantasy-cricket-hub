@@ -13,9 +13,9 @@ import { toast } from "sonner";
 
 interface ContestForm {
   match_id: string; name: string; type: string; entry_fee: string; prize_pool: string;
-  max_entries: string; is_guaranteed: boolean; status: string;
+  max_entries: string; is_guaranteed: boolean; status: string; max_teams_per_user: string;
 }
-const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open" };
+const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open", max_teams_per_user: "1" };
 
 const AdminContests = () => {
   const qc = useQueryClient();
