@@ -235,20 +235,36 @@ const WalletPage = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {transactions.map(t => (
-                <div key={t.id} className="flex items-center justify-between py-2 border-b border-border/20 last:border-0">
-                  <div>
-                    <p className="text-sm font-medium capitalize">{t.type.replace("_", " ")}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatIST(t.created_at, "dd MMM, h:mm a")}
-                      {t.status === "pending" && <span className="ml-1.5 text-amber-400 font-semibold">• Pending</span>}
+              {transactions.map(t => {
+                const isCredit = ["deposit", "contest_winning", "bonus", "admin_credit", "signup_bonus", "referral_bonus"].includes(t.type);
+                const isPending = t.status === "pending";
+                const isCompleted = t.status === "completed";
+                return (
+                  <div key={t.id} className="flex items-center justify-between py-2.5 border-b border-border/20 last:border-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium capitalize truncate">{t.type.replace(/_/g, " ")}</p>
+                        {isPending && (
+                          <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/25 text-[8px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider animate-pulse">
+                            Pending
+                          </Badge>
+                        )}
+                        {isCompleted && (
+                          <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/25 text-[8px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider">
+                            Completed
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {formatIST(t.created_at, "dd MMM, h:mm a")}
+                      </p>
+                    </div>
+                    <p className={`font-display font-bold text-sm shrink-0 ${isCredit ? "text-[hsl(var(--neon-green))]" : "text-[hsl(var(--neon-red))]"}`}>
+                      {isCredit ? "+" : "-"}₹{Math.abs(t.amount)}
                     </p>
                   </div>
-                  <p className={`font-display font-bold text-sm ${t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" || t.type === "admin_credit" ? "text-neon-green" : "text-neon-red"}`}>
-                    {t.type === "deposit" || t.type === "contest_winning" || t.type === "bonus" || t.type === "admin_credit" ? "+" : "-"}₹{Math.abs(t.amount)}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </motion.div>
