@@ -113,10 +113,11 @@ const AdminContests = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <div><Label className="text-xs">Entry Fee (₹)</Label><Input type="number" value={form.entry_fee} onChange={e => set("entry_fee", e.target.value)} /></div>
                 <div><Label className="text-xs">Prize Pool (₹)</Label><Input type="number" value={form.prize_pool} onChange={e => set("prize_pool", e.target.value)} /></div>
                 <div><Label className="text-xs">Max Entries</Label><Input type="number" value={form.max_entries} onChange={e => set("max_entries", e.target.value)} /></div>
+                <div><Label className="text-xs">Max Teams/User</Label><Input type="number" min="1" value={form.max_teams_per_user} onChange={e => set("max_teams_per_user", e.target.value)} /></div>
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" checked={form.is_guaranteed} onChange={e => set("is_guaranteed", e.target.checked)} className="rounded" />
