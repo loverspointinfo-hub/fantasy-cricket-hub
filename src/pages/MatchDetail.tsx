@@ -36,12 +36,17 @@ const MatchDetail = () => {
   const { data: contests = [], isLoading: contestsLoading } = useContests(matchId || "");
   const { data: userTeams = [] } = useUserTeams(matchId || "");
   const { data: myEntries = [] } = useMyContestEntries(matchId || "");
+  const { data: matchPlayers = [] } = useMatchPlayers(matchId || "");
   const deleteTeam = useDeleteTeam();
 
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
   const [contestCategory, setContestCategory] = useState("all");
   const [activeTab, setActiveTab] = useState<DetailTab>("contest");
+  const [cloneSheetOpen, setCloneSheetOpen] = useState(false);
+  const [cloneTeam, setCloneTeam] = useState<UserTeam | null>(null);
+  const [privateContestOpen, setPrivateContestOpen] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
