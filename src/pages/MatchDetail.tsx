@@ -81,6 +81,11 @@ const MatchDetail = () => {
     setJoinSheetOpen(true);
   };
 
+  const handleCloneTeam = (team: UserTeam) => {
+    setCloneTeam(team);
+    setCloneSheetOpen(true);
+  };
+
   if (matchLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -282,6 +287,35 @@ const MatchDetail = () => {
         {/* ── CONTEST TAB ── */}
         {activeTab === "contest" && (
           <>
+            {/* Live Score Tracker for live matches */}
+            {isLive && (
+              <motion.div variants={item}>
+                <LiveScoreTracker matchId={matchId!} team1Short={match.team1_short} team2Short={match.team2_short} />
+              </motion.div>
+            )}
+
+            {/* Action buttons row */}
+            {match.status === "upcoming" && !countdown.isExpired && (
+              <motion.div variants={item} className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPrivateContestOpen(true)}
+                  className="flex-1 rounded-xl border-border/30 text-xs h-9"
+                >
+                  <Lock className="h-3.5 w-3.5 mr-1.5" /> Join Private Contest
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setComparisonOpen(true)}
+                  className="flex-1 rounded-xl border-border/30 text-xs h-9"
+                >
+                  <ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" /> Compare Players
+                </Button>
+              </motion.div>
+            )}
+
             {/* Sort/filter chips */}
             {(() => {
               const counts: Record<string, number> = {};
