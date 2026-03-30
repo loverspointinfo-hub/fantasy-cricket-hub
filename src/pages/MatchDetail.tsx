@@ -437,6 +437,7 @@ const MatchDetail = () => {
                       team={team}
                       onDelete={canManageTeams ? handleDeleteTeam : undefined}
                       onEdit={canManageTeams ? handleEditTeam : undefined}
+                      onClone={canManageTeams ? handleCloneTeam : undefined}
                       deleting={deleteTeam.isPending}
                       team1Short={match.team1_short}
                       team2Short={match.team2_short}
@@ -484,6 +485,30 @@ const MatchDetail = () => {
         teams={userTeams}
         joinedTeamIds={selectedContest ? joinedTeamIdsForContest(selectedContest.id) : []}
         onCreateTeam={() => navigate(`/match/${matchId}/create-team`)}
+      />
+
+      {/* Clone Team Sheet */}
+      <CloneTeamSheet
+        open={cloneSheetOpen}
+        onOpenChange={setCloneSheetOpen}
+        team={cloneTeam}
+        matchId={matchId || ""}
+        existingTeamCount={userTeams.length}
+      />
+
+      {/* Private Contest Sheet */}
+      <JoinPrivateContestSheet
+        open={privateContestOpen}
+        onOpenChange={setPrivateContestOpen}
+        matchId={matchId || ""}
+        onContestFound={(contest) => handleJoinContest(contest)}
+      />
+
+      {/* Player Comparison Sheet */}
+      <PlayerComparisonSheet
+        open={comparisonOpen}
+        onOpenChange={setComparisonOpen}
+        players={matchPlayers}
       />
     </div>
   );
