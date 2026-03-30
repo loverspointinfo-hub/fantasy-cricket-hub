@@ -140,6 +140,17 @@ const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, 
             >
               <Eye className="h-4 w-4" />
             </Button>
+            {onClone && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); onClone(team); }}
+                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10"
+                title="Clone team"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            )}
             {onEdit && (
               <Button
                 variant="ghost"
