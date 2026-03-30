@@ -33,11 +33,13 @@ const PlayerAvatar = ({
   isCaptain,
   isVC,
   teamSide,
+  fantasyPoints,
 }: {
   player: MatchPlayer["player"];
   isCaptain: boolean;
   isVC: boolean;
   teamSide: "team1" | "team2";
+  fantasyPoints: number;
 }) => {
   const shortName =
     player.name.split(" ").length > 1
