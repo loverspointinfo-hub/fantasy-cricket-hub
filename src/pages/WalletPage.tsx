@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, History, TrendingUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, History, TrendingUp, Gift, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatIST } from "@/lib/date-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { sendTelegramNotification } from "@/lib/telegram";
+import { Badge } from "@/components/ui/badge";
 
 const QUICK_AMOUNTS = [100, 250, 500, 1000];
 
