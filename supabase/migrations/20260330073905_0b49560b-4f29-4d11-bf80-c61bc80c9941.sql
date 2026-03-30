@@ -1,0 +1,1 @@
+ALTER TABLE public.contests ADD COLUMN IF NOT EXISTS max_teams_per_user integer NOT NULL DEFAULT 1;

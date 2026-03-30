@@ -13,9 +13,9 @@ import { toast } from "sonner";
 
 interface ContestForm {
   match_id: string; name: string; type: string; entry_fee: string; prize_pool: string;
-  max_entries: string; is_guaranteed: boolean; status: string;
+  max_entries: string; is_guaranteed: boolean; status: string; max_teams_per_user: string;
 }
-const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open" };
+const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open", max_teams_per_user: "1" };
 
 const AdminContests = () => {
   const qc = useQueryClient();
@@ -43,6 +43,7 @@ const AdminContests = () => {
         match_id: form.match_id, name: form.name, type: form.type,
         entry_fee: parseFloat(form.entry_fee), prize_pool: parseFloat(form.prize_pool),
         max_entries: parseInt(form.max_entries), is_guaranteed: form.is_guaranteed, status: form.status,
+        max_teams_per_user: parseInt(form.max_teams_per_user) || 1,
       };
       if (editId) {
         const { error } = await (supabase.from("contests") as any).update(payload).eq("id", editId);
@@ -66,6 +67,7 @@ const AdminContests = () => {
     setForm({
       match_id: c.match_id, name: c.name, type: c.type, entry_fee: String(c.entry_fee ?? 0),
       prize_pool: String(c.prize_pool ?? 0), max_entries: String(c.max_entries), is_guaranteed: c.is_guaranteed ?? false, status: c.status || "open",
+      max_teams_per_user: String(c.max_teams_per_user ?? 1),
     });
     setEditId(c.id); setOpen(true);
   };
@@ -111,10 +113,11 @@ const AdminContests = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <div><Label className="text-xs">Entry Fee (₹)</Label><Input type="number" value={form.entry_fee} onChange={e => set("entry_fee", e.target.value)} /></div>
                 <div><Label className="text-xs">Prize Pool (₹)</Label><Input type="number" value={form.prize_pool} onChange={e => set("prize_pool", e.target.value)} /></div>
                 <div><Label className="text-xs">Max Entries</Label><Input type="number" value={form.max_entries} onChange={e => set("max_entries", e.target.value)} /></div>
+                <div><Label className="text-xs">Max Teams/User</Label><Input type="number" min="1" value={form.max_teams_per_user} onChange={e => set("max_teams_per_user", e.target.value)} /></div>
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" checked={form.is_guaranteed} onChange={e => set("is_guaranteed", e.target.checked)} className="rounded" />
@@ -135,7 +138,7 @@ const AdminContests = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{c.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {c.match?.team1_short} vs {c.match?.team2_short} • ₹{c.entry_fee} entry • ₹{c.prize_pool} pool
+                  {c.match?.team1_short} vs {c.match?.team2_short} • ₹{c.entry_fee} entry • ₹{c.prize_pool} pool • Max {c.max_teams_per_user ?? 1} team/user
                 </p>
               </div>
               <div className="flex flex-col items-center gap-1 min-w-[60px]">
