@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
-import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
+import { useUserTeams, useDeleteTeam, UserTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
+import { useMatchPlayers } from "@/hooks/useMatchPlayers";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle, Lock, ArrowLeftRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +16,14 @@ import { staggerContainer, item } from "@/lib/animations";
 import { formatIST, formatMatchTime } from "@/lib/date-utils";
 import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
+import CloneTeamSheet from "@/components/team/CloneTeamSheet";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
+import JoinPrivateContestSheet from "@/components/contest/JoinPrivateContestSheet";
 import ContestCard from "@/components/contest/ContestCard";
 import ContestCategoryTabs from "@/components/contest/ContestCategoryTabs";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
+import LiveScoreTracker from "@/components/match/LiveScoreTracker";
+import PlayerComparisonSheet from "@/components/match/PlayerComparisonSheet";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useCountdown } from "@/hooks/useCountdown";
 
