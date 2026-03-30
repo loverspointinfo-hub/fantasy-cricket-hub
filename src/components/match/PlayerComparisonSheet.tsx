@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, X, Plus, ArrowLeftRight } from "lucide-react";
+import { BarChart3, ArrowLeftRight } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -38,11 +38,11 @@ const PlayerComparisonSheet = ({ open, onOpenChange, players }: PlayerComparison
   };
 
   const stats = [
-    { label: "Credit Value", key: "credit_value", format: (v: number) => `${v} Cr` },
-    { label: "Fantasy Pts", key: "fantasy_points", format: (v: number) => `${v}` },
-    { label: "Selected By", key: "selected_by_percent", format: (v: number) => `${v}%` },
-    { label: "Role", key: "role", format: (v: string) => ROLE_LABELS[v] || v },
-    { label: "Team", key: "team", format: (v: string) => v },
+    { label: "Credit Value", key: "credit_value" },
+    { label: "Fantasy Pts", key: "fantasy_points" },
+    { label: "Selected By", key: "selected_by_percent" },
+    { label: "Role", key: "role" },
+    { label: "Team", key: "team" },
   ];
 
   return (
