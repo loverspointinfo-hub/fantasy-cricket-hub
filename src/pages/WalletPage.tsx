@@ -26,7 +26,33 @@ const WalletPage = () => {
   const [addCashOpen, setAddCashOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [amount, setAmount] = useState("");
+  const [upiId, setUpiId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch active cashback offers
+  const { data: cashbackOffers = [] } = useQuery({
+    queryKey: ["cashback-offers"],
+    queryFn: async () => {
+      const { data } = await (supabase.from("cashback_offers" as any) as any)
+        .select("*")
+        .eq("is_active", true)
+        .order("cashback_percent", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  // Load saved UPI ID
+  useEffect(() => {
+    if (user) {
+      (supabase.from("profiles" as any) as any)
+        .select("upi_id")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }: any) => {
+          if (data?.upi_id) setUpiId(data.upi_id);
+        });
+    }
+  }, [user]);
 
   const totalBalance = wallet
     ? wallet.deposit_balance + wallet.winning_balance + wallet.bonus_balance
