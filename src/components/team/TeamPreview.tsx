@@ -130,6 +130,13 @@ const PlayerAvatar = ({
         {shortName}
       </div>
 
+      {/* Points badge */}
+      {fantasyPoints > 0 && (
+        <span className="text-[9px] font-bold text-primary tabular-nums">
+          {isCaptain ? fantasyPoints * 2 : isVC ? fantasyPoints * 1.5 : fantasyPoints} pts
+        </span>
+      )}
+
       {/* Credits */}
       <span className="text-[9px] text-white/50 font-semibold">
         {player.credit_value} Cr
