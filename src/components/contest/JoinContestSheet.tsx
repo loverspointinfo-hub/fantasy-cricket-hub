@@ -38,11 +38,16 @@ const JoinContestSheet = ({
 
   const handleJoin = () => {
     if (!contest || !selectedTeamId) return;
+    const spotsLeft = contest.max_entries - contest.current_entries;
     joinContest.mutate(
       { contestId: contest.id, teamId: selectedTeamId },
       {
         onSuccess: () => {
-          toast.success("Joined contest successfully!");
+          if (spotsLeft <= 1) {
+            toast.success("🎉 Contest Full — A new contest has been created instantly!", { duration: 5000 });
+          } else {
+            toast.success("Joined contest successfully!");
+          }
           onOpenChange(false);
           setSelectedTeamId(null);
         },
