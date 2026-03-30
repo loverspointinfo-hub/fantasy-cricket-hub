@@ -147,6 +147,8 @@ const TeamPreview = ({
   onClose,
 }: TeamPreviewProps) => {
   const previewRef = useRef<HTMLDivElement>(null);
+  const { data: siteSettings } = useSiteSettings();
+  const siteName = siteSettings?.site_name || "FANTASY11";
   const [isGenerating, setIsGenerating] = useState(false);
   const canShare = typeof navigator !== "undefined" && !!navigator.share;
 
