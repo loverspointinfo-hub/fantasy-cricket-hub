@@ -136,6 +136,7 @@ export type Database = {
           is_guaranteed: boolean | null
           match_id: string
           max_entries: number
+          max_teams_per_user: number
           name: string
           prize_breakdown: Json | null
           prize_pool: number | null
@@ -152,6 +153,7 @@ export type Database = {
           is_guaranteed?: boolean | null
           match_id: string
           max_entries: number
+          max_teams_per_user?: number
           name: string
           prize_breakdown?: Json | null
           prize_pool?: number | null
@@ -168,6 +170,7 @@ export type Database = {
           is_guaranteed?: boolean | null
           match_id?: string
           max_entries?: number
+          max_teams_per_user?: number
           name?: string
           prize_breakdown?: Json | null
           prize_pool?: number | null
