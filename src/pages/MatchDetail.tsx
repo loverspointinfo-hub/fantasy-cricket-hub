@@ -391,6 +391,40 @@ const MatchDetail = () => {
         {/* ── MY CONTEST TAB ── */}
         {activeTab === "my_contest" && (
           <>
+            {/* Investment Summary */}
+            {joinedContests.length > 0 && (() => {
+              const totalInvestment = joinedContests.reduce((sum, c) => sum + (c.entry_fee || 0), 0);
+              const totalWinnings = myEntries.reduce((sum: number, e: any) => sum + (e.winnings || 0), 0);
+              const netProfit = totalWinnings - totalInvestment;
+              return (
+                <motion.div variants={item} className="glass-card-premium p-4 relative overflow-hidden">
+                  <div className="shimmer absolute inset-0" />
+                  <div className="relative z-10">
+                    <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider mb-3">Match Summary</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center">
+                        <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-0.5">Invested</p>
+                        <p className="font-display text-lg font-bold text-[hsl(var(--neon-orange))]">₹{totalInvestment}</p>
+                      </div>
+                      <div className="text-center border-x border-border/10">
+                        <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-0.5">Won</p>
+                        <p className="font-display text-lg font-bold text-primary">₹{totalWinnings}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-0.5">Net Profit</p>
+                        <p className={cn(
+                          "font-display text-lg font-bold",
+                          netProfit > 0 ? "text-primary" : netProfit < 0 ? "text-[hsl(var(--neon-red))]" : "text-muted-foreground"
+                        )}>
+                          {netProfit >= 0 ? "+" : ""}₹{netProfit}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
+
             {joinedContests.length === 0 ? (
               <motion.div variants={item} className="glass-card flex flex-col items-center py-14 text-muted-foreground">
                 <div className="h-14 w-14 rounded-2xl bg-secondary/60 flex items-center justify-center mb-3">
