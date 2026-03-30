@@ -1,4 +1,4 @@
-import { Crown, Star, Trash2, Edit3, ChevronDown, ChevronUp, Eye, Pencil } from "lucide-react";
+import { Crown, Star, Trash2, Edit3, ChevronDown, ChevronUp, Eye, Pencil, Copy } from "lucide-react";
 import { UserTeam } from "@/hooks/useUserTeams";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -26,12 +26,13 @@ interface SavedTeamCardProps {
   team: UserTeam;
   onDelete?: (teamId: string) => void;
   onEdit?: (teamId: string) => void;
+  onClone?: (team: UserTeam) => void;
   deleting?: boolean;
   team1Short?: string;
   team2Short?: string;
 }
 
-const SavedTeamCard = ({ team, onDelete, onEdit, deleting, team1Short, team2Short }: SavedTeamCardProps) => {
+const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short }: SavedTeamCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editNameOpen, setEditNameOpen] = useState(false);
@@ -139,6 +140,17 @@ const SavedTeamCard = ({ team, onDelete, onEdit, deleting, team1Short, team2Shor
             >
               <Eye className="h-4 w-4" />
             </Button>
+            {onClone && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); onClone(team); }}
+                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10"
+                title="Clone team"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            )}
             {onEdit && (
               <Button
                 variant="ghost"

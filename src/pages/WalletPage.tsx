@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, History, TrendingUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, History, TrendingUp, Gift, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatIST } from "@/lib/date-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { sendTelegramNotification } from "@/lib/telegram";
+import { Badge } from "@/components/ui/badge";
 
 const QUICK_AMOUNTS = [100, 250, 500, 1000];
 
@@ -25,7 +26,33 @@ const WalletPage = () => {
   const [addCashOpen, setAddCashOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [amount, setAmount] = useState("");
+  const [upiId, setUpiId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch active cashback offers
+  const { data: cashbackOffers = [] } = useQuery({
+    queryKey: ["cashback-offers"],
+    queryFn: async () => {
+      const { data } = await (supabase.from("cashback_offers" as any) as any)
+        .select("*")
+        .eq("is_active", true)
+        .order("cashback_percent", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  // Load saved UPI ID
+  useEffect(() => {
+    if (user) {
+      (supabase.from("profiles" as any) as any)
+        .select("upi_id")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }: any) => {
+          if (data?.upi_id) setUpiId(data.upi_id);
+        });
+    }
+  }, [user]);
 
   const totalBalance = wallet
     ? wallet.deposit_balance + wallet.winning_balance + wallet.bonus_balance
@@ -80,6 +107,7 @@ const WalletPage = () => {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) { toast.error("Enter a valid amount"); return; }
     if (!user) { toast.error("Please login first"); return; }
+    if (!upiId.trim() || !upiId.includes("@")) { toast.error("Enter a valid UPI ID (e.g. name@upi)"); return; }
     const winnings = wallet?.winning_balance ?? 0;
     if (amt > winnings) { toast.error(`You can only withdraw up to ₹${winnings} from winnings`); return; }
 
@@ -94,11 +122,14 @@ const WalletPage = () => {
     }
     setSubmitting(true);
     try {
+      // Save UPI ID to profile
+      await (supabase.from("profiles") as any).update({ upi_id: upiId.trim() }).eq("id", user.id);
+
       const { error } = await (supabase.from("transactions") as any).insert({
         user_id: user.id,
         type: "withdrawal",
         amount: amt,
-        description: `Withdraw ₹${amt}`,
+        description: `Withdraw ₹${amt} to UPI: ${upiId.trim()}`,
         status: "pending",
       });
       if (error) throw error;
@@ -228,6 +259,19 @@ const WalletPage = () => {
         <DialogContent>
           <DialogHeader><DialogTitle>Add Cash</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-3">
+            {/* Cashback offer banner */}
+            {cashbackOffers.length > 0 && (
+              <div className="rounded-xl p-3 border border-primary/20 bg-primary/5 flex items-center gap-3">
+                <Gift className="h-5 w-5 text-primary shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-primary">{(cashbackOffers[0] as any).name}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Get {(cashbackOffers[0] as any).cashback_percent}% cashback (up to ₹{(cashbackOffers[0] as any).max_cashback}) on deposits ≥ ₹{(cashbackOffers[0] as any).min_deposit}
+                  </p>
+                </div>
+                <Badge className="bg-primary/15 text-primary border-primary/20 text-[9px]">OFFER</Badge>
+              </div>
+            )}
             <div>
               <Label className="text-xs">Amount (₹)</Label>
               <Input
@@ -251,6 +295,12 @@ const WalletPage = () => {
                 </Button>
               ))}
             </div>
+            {/* Show applicable cashback */}
+            {cashbackOffers.length > 0 && parseFloat(amount) >= (cashbackOffers[0] as any).min_deposit && (
+              <div className="text-xs text-primary font-semibold text-center">
+                🎉 You'll get ₹{Math.min(parseFloat(amount) * (cashbackOffers[0] as any).cashback_percent / 100, (cashbackOffers[0] as any).max_cashback).toFixed(0)} cashback bonus!
+              </div>
+            )}
             <Button onClick={handleAddCash} disabled={submitting} className="w-full h-11 font-bold">
               {submitting ? "Submitting..." : `Add ₹${parseFloat(amount) > 0 ? amount : "0"}`}
             </Button>
@@ -262,11 +312,23 @@ const WalletPage = () => {
       {/* Withdraw Dialog */}
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Withdraw</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Withdraw via UPI</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-3">
             <p className="text-xs text-muted-foreground">
               Withdrawable balance: <span className="font-bold text-foreground">₹{wallet?.winning_balance?.toFixed(0) ?? 0}</span>
             </p>
+            <div>
+              <Label className="text-xs flex items-center gap-1.5">
+                <Smartphone className="h-3.5 w-3.5" /> UPI ID
+              </Label>
+              <Input
+                placeholder="yourname@upi"
+                value={upiId}
+                onChange={e => setUpiId(e.target.value)}
+                className="h-12 font-medium"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">e.g. name@paytm, name@ybl, 9876543210@upi</p>
+            </div>
             <div>
               <Label className="text-xs">Amount (₹)</Label>
               <Input
@@ -277,10 +339,10 @@ const WalletPage = () => {
                 className="text-lg font-bold h-12"
               />
             </div>
-            <Button onClick={handleWithdraw} disabled={submitting} className="w-full h-11 font-bold">
+            <Button onClick={handleWithdraw} disabled={submitting || !upiId.trim()} className="w-full h-11 font-bold">
               {submitting ? "Submitting..." : `Withdraw ₹${parseFloat(amount) > 0 ? amount : "0"}`}
             </Button>
-            <p className="text-[10px] text-muted-foreground text-center">Withdrawal will be processed after admin approval</p>
+            <p className="text-[10px] text-muted-foreground text-center">Amount will be sent to your UPI ID after admin approval</p>
           </div>
         </DialogContent>
       </Dialog>

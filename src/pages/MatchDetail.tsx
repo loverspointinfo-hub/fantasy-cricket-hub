@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatch } from "@/hooks/useMatches";
 import { useContests, Contest } from "@/hooks/useContests";
-import { useUserTeams, useDeleteTeam } from "@/hooks/useUserTeams";
+import { useUserTeams, useDeleteTeam, UserTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
+import { useMatchPlayers } from "@/hooks/useMatchPlayers";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle, Lock, ArrowLeftRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +16,14 @@ import { staggerContainer, item } from "@/lib/animations";
 import { formatIST, formatMatchTime } from "@/lib/date-utils";
 import { toast } from "sonner";
 import SavedTeamCard from "@/components/team/SavedTeamCard";
+import CloneTeamSheet from "@/components/team/CloneTeamSheet";
 import JoinContestSheet from "@/components/contest/JoinContestSheet";
+import JoinPrivateContestSheet from "@/components/contest/JoinPrivateContestSheet";
 import ContestCard from "@/components/contest/ContestCard";
 import ContestCategoryTabs from "@/components/contest/ContestCategoryTabs";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
+import LiveScoreTracker from "@/components/match/LiveScoreTracker";
+import PlayerComparisonSheet from "@/components/match/PlayerComparisonSheet";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useCountdown } from "@/hooks/useCountdown";
 
@@ -31,12 +36,17 @@ const MatchDetail = () => {
   const { data: contests = [], isLoading: contestsLoading } = useContests(matchId || "");
   const { data: userTeams = [] } = useUserTeams(matchId || "");
   const { data: myEntries = [] } = useMyContestEntries(matchId || "");
+  const { data: matchPlayers = [] } = useMatchPlayers(matchId || "");
   const deleteTeam = useDeleteTeam();
 
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
   const [contestCategory, setContestCategory] = useState("all");
   const [activeTab, setActiveTab] = useState<DetailTab>("contest");
+  const [cloneSheetOpen, setCloneSheetOpen] = useState(false);
+  const [cloneTeam, setCloneTeam] = useState<UserTeam | null>(null);
+  const [privateContestOpen, setPrivateContestOpen] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
@@ -69,6 +79,11 @@ const MatchDetail = () => {
   const handleJoinContest = (contest: Contest) => {
     setSelectedContest(contest);
     setJoinSheetOpen(true);
+  };
+
+  const handleCloneTeam = (team: UserTeam) => {
+    setCloneTeam(team);
+    setCloneSheetOpen(true);
   };
 
   if (matchLoading) {
@@ -272,6 +287,35 @@ const MatchDetail = () => {
         {/* ── CONTEST TAB ── */}
         {activeTab === "contest" && (
           <>
+            {/* Live Score Tracker for live matches */}
+            {isLive && (
+              <motion.div variants={item}>
+                <LiveScoreTracker matchId={matchId!} team1Short={match.team1_short} team2Short={match.team2_short} />
+              </motion.div>
+            )}
+
+            {/* Action buttons row */}
+            {match.status === "upcoming" && !countdown.isExpired && (
+              <motion.div variants={item} className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPrivateContestOpen(true)}
+                  className="flex-1 rounded-xl border-border/30 text-xs h-9"
+                >
+                  <Lock className="h-3.5 w-3.5 mr-1.5" /> Join Private Contest
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setComparisonOpen(true)}
+                  className="flex-1 rounded-xl border-border/30 text-xs h-9"
+                >
+                  <ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" /> Compare Players
+                </Button>
+              </motion.div>
+            )}
+
             {/* Sort/filter chips */}
             {(() => {
               const counts: Record<string, number> = {};
@@ -393,6 +437,7 @@ const MatchDetail = () => {
                       team={team}
                       onDelete={canManageTeams ? handleDeleteTeam : undefined}
                       onEdit={canManageTeams ? handleEditTeam : undefined}
+                      onClone={canManageTeams ? handleCloneTeam : undefined}
                       deleting={deleteTeam.isPending}
                       team1Short={match.team1_short}
                       team2Short={match.team2_short}
@@ -440,6 +485,30 @@ const MatchDetail = () => {
         teams={userTeams}
         joinedTeamIds={selectedContest ? joinedTeamIdsForContest(selectedContest.id) : []}
         onCreateTeam={() => navigate(`/match/${matchId}/create-team`)}
+      />
+
+      {/* Clone Team Sheet */}
+      <CloneTeamSheet
+        open={cloneSheetOpen}
+        onOpenChange={setCloneSheetOpen}
+        team={cloneTeam}
+        matchId={matchId || ""}
+        existingTeamCount={userTeams.length}
+      />
+
+      {/* Private Contest Sheet */}
+      <JoinPrivateContestSheet
+        open={privateContestOpen}
+        onOpenChange={setPrivateContestOpen}
+        matchId={matchId || ""}
+        onContestFound={(contest) => handleJoinContest(contest)}
+      />
+
+      {/* Player Comparison Sheet */}
+      <PlayerComparisonSheet
+        open={comparisonOpen}
+        onOpenChange={setComparisonOpen}
+        players={matchPlayers}
       />
     </div>
   );

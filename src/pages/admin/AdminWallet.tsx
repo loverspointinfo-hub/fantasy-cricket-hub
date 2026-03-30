@@ -5,8 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, X, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Check, X, Search, Plus, Trash2, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { formatIST } from "@/lib/date-utils";
 
@@ -14,6 +16,46 @@ const AdminWallet = () => {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [cashbackDialogOpen, setCashbackDialogOpen] = useState(false);
+  const [cbForm, setCbForm] = useState({ name: "", description: "", min_deposit: "100", cashback_percent: "10", max_cashback: "50" });
+
+  // Cashback offers
+  const { data: cashbackOffers = [] } = useQuery({
+    queryKey: ["admin-cashback-offers"],
+    queryFn: async () => {
+      const { data } = await (supabase.from("cashback_offers" as any) as any).select("*").order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const saveCashback = useMutation({
+    mutationFn: async () => {
+      const { error } = await (supabase.from("cashback_offers" as any) as any).insert({
+        name: cbForm.name, description: cbForm.description,
+        min_deposit: parseFloat(cbForm.min_deposit), cashback_percent: parseFloat(cbForm.cashback_percent),
+        max_cashback: parseFloat(cbForm.max_cashback), is_active: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-cashback-offers"] }); setCashbackDialogOpen(false); setCbForm({ name: "", description: "", min_deposit: "100", cashback_percent: "10", max_cashback: "50" }); toast.success("Cashback offer created"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const toggleCashback = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await (supabase.from("cashback_offers" as any) as any).update({ is_active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-cashback-offers"] }); toast.success("Updated"); },
+  });
+
+  const deleteCashback = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.from("cashback_offers" as any) as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-cashback-offers"] }); toast.success("Deleted"); },
+  });
 
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["admin-transactions"],
@@ -129,6 +171,60 @@ const AdminWallet = () => {
           })}
         </div>
       )}
+
+      {/* Cashback Offers Section */}
+      <div className="border-t border-border/20 pt-5 mt-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-lg font-bold flex items-center gap-2">
+            <Gift className="h-5 w-5 text-primary" /> Cashback Offers
+          </h2>
+          <Button size="sm" onClick={() => setCashbackDialogOpen(true)} className="gap-1">
+            <Plus className="h-4 w-4" /> Add Offer
+          </Button>
+        </div>
+        {cashbackOffers.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">No cashback offers created</p>
+        ) : (
+          <div className="space-y-2">
+            {cashbackOffers.map((offer: any) => (
+              <Card key={offer.id} className="glass-card p-4 flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-bold">{offer.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {offer.cashback_percent}% cashback (max ₹{offer.max_cashback}) on deposits ≥ ₹{offer.min_deposit}
+                  </p>
+                </div>
+                <Badge variant={offer.is_active ? "default" : "secondary"} className="text-[10px] cursor-pointer"
+                  onClick={() => toggleCashback.mutate({ id: offer.id, is_active: !offer.is_active })}>
+                  {offer.is_active ? "Active" : "Inactive"}
+                </Badge>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteCashback.mutate(offer.id)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Cashback Dialog */}
+      <Dialog open={cashbackDialogOpen} onOpenChange={setCashbackDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Create Cashback Offer</DialogTitle></DialogHeader>
+          <div className="space-y-3 mt-3">
+            <div><Label className="text-xs">Offer Name</Label><Input value={cbForm.name} onChange={e => setCbForm(p => ({ ...p, name: e.target.value }))} placeholder="IPL Season Cashback" /></div>
+            <div><Label className="text-xs">Description</Label><Input value={cbForm.description} onChange={e => setCbForm(p => ({ ...p, description: e.target.value }))} placeholder="Get extra bonus on deposits" /></div>
+            <div className="grid grid-cols-3 gap-3">
+              <div><Label className="text-xs">Min Deposit (₹)</Label><Input type="number" value={cbForm.min_deposit} onChange={e => setCbForm(p => ({ ...p, min_deposit: e.target.value }))} /></div>
+              <div><Label className="text-xs">Cashback %</Label><Input type="number" value={cbForm.cashback_percent} onChange={e => setCbForm(p => ({ ...p, cashback_percent: e.target.value }))} /></div>
+              <div><Label className="text-xs">Max Cashback (₹)</Label><Input type="number" value={cbForm.max_cashback} onChange={e => setCbForm(p => ({ ...p, max_cashback: e.target.value }))} /></div>
+            </div>
+            <Button onClick={() => saveCashback.mutate()} disabled={saveCashback.isPending || !cbForm.name.trim()} className="w-full">
+              {saveCashback.isPending ? "Creating..." : "Create Offer"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

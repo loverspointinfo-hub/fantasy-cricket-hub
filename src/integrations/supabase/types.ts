@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cashback_offers: {
+        Row: {
+          cashback_percent: number
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          max_cashback: number
+          min_deposit: number
+          name: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          cashback_percent?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_cashback?: number
+          min_deposit?: number
+          name: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          cashback_percent?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_cashback?: number
+          min_deposit?: number
+          name?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       contest_entries: {
         Row: {
           contest_id: string
@@ -399,6 +438,7 @@ export type Database = {
           referral_code: string | null
           referred_by: string | null
           updated_at: string | null
+          upi_id: string | null
           username: string | null
         }
         Insert: {
@@ -411,6 +451,7 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           updated_at?: string | null
+          upi_id?: string | null
           username?: string | null
         }
         Update: {
@@ -423,6 +464,7 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           updated_at?: string | null
+          upi_id?: string | null
           username?: string | null
         }
         Relationships: []
