@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer, Upload, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer, Upload, X, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
