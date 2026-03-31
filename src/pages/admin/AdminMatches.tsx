@@ -107,7 +107,7 @@ const AdminMatches = () => {
       
       if (result?.error) throw new Error(result.error);
       
-      toast.success(`Imported ${result.imported} matches (${result.skipped} skipped)`);
+      toast.success(`Imported ${result.imported} matches, ${result.contests_created || 0} contests created (${result.skipped} skipped)`);
       qc.invalidateQueries({ queryKey: ["admin-matches"] });
       qc.invalidateQueries({ queryKey: ["matches"] });
     } catch (err: any) {
