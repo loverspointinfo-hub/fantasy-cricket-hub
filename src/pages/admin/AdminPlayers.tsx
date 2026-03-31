@@ -27,6 +27,8 @@ const AdminPlayers = () => {
   const [form, setForm] = useState<PlayerForm>(empty);
   const [editId, setEditId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const csvRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
 
   const { data: players = [], isLoading } = useQuery({
     queryKey: ["admin-players"],
