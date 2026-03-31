@@ -287,6 +287,22 @@ const AdminLiveScoring = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const distributeWinnings = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("distribute_contest_winnings", { p_match_id: selectedMatchId });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (count) => {
+      qc.invalidateQueries({ queryKey: ["contest-leaderboard"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["admin-live-matches"] });
+      toast.success(`✅ Winnings distributed! ${count} winners credited.`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const selectedMatch = liveMatches.find((m: any) => m.id === selectedMatchId);
 
   const groupedPlayers = matchPlayers.reduce((acc: Record<string, any[]>, mp: any) => {
