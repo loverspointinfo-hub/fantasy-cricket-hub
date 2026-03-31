@@ -95,13 +95,16 @@ const AdminMatches = () => {
 
       const res = await supabase.functions.invoke("import-cricket-matches", {
         body: { matches: matchesPayload },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
-      if (res.error) throw new Error(res.error.message);
+      if (res.error) {
+        // Try to extract error message from response data
+        const errMsg = res.data?.error || res.error.message || "Import failed";
+        throw new Error(errMsg);
+      }
       const result = res.data;
       
-      if (result.error) throw new Error(result.error);
+      if (result?.error) throw new Error(result.error);
       
       toast.success(`Imported ${result.imported} matches (${result.skipped} skipped)`);
       qc.invalidateQueries({ queryKey: ["admin-matches"] });

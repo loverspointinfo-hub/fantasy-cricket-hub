@@ -30,11 +30,16 @@ serve(async (req) => {
     });
     if (!isAdmin) throw new Error("Admin access required");
 
-    const body = await req.json();
-    const matchesData = body.matches;
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      throw new Error("Invalid request body");
+    }
+    const matchesData = body?.matches;
 
     if (!matchesData || !Array.isArray(matchesData) || matchesData.length === 0) {
-      throw new Error("No match data provided. The client should fetch from the API and send the data here.");
+      throw new Error("No match data provided");
     }
 
     let imported = 0;
