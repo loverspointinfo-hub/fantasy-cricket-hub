@@ -22,6 +22,13 @@ export const useMatchPlayers = (matchId: string) => {
   return useQuery({
     queryKey: ["match-players", matchId],
     queryFn: async () => {
+      // Recalculate player ownership % before fetching
+      try {
+        await (supabase.rpc as any)("recalculate_player_ownership", { p_match_id: matchId });
+      } catch {
+        // Ignore errors - ownership % will just use existing values
+      }
+
       const { data, error } = await (supabase
         .from("match_players" as any) as any)
         .select("*, player:players(*)")
