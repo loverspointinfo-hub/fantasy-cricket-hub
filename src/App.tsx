@@ -30,7 +30,9 @@ const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications")
 const AdminLiveScoring = lazy(() => import("./pages/admin/AdminLiveScoring"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminKYC = lazy(() => import("./pages/admin/AdminKYC"));
+const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
 const KYCVerification = lazy(() => import("./pages/KYCVerification"));
+const PerformanceDashboard = lazy(() => import("./pages/PerformanceDashboard"));
 
 const queryClient = new QueryClient();
 
