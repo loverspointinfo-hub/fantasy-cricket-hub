@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Trophy, Crown, Medal, Eye, Award, Star } from "lucide-react";
+import { ArrowLeft, Trophy, Crown, Medal, Eye, Award, Star, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -178,6 +178,35 @@ const ContestLeaderboard = () => {
   const isCompleted = contest?.matches?.status === "completed";
   const hasWinners = entries.some(e => e.winnings > 0);
 
+  // Track previous ranks for animation
+  const prevRanksRef = useRef<Record<string, number>>({});
+  const [rankChanges, setRankChanges] = useState<Record<string, "up" | "down" | "same">>({});
+
+  useEffect(() => {
+    const prev = prevRanksRef.current;
+    const changes: Record<string, "up" | "down" | "same"> = {};
+    entries.forEach(e => {
+      if (prev[e.id] !== undefined) {
+        if (e.rank < prev[e.id]) changes[e.id] = "up";
+        else if (e.rank > prev[e.id]) changes[e.id] = "down";
+        else changes[e.id] = "same";
+      } else {
+        changes[e.id] = "same";
+      }
+    });
+    setRankChanges(changes);
+    // Update stored ranks
+    const newRanks: Record<string, number> = {};
+    entries.forEach(e => { newRanks[e.id] = e.rank; });
+    prevRanksRef.current = newRanks;
+
+    // Clear animations after 2s
+    if (Object.values(changes).some(c => c !== "same")) {
+      const timer = setTimeout(() => setRankChanges({}), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [entries]);
+
   const { data: previewData } = useTeamPreviewData(previewTeamId, matchId);
   const myEntry = entries.find(e => e.user_id === user?.id);
 
@@ -295,8 +324,20 @@ const ContestLeaderboard = () => {
                     (isLive || isCompleted) && "cursor-pointer hover:bg-secondary/30 active:scale-[0.99]"
                   )}
                 >
-                  <div className="w-10 flex items-center justify-center">
+                  <div className="w-10 flex items-center justify-center relative">
                     {getRankBadge(entry.rank)}
+                    {rankChanges[entry.id] === "up" && (
+                      <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary/20 flex items-center justify-center">
+                        <ArrowUp className="h-2.5 w-2.5 text-primary" />
+                      </motion.div>
+                    )}
+                    {rankChanges[entry.id] === "down" && (
+                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive/20 flex items-center justify-center">
+                        <ArrowDown className="h-2.5 w-2.5 text-destructive" />
+                      </motion.div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0 pl-2">
                     <div className="flex items-center gap-1.5">

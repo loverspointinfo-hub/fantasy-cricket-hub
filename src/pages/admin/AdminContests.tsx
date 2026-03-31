@@ -10,12 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import PrizeBreakdownEditor from "@/components/admin/PrizeBreakdownEditor";
 
 interface ContestForm {
   match_id: string; name: string; type: string; entry_fee: string; prize_pool: string;
   max_entries: string; is_guaranteed: boolean; status: string; max_teams_per_user: string;
+  prize_breakdown: any[];
 }
-const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open", max_teams_per_user: "1" };
+const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open", max_teams_per_user: "1", prize_breakdown: [] };
 
 const AdminContests = () => {
   const qc = useQueryClient();
@@ -44,6 +46,7 @@ const AdminContests = () => {
         entry_fee: parseFloat(form.entry_fee), prize_pool: parseFloat(form.prize_pool),
         max_entries: parseInt(form.max_entries), is_guaranteed: form.is_guaranteed, status: form.status,
         max_teams_per_user: parseInt(form.max_teams_per_user) || 1,
+        prize_breakdown: form.prize_breakdown,
       };
       if (editId) {
         const { error } = await (supabase.from("contests") as any).update(payload).eq("id", editId);
@@ -67,7 +70,7 @@ const AdminContests = () => {
     setForm({
       match_id: c.match_id, name: c.name, type: c.type, entry_fee: String(c.entry_fee ?? 0),
       prize_pool: String(c.prize_pool ?? 0), max_entries: String(c.max_entries), is_guaranteed: c.is_guaranteed ?? false, status: c.status || "open",
-      max_teams_per_user: String(c.max_teams_per_user ?? 1),
+      max_teams_per_user: String(c.max_teams_per_user ?? 1), prize_breakdown: c.prize_breakdown || [],
     });
     setEditId(c.id); setOpen(true);
   };
@@ -123,6 +126,10 @@ const AdminContests = () => {
                 <input type="checkbox" checked={form.is_guaranteed} onChange={e => set("is_guaranteed", e.target.checked)} className="rounded" />
                 <Label className="text-xs">Guaranteed Contest</Label>
               </div>
+              <PrizeBreakdownEditor
+                value={form.prize_breakdown}
+                onChange={(rows) => setForm(p => ({ ...p, prize_breakdown: rows }))}
+              />
             </div>
             <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-full mt-4">
               {save.isPending ? "Saving..." : editId ? "Update" : "Create Contest"}

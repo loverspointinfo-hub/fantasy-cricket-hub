@@ -377,19 +377,39 @@ const AdminLiveScoring = () => {
                 <Trophy className="h-3 w-3" /> {matchPlayers.length} players
               </span>
             </div>
-            <Button onClick={() => savePoints.mutate()} disabled={savePoints.isPending} className="gap-1.5 rounded-xl" size="sm">
-              {savePoints.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Saving...</> : <><Save className="h-3.5 w-3.5" /> Save & Recalculate</>}
-            </Button>
-            {selectedMatch?.status === "completed" && (
-              <Button
-                onClick={() => distributeWinnings.mutate()}
-                disabled={distributeWinnings.isPending}
-                className="gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700"
-                size="sm"
-              >
-                {distributeWinnings.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Distributing...</> : <><Trophy className="h-3.5 w-3.5" /> Distribute Winnings</>}
+            <div className="flex items-center gap-2">
+              <Button onClick={() => savePoints.mutate()} disabled={savePoints.isPending} className="gap-1.5 rounded-xl" size="sm">
+                {savePoints.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Saving...</> : <><Save className="h-3.5 w-3.5" /> Save & Recalculate</>}
               </Button>
-            )}
+              {selectedMatch?.status === "live" && (
+                <Button
+                  onClick={async () => {
+                    // Mark as completed first
+                    await (supabase.from("matches") as any).update({ status: "completed" }).eq("id", selectedMatchId);
+                    // Save points & recalculate
+                    await savePoints.mutateAsync();
+                    // Auto-distribute winnings
+                    distributeWinnings.mutate();
+                    qc.invalidateQueries({ queryKey: ["admin-live-matches"] });
+                  }}
+                  disabled={distributeWinnings.isPending}
+                  className="gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700"
+                  size="sm"
+                >
+                  {distributeWinnings.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Processing...</> : <><Trophy className="h-3.5 w-3.5" /> Complete & Distribute</>}
+                </Button>
+              )}
+              {selectedMatch?.status === "completed" && (
+                <Button
+                  onClick={() => distributeWinnings.mutate()}
+                  disabled={distributeWinnings.isPending}
+                  className="gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700"
+                  size="sm"
+                >
+                  {distributeWinnings.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Distributing...</> : <><Trophy className="h-3.5 w-3.5" /> Distribute Winnings</>}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Players by team */}

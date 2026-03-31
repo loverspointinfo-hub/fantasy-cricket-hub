@@ -24,6 +24,7 @@ import ContestCategoryTabs from "@/components/contest/ContestCategoryTabs";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
 import LiveScoreTracker from "@/components/match/LiveScoreTracker";
 import PlayerComparisonSheet from "@/components/match/PlayerComparisonSheet";
+import ContestFilters from "@/components/contest/ContestFilters";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useCountdown } from "@/hooks/useCountdown";
 
@@ -47,6 +48,7 @@ const MatchDetail = () => {
   const [cloneTeam, setCloneTeam] = useState<UserTeam | null>(null);
   const [privateContestOpen, setPrivateContestOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [filteredContests, setFilteredContests] = useState<Contest[] | null>(null);
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
@@ -316,10 +318,16 @@ const MatchDetail = () => {
               </motion.div>
             )}
 
+            {/* Contest Filters */}
+            <motion.div variants={item}>
+              <ContestFilters contests={contests} onFiltered={setFilteredContests} />
+            </motion.div>
+
             {/* Sort/filter chips */}
             {(() => {
+              const displayContests = filteredContests ?? contests;
               const counts: Record<string, number> = {};
-              contests.forEach(c => { counts[c.type] = (counts[c.type] || 0) + 1; });
+              displayContests.forEach(c => { counts[c.type] = (counts[c.type] || 0) + 1; });
               return (
                 <motion.div variants={item}>
                   <ContestCategoryTabs active={contestCategory} onChange={setContestCategory} counts={counts} />
@@ -348,7 +356,8 @@ const MatchDetail = () => {
                 <p className="text-xs text-muted-foreground/60 mt-1">Contests will appear here soon</p>
               </motion.div>
             ) : (() => {
-              const filtered = contests.filter(c => contestCategory === "all" || c.type === contestCategory);
+              const displayContests = filteredContests ?? contests;
+              const filtered = displayContests.filter(c => contestCategory === "all" || c.type === contestCategory);
               const typeLabels: Record<string, string> = {
                 mega: "GRAND LEAGUE", h2h: "HEAD TO HEAD", winner_takes_all: "WINNER TAKES ALL",
                 practice: "PRACTICE", private: "PRIVATE CONTESTS",
