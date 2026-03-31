@@ -286,21 +286,29 @@ const ContestLeaderboard = () => {
                 <motion.div
                   key={entry.id}
                   variants={item}
-                  onClick={() => isLive && setPreviewTeamId(entry.team_id)}
+                  onClick={() => (isLive || isCompleted) && setPreviewTeamId(entry.team_id)}
                   className={cn(
                     "flex items-center py-3 border-b border-border/10 last:border-0 transition-all",
                     isMe && "bg-primary/5 -mx-4 px-4 rounded-xl border-primary/10",
                     isTop3 && !isMe && "bg-[hsl(var(--gold)/0.02)]",
-                    isLive && "cursor-pointer hover:bg-secondary/30 active:scale-[0.99]"
+                    hasWinners && entry.winnings > 0 && !isMe && "bg-emerald-500/[0.03]",
+                    (isLive || isCompleted) && "cursor-pointer hover:bg-secondary/30 active:scale-[0.99]"
                   )}
                 >
                   <div className="w-10 flex items-center justify-center">
                     {getRankBadge(entry.rank)}
                   </div>
                   <div className="flex-1 min-w-0 pl-2">
-                    <p className={cn("text-sm font-semibold truncate", isMe && "text-primary")}>
-                      {isMe ? "You" : entry.username}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className={cn("text-sm font-semibold truncate", isMe && "text-primary")}>
+                        {isMe ? "You" : entry.username}
+                      </p>
+                      {hasWinners && entry.winnings > 0 && (
+                        <Badge className="bg-[hsl(var(--neon-green)/0.12)] text-[hsl(var(--neon-green))] border-[hsl(var(--neon-green)/0.2)] text-[8px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider gap-0.5">
+                          <Award className="h-2.5 w-2.5" /> Winner
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-[10px] text-muted-foreground">{entry.team_name}</p>
                   </div>
                   <div className="w-16 text-right">
@@ -309,14 +317,17 @@ const ContestLeaderboard = () => {
                     </p>
                     <p className="text-[9px] text-muted-foreground">pts</p>
                   </div>
-                  <div className="w-16 text-right">
+                  <div className="w-20 text-right">
                     {entry.winnings > 0 ? (
-                      <p className="font-display font-bold text-sm text-[hsl(var(--neon-green))]">₹{entry.winnings}</p>
+                      <div>
+                        <p className="font-display font-bold text-sm text-[hsl(var(--neon-green))]">₹{entry.winnings}</p>
+                        {hasWinners && <p className="text-[8px] text-emerald-400/60 font-medium">Credited</p>}
+                      </div>
                     ) : (
                       <p className="text-[10px] text-muted-foreground">—</p>
                     )}
                   </div>
-                  {isLive && (
+                  {(isLive || isCompleted) && (
                     <div className="w-8 flex items-center justify-center">
                       <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
