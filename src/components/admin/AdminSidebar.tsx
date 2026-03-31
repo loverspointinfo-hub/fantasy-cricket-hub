@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Trophy, Users, Swords, Bell, Wallet, UserCog,
-  ChevronLeft, Shield, LogOut, Zap, Settings, ShieldCheck
+  ChevronLeft, Shield, LogOut, Zap, Settings, ShieldCheck, DollarSign, Upload
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -19,6 +19,7 @@ const items = [
   { title: "Contests", url: "/admin/contests", icon: Trophy },
   { title: "Users", url: "/admin/users", icon: UserCog },
   { title: "Wallet / Txns", url: "/admin/wallet", icon: Wallet },
+  { title: "Revenue", url: "/admin/revenue", icon: DollarSign },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Live Scoring", url: "/admin/live-scoring", icon: Zap },
   { title: "KYC Review", url: "/admin/kyc", icon: ShieldCheck },
