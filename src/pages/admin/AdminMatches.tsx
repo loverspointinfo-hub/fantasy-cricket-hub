@@ -56,12 +56,45 @@ const AdminMatches = () => {
         .maybeSingle();
       
       const apiKey = settingsData?.value || "";
-      
+      if (!apiKey) throw new Error("API key not configured. Go to Settings → API Keys to add your CricketData.org key.");
+
+      // Fetch matches from CricketData API on the client side
+      // (Edge functions can't reach cricapi.com due to network restrictions)
+      toast.info("Fetching matches from CricketData.org...");
+      const apiRes = await fetch(`https://api.cricapi.com/v1/matches?apikey=${apiKey}&offset=0`);
+      const apiData = await apiRes.json();
+
+      if (apiData.status !== "success" || !apiData.data) {
+        throw new Error(apiData.info || "Failed to fetch matches from CricketData API");
+      }
+
+      // Transform API data into match format
+      const matchesPayload = apiData.data
+        .filter((m: any) => m.dateTimeGMT && m.matchStarted !== true)
+        .map((m: any) => ({
+          team1_name: m.teamInfo?.[0]?.name || m.teams?.[0] || "TBD",
+          team2_name: m.teamInfo?.[1]?.name || m.teams?.[1] || "TBD",
+          team1_short: m.teamInfo?.[0]?.shortname || (m.teams?.[0] || "TBD").substring(0, 3).toUpperCase(),
+          team2_short: m.teamInfo?.[1]?.shortname || (m.teams?.[1] || "TBD").substring(0, 3).toUpperCase(),
+          team1_logo: m.teamInfo?.[0]?.img || null,
+          team2_logo: m.teamInfo?.[1]?.img || null,
+          match_time: new Date(m.dateTimeGMT).toISOString(),
+          entry_deadline: new Date(new Date(m.dateTimeGMT).getTime() - 30 * 60 * 1000).toISOString(),
+          league: m.series_id ? (m.name?.split(",")[0] || "Cricket") : "Cricket",
+          venue: m.venue || null,
+        }));
+
+      if (matchesPayload.length === 0) {
+        toast.info("No upcoming matches found from API");
+        return;
+      }
+
+      // Send transformed data to edge function for secure insertion
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
       const res = await supabase.functions.invoke("import-cricket-matches", {
-        body: { apiKey },
+        body: { matches: matchesPayload },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
