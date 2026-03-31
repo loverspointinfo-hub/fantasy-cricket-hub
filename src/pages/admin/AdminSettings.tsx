@@ -31,6 +31,7 @@ const AdminSettings = () => {
         setSiteName(map.site_name || "FANTASY11");
         setSlogan(map.site_slogan || "Play • Predict • Win");
         setBannerUrl(map.banner_url || "");
+        setCricketApiKey(map.cricket_api_key || "");
         setInitialized(true);
       }
       return map;
