@@ -45,6 +45,7 @@ const AdminMatches = () => {
   const logoRef2 = useRef<HTMLInputElement>(null);
   const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [importingIPL, setImportingIPL] = useState(false);
 
   const importMatches = async () => {
     setImporting(true);
@@ -113,6 +114,66 @@ const AdminMatches = () => {
       toast.error(err.message || "Import failed");
     } finally {
       setImporting(false);
+    }
+  };
+
+  const importIPL = async () => {
+    setImportingIPL(true);
+    try {
+      const { data: settingsData } = await (supabase.from("site_settings" as any) as any)
+        .select("value").eq("key", "cricket_api_key").maybeSingle();
+      const apiKey = settingsData?.value || "";
+      if (!apiKey) throw new Error("API key not configured. Go to Settings → API Keys.");
+
+      toast.info("Fetching IPL series from CricketData.org...");
+      const seriesRes = await fetch(`https://api.cricapi.com/v1/series?apikey=${apiKey}&offset=0`);
+      const seriesData = await seriesRes.json();
+      if (seriesData.status !== "success") throw new Error(seriesData.info || "Failed to fetch series");
+
+      const iplSeries = seriesData.data?.find((s: any) =>
+        s.name?.toLowerCase().includes("indian premier league") || s.name?.toLowerCase().includes("ipl")
+      );
+      if (!iplSeries) throw new Error("IPL series not found in current listings");
+
+      toast.info(`Found: ${iplSeries.name}. Fetching matches...`);
+      const infoRes = await fetch(`https://api.cricapi.com/v1/series_info?apikey=${apiKey}&id=${iplSeries.id}`);
+      const infoData = await infoRes.json();
+      if (infoData.status !== "success") throw new Error(infoData.info || "Failed to fetch series info");
+
+      const matchList = infoData.data?.matchList || [];
+      const upcomingMatches = matchList
+        .filter((m: any) => m.dateTimeGMT && !m.matchStarted)
+        .map((m: any) => ({
+          team1_name: m.teamInfo?.[0]?.name || m.teams?.[0] || "TBD",
+          team2_name: m.teamInfo?.[1]?.name || m.teams?.[1] || "TBD",
+          team1_short: m.teamInfo?.[0]?.shortname || (m.teams?.[0] || "TBD").substring(0, 3).toUpperCase(),
+          team2_short: m.teamInfo?.[1]?.shortname || (m.teams?.[1] || "TBD").substring(0, 3).toUpperCase(),
+          team1_logo: m.teamInfo?.[0]?.img || null,
+          team2_logo: m.teamInfo?.[1]?.img || null,
+          match_time: new Date(m.dateTimeGMT).toISOString(),
+          entry_deadline: new Date(new Date(m.dateTimeGMT).getTime() - 30 * 60 * 1000).toISOString(),
+          league: iplSeries.name || "IPL",
+          venue: m.venue || null,
+        }));
+
+      if (upcomingMatches.length === 0) {
+        toast.info("No upcoming IPL matches found");
+        return;
+      }
+
+      const res = await supabase.functions.invoke("import-cricket-matches", {
+        body: { matches: upcomingMatches },
+      });
+      if (res.error) throw new Error(res.data?.error || res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+
+      toast.success(`IPL: Imported ${res.data.imported} matches (${res.data.skipped} skipped)`);
+      qc.invalidateQueries({ queryKey: ["admin-matches"] });
+      qc.invalidateQueries({ queryKey: ["matches"] });
+    } catch (err: any) {
+      toast.error(err.message || "IPL import failed");
+    } finally {
+      setImportingIPL(false);
     }
   };
 
@@ -227,9 +288,13 @@ const AdminMatches = () => {
           <p className="text-xs text-muted-foreground mt-0.5">{matches.length} total matches</p>
         </div>
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={importIPL} disabled={importingIPL}>
+            {importingIPL ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {importingIPL ? "Importing..." : "Import IPL"}
+          </Button>
           <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={importMatches} disabled={importing}>
             {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            {importing ? "Importing..." : "Import from API"}
+            {importing ? "Importing..." : "Import All"}
           </Button>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
             <DialogTrigger asChild>

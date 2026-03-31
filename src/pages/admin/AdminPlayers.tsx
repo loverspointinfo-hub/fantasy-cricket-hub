@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Search, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 
@@ -21,6 +21,15 @@ const ROLE_OPTIONS = [
 ];
 const empty: PlayerForm = { name: "", role: "BAT", team: "", credit_value: "8", photo_url: "" };
 
+const mapApiRole = (role: string): string => {
+  if (!role) return "BAT";
+  const r = role.toLowerCase();
+  if (r.includes("wk") || r.includes("keeper")) return "WK";
+  if (r.includes("allrounder") || r.includes("all-rounder") || r.includes("all rounder")) return "AR";
+  if (r.includes("bowl")) return "BOWL";
+  return "BAT";
+};
+
 const AdminPlayers = () => {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -29,6 +38,7 @@ const AdminPlayers = () => {
   const [search, setSearch] = useState("");
   const csvRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
+  const [importingAPI, setImportingAPI] = useState(false);
 
   const { data: players = [], isLoading } = useQuery({
     queryKey: ["admin-players"],
@@ -111,12 +121,98 @@ const AdminPlayers = () => {
     }
   };
 
+  const importPlayersFromAPI = async () => {
+    setImportingAPI(true);
+    try {
+      const { data: settingsData } = await (supabase.from("site_settings" as any) as any)
+        .select("value").eq("key", "cricket_api_key").maybeSingle();
+      const apiKey = settingsData?.value || "";
+      if (!apiKey) throw new Error("API key not configured. Go to Settings → API Keys.");
+
+      const existingNames = new Set(players.map((p: any) => p.name.toLowerCase()));
+
+      toast.info("Fetching IPL series...");
+      const seriesRes = await fetch(`https://api.cricapi.com/v1/series?apikey=${apiKey}&offset=0`);
+      const seriesData = await seriesRes.json();
+      if (seriesData.status !== "success") throw new Error(seriesData.info || "Failed to fetch series");
+
+      const iplSeries = seriesData.data?.find((s: any) =>
+        s.name?.toLowerCase().includes("indian premier league") || s.name?.toLowerCase().includes("ipl")
+      );
+      if (!iplSeries) throw new Error("IPL series not found");
+
+      toast.info(`Fetching squads for ${iplSeries.name}...`);
+      const infoRes = await fetch(`https://api.cricapi.com/v1/series_info?apikey=${apiKey}&id=${iplSeries.id}`);
+      const infoData = await infoRes.json();
+      if (infoData.status !== "success") throw new Error(infoData.info || "Failed to fetch series info");
+
+      const matchIds = (infoData.data?.matchList || []).slice(0, 5).map((m: any) => m.id).filter(Boolean);
+      if (matchIds.length === 0) throw new Error("No matches found in IPL series");
+
+      const allPlayers: any[] = [];
+      const seenNames = new Set<string>();
+
+      for (const matchId of matchIds) {
+        try {
+          const squadRes = await fetch(`https://api.cricapi.com/v1/match_squad?apikey=${apiKey}&id=${matchId}`);
+          const squadData = await squadRes.json();
+          if (squadData.status !== "success" || !squadData.data) continue;
+
+          for (const teamData of squadData.data) {
+            const teamName = teamData.teamName || "Unknown";
+            for (const player of (teamData.players || [])) {
+              const name = player.name?.trim();
+              if (!name || seenNames.has(name.toLowerCase()) || existingNames.has(name.toLowerCase())) continue;
+              seenNames.add(name.toLowerCase());
+              allPlayers.push({
+                name,
+                role: mapApiRole(player.battingStyle || player.bowlingStyle || player.role || ""),
+                team: teamName,
+                credit_value: 8,
+                photo_url: player.playerImg || null,
+              });
+            }
+          }
+        } catch {
+          // Skip failed squad fetches
+        }
+      }
+
+      if (allPlayers.length === 0) {
+        toast.info("No new players found to import");
+        return;
+      }
+
+      let imported = 0;
+      for (let i = 0; i < allPlayers.length; i += 50) {
+        const batch = allPlayers.slice(i, i + 50);
+        const { error } = await (supabase.from("players") as any).insert(batch);
+        if (error) {
+          console.error("Batch insert error:", error);
+        } else {
+          imported += batch.length;
+        }
+      }
+
+      qc.invalidateQueries({ queryKey: ["admin-players"] });
+      toast.success(`Imported ${imported} players from IPL squads!`);
+    } catch (err: any) {
+      toast.error(err.message || "API import failed");
+    } finally {
+      setImportingAPI(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="font-display text-2xl font-bold">Players</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <input ref={csvRef} type="file" accept=".csv" className="hidden" onChange={handleCSVImport} />
+          <Button variant="outline" size="sm" className="gap-1" onClick={importPlayersFromAPI} disabled={importingAPI}>
+            {importingAPI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {importingAPI ? "Importing..." : "Import IPL Players"}
+          </Button>
           <Button variant="outline" size="sm" className="gap-1" onClick={() => csvRef.current?.click()} disabled={importing}>
             <Upload className="h-4 w-4" /> {importing ? "Importing..." : "CSV Import"}
           </Button>
@@ -158,9 +254,14 @@ const AdminPlayers = () => {
         <div className="space-y-2">
           {filtered.map((p: any) => (
             <Card key={p.id} className="glass-card p-3 flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate">{p.name}</p>
-                <p className="text-xs text-muted-foreground">{p.team} • ₹{p.credit_value} Cr</p>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {p.photo_url && (
+                  <img src={p.photo_url} alt={p.name} className="h-8 w-8 rounded-full object-cover border border-border/30" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-bold truncate">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">{p.team} • ₹{p.credit_value} Cr</p>
+                </div>
               </div>
               <Badge variant={roleColors[p.role] as any || "default"} className="text-[10px] capitalize">{p.role}</Badge>
               <div className="flex gap-1">
