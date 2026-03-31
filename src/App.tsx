@@ -58,6 +58,7 @@ const App = () => (
             <Route path="/match/:matchId/create-team" element={<CreateTeam />} />
             <Route path="/match/:matchId/edit-team/:teamId" element={<CreateTeam />} />
             <Route path="/kyc" element={<Suspense fallback={<div />}><KYCVerification /></Suspense>} />
+            <Route path="/performance" element={<Suspense fallback={<div />}><PerformanceDashboard /></Suspense>} />
           </Route>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Suspense fallback={<div />}><AdminDashboard /></Suspense>} />
