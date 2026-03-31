@@ -10,12 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import PrizeBreakdownEditor from "@/components/admin/PrizeBreakdownEditor";
 
 interface ContestForm {
   match_id: string; name: string; type: string; entry_fee: string; prize_pool: string;
   max_entries: string; is_guaranteed: boolean; status: string; max_teams_per_user: string;
+  prize_breakdown: any[];
 }
-const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open", max_teams_per_user: "1" };
+const empty: ContestForm = { match_id: "", name: "", type: "mega", entry_fee: "0", prize_pool: "0", max_entries: "100", is_guaranteed: false, status: "open", max_teams_per_user: "1", prize_breakdown: [] };
 
 const AdminContests = () => {
   const qc = useQueryClient();
