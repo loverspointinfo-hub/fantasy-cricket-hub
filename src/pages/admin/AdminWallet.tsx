@@ -57,6 +57,19 @@ const AdminWallet = () => {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-cashback-offers"] }); toast.success("Deleted"); },
   });
 
+  // Withdrawal requests
+  const { data: withdrawalRequests = [] } = useQuery({
+    queryKey: ["admin-withdrawal-requests"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("withdrawal_requests" as any) as any)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["admin-transactions"],
     queryFn: async () => {
@@ -90,18 +103,67 @@ const AdminWallet = () => {
         if (wallet) {
           await (supabase.from("wallets") as any).update({ deposit_balance: (wallet.deposit_balance ?? 0) + amount }).eq("user_id", userId);
         }
-        // Process referral bonus on first deposit
         await (supabase.rpc as any)("process_referral_bonus", { p_user_id: userId });
-      }
-      // If approving a withdrawal, deduct from winning_balance
-      if (status === "completed" && type === "withdrawal") {
-        const { data: wallet } = await (supabase.from("wallets") as any).select("winning_balance").eq("user_id", userId).single();
-        if (wallet) {
-          await (supabase.from("wallets") as any).update({ winning_balance: Math.max(0, (wallet.winning_balance ?? 0) - amount) }).eq("user_id", userId);
-        }
       }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-transactions"] }); toast.success("Transaction updated"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const processWithdrawal = useMutation({
+    mutationFn: async ({ id, status, adminNote }: { id: string; status: string; adminNote?: string }) => {
+      const request = withdrawalRequests.find((r: any) => r.id === id);
+      if (!request) throw new Error("Request not found");
+
+      // Update withdrawal request status
+      const { error: wErr } = await (supabase.from("withdrawal_requests" as any) as any)
+        .update({ status, admin_note: adminNote || null, processed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (wErr) throw wErr;
+
+      // Update matching transaction
+      const txStatus = status === "approved" ? "completed" : "rejected";
+      await (supabase.from("transactions") as any)
+        .update({ status: txStatus })
+        .eq("user_id", (request as any).user_id)
+        .eq("type", "withdrawal")
+        .eq("status", "pending")
+        .eq("amount", (request as any).amount);
+
+      // If approved, deduct from winning_balance
+      if (status === "approved") {
+        const { data: wallet } = await (supabase.from("wallets") as any)
+          .select("winning_balance").eq("user_id", (request as any).user_id).single();
+        if (wallet) {
+          await (supabase.from("wallets") as any)
+            .update({ winning_balance: Math.max(0, (wallet.winning_balance ?? 0) - (request as any).amount), updated_at: new Date().toISOString() })
+            .eq("user_id", (request as any).user_id);
+        }
+
+        // Send notification to user
+        await (supabase.from("notifications") as any).insert({
+          user_id: (request as any).user_id,
+          type: "wallet",
+          title: "💸 Withdrawal Approved!",
+          message: `Your withdrawal of ₹${(request as any).amount} to ${(request as any).upi_id} has been approved and will be processed shortly.`,
+          metadata: { withdrawal_id: id, amount: (request as any).amount },
+        });
+      } else {
+        // Send rejection notification
+        await (supabase.from("notifications") as any).insert({
+          user_id: (request as any).user_id,
+          type: "wallet",
+          title: "❌ Withdrawal Rejected",
+          message: `Your withdrawal request of ₹${(request as any).amount} was rejected.${adminNote ? " Reason: " + adminNote : ""}`,
+          metadata: { withdrawal_id: id, amount: (request as any).amount },
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-withdrawal-requests"] });
+      qc.invalidateQueries({ queryKey: ["admin-transactions"] });
+      toast.success("Withdrawal processed");
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -129,13 +191,57 @@ const AdminWallet = () => {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full grid grid-cols-4">
+        <TabsList className="w-full grid grid-cols-5">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="deposit">Deposits</TabsTrigger>
           <TabsTrigger value="withdrawal">Withdrawals</TabsTrigger>
+          <TabsTrigger value="withdraw-requests">W. Requests</TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {/* Withdrawal Requests Section */}
+      {tab === "withdraw-requests" && (
+        <div className="space-y-2">
+          {withdrawalRequests.length === 0 && <p className="text-center text-muted-foreground text-sm py-8">No withdrawal requests</p>}
+          {withdrawalRequests.map((r: any) => {
+            const user = getUser(r.user_id);
+            return (
+              <Card key={r.id} className="glass-card p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate">{user?.username || r.user_id.slice(0, 8)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      ₹{r.amount} → {r.upi_id}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                      {r.created_at ? formatIST(r.created_at, "dd MMM h:mm a") : ""}
+                    </p>
+                  </div>
+                  <Badge variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"} className="text-[10px]">
+                    {r.status}
+                  </Badge>
+                  {r.status === "pending" && (
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary"
+                        onClick={() => processWithdrawal.mutate({ id: r.id, status: "approved" })}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive"
+                        onClick={() => {
+                          const note = prompt("Reason for rejection (optional):");
+                          processWithdrawal.mutate({ id: r.id, status: "rejected", adminNote: note || undefined });
+                        }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
         <div className="space-y-2">
