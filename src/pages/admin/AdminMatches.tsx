@@ -167,7 +167,7 @@ const AdminMatches = () => {
       if (res.error) throw new Error(res.data?.error || res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
 
-      toast.success(`IPL: Imported ${res.data.imported} matches (${res.data.skipped} skipped)`);
+      toast.success(`IPL: Imported ${res.data.imported} matches, ${res.data.contests_created || 0} contests (${res.data.skipped} skipped)`);
       qc.invalidateQueries({ queryKey: ["admin-matches"] });
       qc.invalidateQueries({ queryKey: ["matches"] });
     } catch (err: any) {
