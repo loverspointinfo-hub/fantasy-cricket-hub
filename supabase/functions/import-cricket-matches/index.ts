@@ -4,8 +4,25 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+      return res;
+    } catch (err) {
+      console.error(`Attempt ${i + 1} failed:`, err.message);
+      if (i === retries - 1) throw err;
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  throw new Error("All retries failed");
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -41,13 +58,36 @@ serve(async (req) => {
     }
     if (!apiKey) throw new Error("Cricket API key not configured");
 
-    // Fetch upcoming matches from CricketData.org
-    const apiUrl = `https://api.cricapi.com/v1/matches?apikey=${apiKey}&offset=0`;
-    const apiRes = await fetch(apiUrl);
-    const apiData = await apiRes.json();
+    // Try multiple API endpoints (cricketdata.org uses different domains)
+    const apiUrls = [
+      `https://api.cricapi.com/v1/matches?apikey=${apiKey}&offset=0`,
+      `https://api.cricapi.com/v1/currentMatches?apikey=${apiKey}&offset=0`,
+    ];
 
-    if (apiData.status !== "success" || !apiData.data) {
-      throw new Error(apiData.info || "Failed to fetch matches from CricketData API");
+    let apiData: any = null;
+    let lastError = "";
+
+    for (const apiUrl of apiUrls) {
+      try {
+        console.log("Trying:", apiUrl.split("?")[0]);
+        const apiRes = await fetchWithRetry(apiUrl);
+        const text = await apiRes.text();
+        apiData = JSON.parse(text);
+        if (apiData.status === "success" && apiData.data) {
+          break;
+        }
+        lastError = apiData.info || "API returned no data";
+        apiData = null;
+      } catch (err: any) {
+        lastError = err.message;
+        console.error("API call failed:", err.message);
+      }
+    }
+
+    if (!apiData || !apiData.data) {
+      throw new Error(
+        `Could not connect to CricketData API. This may be a temporary network issue. Error: ${lastError}. Please try again in a few minutes.`
+      );
     }
 
     const matches = apiData.data;
