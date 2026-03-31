@@ -48,6 +48,7 @@ const MatchDetail = () => {
   const [cloneTeam, setCloneTeam] = useState<UserTeam | null>(null);
   const [privateContestOpen, setPrivateContestOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [filteredContests, setFilteredContests] = useState<Contest[] | null>(null);
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
