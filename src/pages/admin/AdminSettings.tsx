@@ -176,6 +176,43 @@ const AdminSettings = () => {
         </div>
       </Card>
 
+      {/* API Keys */}
+      <Card className="glass-card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Key className="h-4 w-4 text-primary" />
+          <h3 className="font-display text-sm font-bold uppercase tracking-wider">API Keys</h3>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">CricketData.org API Key</Label>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input
+                type={showApiKey ? "text" : "password"}
+                value={cricketApiKey}
+                onChange={(e) => setCricketApiKey(e.target.value)}
+                placeholder="Enter your CricketData.org API key"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Get your free API key from{" "}
+            <a href="https://cricketdata.org" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+              cricketdata.org
+            </a>
+            . Used to auto-import upcoming cricket matches.
+          </p>
+        </div>
+      </Card>
+
       {/* Banner Management */}
       <Card className="glass-card p-5">
         <AdminBannerManager />
