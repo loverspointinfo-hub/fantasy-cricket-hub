@@ -73,10 +73,53 @@ const AdminPlayers = () => {
 
   const roleColors: Record<string, string> = { BAT: "default", BOWL: "secondary", AR: "outline", WK: "destructive" };
 
+  const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split("\n").filter(l => l.trim());
+      if (lines.length < 2) throw new Error("CSV must have header + data rows");
+      const header = lines[0].split(",").map(h => h.trim().toLowerCase());
+      const nameIdx = header.indexOf("name");
+      const roleIdx = header.indexOf("role");
+      const teamIdx = header.indexOf("team");
+      const creditIdx = header.findIndex(h => h.includes("credit"));
+      if (nameIdx === -1 || roleIdx === -1 || teamIdx === -1) throw new Error("CSV must have name, role, team columns");
+
+      const rows = lines.slice(1).map(line => {
+        const cols = line.split(",").map(c => c.trim());
+        return {
+          name: cols[nameIdx],
+          role: cols[roleIdx]?.toUpperCase(),
+          team: cols[teamIdx],
+          credit_value: creditIdx >= 0 ? parseFloat(cols[creditIdx]) || 8 : 8,
+        };
+      }).filter(r => r.name && r.role && r.team);
+
+      if (rows.length === 0) throw new Error("No valid rows found");
+      const { error } = await (supabase.from("players") as any).insert(rows);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["admin-players"] });
+      toast.success(`${rows.length} players imported!`);
+    } catch (err: any) {
+      toast.error(err.message || "Import failed");
+    } finally {
+      setImporting(false);
+      if (csvRef.current) csvRef.current.value = "";
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="font-display text-2xl font-bold">Players</h1>
+        <div className="flex gap-2">
+          <input ref={csvRef} type="file" accept=".csv" className="hidden" onChange={handleCSVImport} />
+          <Button variant="outline" size="sm" className="gap-1" onClick={() => csvRef.current?.click()} disabled={importing}>
+            <Upload className="h-4 w-4" /> {importing ? "Importing..." : "CSV Import"}
+          </Button>
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
           <DialogTrigger asChild><Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> Add Player</Button></DialogTrigger>
           <DialogContent>
