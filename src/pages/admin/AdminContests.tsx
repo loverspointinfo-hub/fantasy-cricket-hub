@@ -46,6 +46,7 @@ const AdminContests = () => {
         entry_fee: parseFloat(form.entry_fee), prize_pool: parseFloat(form.prize_pool),
         max_entries: parseInt(form.max_entries), is_guaranteed: form.is_guaranteed, status: form.status,
         max_teams_per_user: parseInt(form.max_teams_per_user) || 1,
+        prize_breakdown: form.prize_breakdown,
       };
       if (editId) {
         const { error } = await (supabase.from("contests") as any).update(payload).eq("id", editId);
