@@ -24,6 +24,7 @@ import ContestCategoryTabs from "@/components/contest/ContestCategoryTabs";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
 import LiveScoreTracker from "@/components/match/LiveScoreTracker";
 import PlayerComparisonSheet from "@/components/match/PlayerComparisonSheet";
+import ContestFilters from "@/components/contest/ContestFilters";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useCountdown } from "@/hooks/useCountdown";
 
