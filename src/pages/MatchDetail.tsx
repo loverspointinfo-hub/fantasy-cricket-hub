@@ -318,10 +318,16 @@ const MatchDetail = () => {
               </motion.div>
             )}
 
+            {/* Contest Filters */}
+            <motion.div variants={item}>
+              <ContestFilters contests={contests} onFiltered={setFilteredContests} />
+            </motion.div>
+
             {/* Sort/filter chips */}
             {(() => {
+              const displayContests = filteredContests ?? contests;
               const counts: Record<string, number> = {};
-              contests.forEach(c => { counts[c.type] = (counts[c.type] || 0) + 1; });
+              displayContests.forEach(c => { counts[c.type] = (counts[c.type] || 0) + 1; });
               return (
                 <motion.div variants={item}>
                   <ContestCategoryTabs active={contestCategory} onChange={setContestCategory} counts={counts} />
