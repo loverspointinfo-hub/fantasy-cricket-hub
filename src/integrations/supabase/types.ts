@@ -472,6 +472,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_notifications: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_sent: boolean
+          message: string
+          scheduled_at: string
+          target_segment: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_sent?: boolean
+          message: string
+          scheduled_at: string
+          target_segment?: string
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_sent?: boolean
+          message?: string
+          scheduled_at?: string
+          target_segment?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       scoring_presets: {
         Row: {
           color: string
@@ -762,6 +798,10 @@ export type Database = {
       process_referral_bonus: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      recalculate_player_ownership: {
+        Args: { p_match_id: string }
+        Returns: number
       }
       recalculate_team_points: { Args: { p_match_id: string }; Returns: number }
     }
