@@ -45,6 +45,7 @@ const AdminMatches = () => {
   const logoRef2 = useRef<HTMLInputElement>(null);
   const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [importingIPL, setImportingIPL] = useState(false);
 
   const importMatches = async () => {
     setImporting(true);
