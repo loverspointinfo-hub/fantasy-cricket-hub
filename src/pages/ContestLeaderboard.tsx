@@ -263,8 +263,8 @@ const ContestLeaderboard = () => {
           <span className="w-10 text-center">#</span>
           <span className="flex-1 pl-2">Player</span>
           <span className="w-16 text-right">Points</span>
-          <span className="w-16 text-right">Prize</span>
-          {isLive && <span className="w-8" />}
+          <span className="w-20 text-right">{hasWinners ? "Won" : "Prize"}</span>
+          {(isLive || isCompleted) && <span className="w-8" />}
         </div>
 
         {isLoading ? (
