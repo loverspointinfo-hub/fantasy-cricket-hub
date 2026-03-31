@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Settings, Save, Type } from "lucide-react";
+import { Settings, Save, Type, Key, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import AdminBannerManager from "@/components/admin/AdminBannerManager";
 
@@ -15,6 +15,8 @@ const AdminSettings = () => {
   const [siteName, setSiteName] = useState("");
   const [slogan, setSlogan] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [cricketApiKey, setCricketApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -29,6 +31,7 @@ const AdminSettings = () => {
         setSiteName(map.site_name || "FANTASY11");
         setSlogan(map.site_slogan || "Play • Predict • Win");
         setBannerUrl(map.banner_url || "");
+        setCricketApiKey(map.cricket_api_key || "");
         setInitialized(true);
       }
       return map;
@@ -47,6 +50,10 @@ const AdminSettings = () => {
       await saveSetting("site_name", siteName);
       await saveSetting("site_slogan", slogan);
       await saveSetting("banner_url", bannerUrl);
+      // Upsert cricket API key
+      const { error: upsertErr } = await (supabase.from("site_settings" as any) as any)
+        .upsert({ key: "cricket_api_key", value: cricketApiKey, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (upsertErr) throw upsertErr;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["site-settings"] });
@@ -166,6 +173,43 @@ const AdminSettings = () => {
               </p>
             </div>
           </div>
+        </div>
+      </Card>
+
+      {/* API Keys */}
+      <Card className="glass-card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Key className="h-4 w-4 text-primary" />
+          <h3 className="font-display text-sm font-bold uppercase tracking-wider">API Keys</h3>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">CricketData.org API Key</Label>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input
+                type={showApiKey ? "text" : "password"}
+                value={cricketApiKey}
+                onChange={(e) => setCricketApiKey(e.target.value)}
+                placeholder="Enter your CricketData.org API key"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Get your free API key from{" "}
+            <a href="https://cricketdata.org" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+              cricketdata.org
+            </a>
+            . Used to auto-import upcoming cricket matches.
+          </p>
         </div>
       </Card>
 

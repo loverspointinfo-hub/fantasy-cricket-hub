@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer, Upload, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Clock, Zap, CheckCircle2, Info, Timer, Upload, X, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
@@ -44,6 +44,41 @@ const AdminMatches = () => {
   const logoRef1 = useRef<HTMLInputElement>(null);
   const logoRef2 = useRef<HTMLInputElement>(null);
   const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  const importMatches = async () => {
+    setImporting(true);
+    try {
+      // Get API key from site_settings
+      const { data: settingsData } = await (supabase.from("site_settings" as any) as any)
+        .select("value")
+        .eq("key", "cricket_api_key")
+        .maybeSingle();
+      
+      const apiKey = settingsData?.value || "";
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const res = await supabase.functions.invoke("import-cricket-matches", {
+        body: { apiKey },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (res.error) throw new Error(res.error.message);
+      const result = res.data;
+      
+      if (result.error) throw new Error(result.error);
+      
+      toast.success(`Imported ${result.imported} matches (${result.skipped} skipped)`);
+      qc.invalidateQueries({ queryKey: ["admin-matches"] });
+      qc.invalidateQueries({ queryKey: ["matches"] });
+    } catch (err: any) {
+      toast.error(err.message || "Import failed");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const uploadLogo = async (file: File, team: "team1_logo" | "team2_logo") => {
     if (!file.type.startsWith("image/")) { toast.error("Please select an image"); return; }
@@ -155,10 +190,15 @@ const AdminMatches = () => {
           <h1 className="font-display text-2xl font-bold">Matches</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{matches.length} total matches</p>
         </div>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1.5 rounded-xl"><Plus className="h-4 w-4" /> Add Match</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={importMatches} disabled={importing}>
+            {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {importing ? "Importing..." : "Import from API"}
+          </Button>
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1.5 rounded-xl"><Plus className="h-4 w-4" /> Add Match</Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-auto">
             <DialogHeader><DialogTitle className="font-display">{editId ? "Edit Match" : "Create New Match"}</DialogTitle></DialogHeader>
             <div className="grid grid-cols-2 gap-3 mt-3">
@@ -227,6 +267,7 @@ const AdminMatches = () => {
             </Button>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Status Filter Tabs */}
