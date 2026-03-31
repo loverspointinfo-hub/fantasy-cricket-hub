@@ -705,6 +705,10 @@ export type Database = {
         Args: { desired_username: string }
         Returns: boolean
       }
+      distribute_contest_winnings: {
+        Args: { p_match_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
