@@ -191,13 +191,57 @@ const AdminWallet = () => {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full grid grid-cols-4">
+        <TabsList className="w-full grid grid-cols-5">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="deposit">Deposits</TabsTrigger>
           <TabsTrigger value="withdrawal">Withdrawals</TabsTrigger>
+          <TabsTrigger value="withdraw-requests">W. Requests</TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {/* Withdrawal Requests Section */}
+      {tab === "withdraw-requests" && (
+        <div className="space-y-2">
+          {withdrawalRequests.length === 0 && <p className="text-center text-muted-foreground text-sm py-8">No withdrawal requests</p>}
+          {withdrawalRequests.map((r: any) => {
+            const user = getUser(r.user_id);
+            return (
+              <Card key={r.id} className="glass-card p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate">{user?.username || r.user_id.slice(0, 8)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      ₹{r.amount} → {r.upi_id}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                      {r.created_at ? formatIST(r.created_at, "dd MMM h:mm a") : ""}
+                    </p>
+                  </div>
+                  <Badge variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"} className="text-[10px]">
+                    {r.status}
+                  </Badge>
+                  {r.status === "pending" && (
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary"
+                        onClick={() => processWithdrawal.mutate({ id: r.id, status: "approved" })}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive"
+                        onClick={() => {
+                          const note = prompt("Reason for rejection (optional):");
+                          processWithdrawal.mutate({ id: r.id, status: "rejected", adminNote: note || undefined });
+                        }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
         <div className="space-y-2">
