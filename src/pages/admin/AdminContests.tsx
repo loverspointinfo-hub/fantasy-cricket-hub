@@ -70,7 +70,7 @@ const AdminContests = () => {
     setForm({
       match_id: c.match_id, name: c.name, type: c.type, entry_fee: String(c.entry_fee ?? 0),
       prize_pool: String(c.prize_pool ?? 0), max_entries: String(c.max_entries), is_guaranteed: c.is_guaranteed ?? false, status: c.status || "open",
-      max_teams_per_user: String(c.max_teams_per_user ?? 1),
+      max_teams_per_user: String(c.max_teams_per_user ?? 1), prize_breakdown: c.prize_breakdown || [],
     });
     setEditId(c.id); setOpen(true);
   };
