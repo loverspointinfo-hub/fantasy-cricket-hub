@@ -103,13 +103,33 @@ const WalletPage = () => {
     }
   };
 
+  // Fetch withdrawal requests
+  const { data: withdrawalRequests = [] } = useQuery({
+    queryKey: ["withdrawal-requests", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await (supabase.from("withdrawal_requests" as any) as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const handleWithdraw = async () => {
     const amt = parseFloat(amount);
-    if (!amt || amt <= 0) { toast.error("Enter a valid amount"); return; }
+    if (!amt || amt < 100) { toast.error("Minimum withdrawal amount is ₹100"); return; }
     if (!user) { toast.error("Please login first"); return; }
     if (!upiId.trim() || !upiId.includes("@")) { toast.error("Enter a valid UPI ID (e.g. name@upi)"); return; }
     const winnings = wallet?.winning_balance ?? 0;
     if (amt > winnings) { toast.error(`You can only withdraw up to ₹${winnings} from winnings`); return; }
+
+    // Check for pending withdrawal requests
+    const hasPending = withdrawalRequests.some((r: any) => r.status === "pending");
+    if (hasPending) { toast.error("You already have a pending withdrawal request. Please wait for it to be processed."); return; }
 
     // KYC check for withdrawals over ₹10,000
     if (amt > 10000) {
@@ -120,19 +140,37 @@ const WalletPage = () => {
         return;
       }
     }
+
+    // TDS calculation for winnings above ₹10,000
+    let tdsAmount = 0;
+    if (amt > 10000) {
+      tdsAmount = Math.round(amt * 0.3); // 30% TDS
+    }
+    const netAmount = amt - tdsAmount;
+
     setSubmitting(true);
     try {
       // Save UPI ID to profile
       await (supabase.from("profiles") as any).update({ upi_id: upiId.trim() }).eq("id", user.id);
 
+      // Create withdrawal request
+      const { error: wErr } = await (supabase.from("withdrawal_requests" as any) as any).insert({
+        user_id: user.id,
+        amount: amt,
+        upi_id: upiId.trim(),
+      });
+      if (wErr) throw wErr;
+
+      // Create transaction record
       const { error } = await (supabase.from("transactions") as any).insert({
         user_id: user.id,
         type: "withdrawal",
         amount: amt,
-        description: `Withdraw ₹${amt} to UPI: ${upiId.trim()}`,
+        description: `Withdraw ₹${amt} to UPI: ${upiId.trim()}${tdsAmount > 0 ? ` (TDS: ₹${tdsAmount}, Net: ₹${netAmount})` : ""}`,
         status: "pending",
       });
       if (error) throw error;
+
       // Send Telegram notification
       const { data: profile } = await (supabase.from("profiles") as any)
         .select("username").eq("id", user.id).single();
@@ -141,8 +179,10 @@ const WalletPage = () => {
         email: user.email,
         amount: amt,
       });
+
       toast.success("Withdrawal request submitted! It will be processed after admin approval.");
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["withdrawal-requests"] });
       setWithdrawOpen(false);
       setAmount("");
     } catch (e: any) {
