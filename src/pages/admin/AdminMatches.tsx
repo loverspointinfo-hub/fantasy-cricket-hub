@@ -190,10 +190,15 @@ const AdminMatches = () => {
           <h1 className="font-display text-2xl font-bold">Matches</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{matches.length} total matches</p>
         </div>
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1.5 rounded-xl"><Plus className="h-4 w-4" /> Add Match</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={importMatches} disabled={importing}>
+            {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {importing ? "Importing..." : "Import from API"}
+          </Button>
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1.5 rounded-xl"><Plus className="h-4 w-4" /> Add Match</Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-auto">
             <DialogHeader><DialogTitle className="font-display">{editId ? "Edit Match" : "Create New Match"}</DialogTitle></DialogHeader>
             <div className="grid grid-cols-2 gap-3 mt-3">
