@@ -324,8 +324,20 @@ const ContestLeaderboard = () => {
                     (isLive || isCompleted) && "cursor-pointer hover:bg-secondary/30 active:scale-[0.99]"
                   )}
                 >
-                  <div className="w-10 flex items-center justify-center">
+                  <div className="w-10 flex items-center justify-center relative">
                     {getRankBadge(entry.rank)}
+                    {rankChanges[entry.id] === "up" && (
+                      <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary/20 flex items-center justify-center">
+                        <ArrowUp className="h-2.5 w-2.5 text-primary" />
+                      </motion.div>
+                    )}
+                    {rankChanges[entry.id] === "down" && (
+                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive/20 flex items-center justify-center">
+                        <ArrowDown className="h-2.5 w-2.5 text-destructive" />
+                      </motion.div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0 pl-2">
                     <div className="flex items-center gap-1.5">
