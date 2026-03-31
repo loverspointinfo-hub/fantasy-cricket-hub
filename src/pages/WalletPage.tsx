@@ -367,11 +367,12 @@ const WalletPage = () => {
 
       {/* Withdraw Dialog */}
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-auto">
           <DialogHeader><DialogTitle>Withdraw via UPI</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-3">
             <p className="text-xs text-muted-foreground">
               Withdrawable balance: <span className="font-bold text-foreground">₹{wallet?.winning_balance?.toFixed(0) ?? 0}</span>
+              <span className="ml-2 text-[10px]">(Min ₹100)</span>
             </p>
             <div>
               <Label className="text-xs flex items-center gap-1.5">
@@ -395,10 +396,44 @@ const WalletPage = () => {
                 className="text-lg font-bold h-12"
               />
             </div>
+            {/* TDS notice */}
+            {parseFloat(amount) > 10000 && (
+              <div className="rounded-xl p-3 border border-amber-500/20 bg-amber-500/5 text-xs">
+                <p className="font-semibold text-amber-400">⚠️ TDS Applicable</p>
+                <p className="text-muted-foreground mt-1">
+                  30% TDS (₹{Math.round(parseFloat(amount) * 0.3)}) will be deducted for withdrawals above ₹10,000.
+                  Net amount: <span className="font-bold text-foreground">₹{Math.round(parseFloat(amount) * 0.7)}</span>
+                </p>
+              </div>
+            )}
             <Button onClick={handleWithdraw} disabled={submitting || !upiId.trim()} className="w-full h-11 font-bold">
               {submitting ? "Submitting..." : `Withdraw ₹${parseFloat(amount) > 0 ? amount : "0"}`}
             </Button>
             <p className="text-[10px] text-muted-foreground text-center">Amount will be sent to your UPI ID after admin approval</p>
+
+            {/* Withdrawal Request History */}
+            {withdrawalRequests.length > 0 && (
+              <div className="border-t border-border/20 pt-4 mt-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Recent Withdrawal Requests</h4>
+                <div className="space-y-2">
+                  {withdrawalRequests.slice(0, 5).map((r: any) => (
+                    <div key={r.id} className="flex items-center justify-between py-2 border-b border-border/10 last:border-0">
+                      <div>
+                        <p className="text-sm font-semibold">₹{r.amount}</p>
+                        <p className="text-[10px] text-muted-foreground">{r.upi_id} • {formatIST(r.created_at, "dd MMM, h:mm a")}</p>
+                      </div>
+                      <Badge className={
+                        r.status === "pending" ? "bg-amber-500/15 text-amber-400 border-amber-500/25 text-[8px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider animate-pulse" :
+                        r.status === "approved" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25 text-[8px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider" :
+                        "bg-red-500/15 text-red-400 border-red-500/25 text-[8px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider"
+                      }>
+                        {r.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
