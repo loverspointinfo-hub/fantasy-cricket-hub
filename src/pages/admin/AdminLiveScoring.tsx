@@ -287,6 +287,22 @@ const AdminLiveScoring = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const distributeWinnings = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("distribute_contest_winnings", { p_match_id: selectedMatchId });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (count) => {
+      qc.invalidateQueries({ queryKey: ["contest-leaderboard"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["admin-live-matches"] });
+      toast.success(`✅ Winnings distributed! ${count} winners credited.`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const selectedMatch = liveMatches.find((m: any) => m.id === selectedMatchId);
 
   const groupedPlayers = matchPlayers.reduce((acc: Record<string, any[]>, mp: any) => {
@@ -364,6 +380,16 @@ const AdminLiveScoring = () => {
             <Button onClick={() => savePoints.mutate()} disabled={savePoints.isPending} className="gap-1.5 rounded-xl" size="sm">
               {savePoints.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Saving...</> : <><Save className="h-3.5 w-3.5" /> Save & Recalculate</>}
             </Button>
+            {selectedMatch?.status === "completed" && (
+              <Button
+                onClick={() => distributeWinnings.mutate()}
+                disabled={distributeWinnings.isPending}
+                className="gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700"
+                size="sm"
+              >
+                {distributeWinnings.isPending ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Distributing...</> : <><Trophy className="h-3.5 w-3.5" /> Distribute Winnings</>}
+              </Button>
+            )}
           </div>
 
           {/* Players by team */}
