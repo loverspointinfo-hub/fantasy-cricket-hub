@@ -44,6 +44,41 @@ const AdminMatches = () => {
   const logoRef1 = useRef<HTMLInputElement>(null);
   const logoRef2 = useRef<HTMLInputElement>(null);
   const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  const importMatches = async () => {
+    setImporting(true);
+    try {
+      // Get API key from site_settings
+      const { data: settingsData } = await (supabase.from("site_settings" as any) as any)
+        .select("value")
+        .eq("key", "cricket_api_key")
+        .maybeSingle();
+      
+      const apiKey = settingsData?.value || "";
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const res = await supabase.functions.invoke("import-cricket-matches", {
+        body: { apiKey },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (res.error) throw new Error(res.error.message);
+      const result = res.data;
+      
+      if (result.error) throw new Error(result.error);
+      
+      toast.success(`Imported ${result.imported} matches (${result.skipped} skipped)`);
+      qc.invalidateQueries({ queryKey: ["admin-matches"] });
+      qc.invalidateQueries({ queryKey: ["matches"] });
+    } catch (err: any) {
+      toast.error(err.message || "Import failed");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const uploadLogo = async (file: File, team: "team1_logo" | "team2_logo") => {
     if (!file.type.startsWith("image/")) { toast.error("Please select an image"); return; }
