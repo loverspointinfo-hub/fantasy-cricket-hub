@@ -146,6 +146,7 @@ const AdminPlayers = () => {
             </Button>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="relative">
