@@ -205,6 +205,11 @@ const ContestLeaderboard = () => {
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-red))]" /> LIVE
             </Badge>
           )}
+          {isCompleted && (
+            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/25 text-[10px] font-bold gap-1">
+              <Trophy className="h-3 w-3" /> Completed
+            </Badge>
+          )}
         </div>
       </header>
 
