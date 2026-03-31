@@ -356,7 +356,8 @@ const MatchDetail = () => {
                 <p className="text-xs text-muted-foreground/60 mt-1">Contests will appear here soon</p>
               </motion.div>
             ) : (() => {
-              const filtered = contests.filter(c => contestCategory === "all" || c.type === contestCategory);
+              const displayContests = filteredContests ?? contests;
+              const filtered = displayContests.filter(c => contestCategory === "all" || c.type === contestCategory);
               const typeLabels: Record<string, string> = {
                 mega: "GRAND LEAGUE", h2h: "HEAD TO HEAD", winner_takes_all: "WINNER TAKES ALL",
                 practice: "PRACTICE", private: "PRIVATE CONTESTS",
