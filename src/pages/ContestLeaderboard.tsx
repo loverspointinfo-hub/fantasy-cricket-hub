@@ -178,6 +178,35 @@ const ContestLeaderboard = () => {
   const isCompleted = contest?.matches?.status === "completed";
   const hasWinners = entries.some(e => e.winnings > 0);
 
+  // Track previous ranks for animation
+  const prevRanksRef = useRef<Record<string, number>>({});
+  const [rankChanges, setRankChanges] = useState<Record<string, "up" | "down" | "same">>({});
+
+  useEffect(() => {
+    const prev = prevRanksRef.current;
+    const changes: Record<string, "up" | "down" | "same"> = {};
+    entries.forEach(e => {
+      if (prev[e.id] !== undefined) {
+        if (e.rank < prev[e.id]) changes[e.id] = "up";
+        else if (e.rank > prev[e.id]) changes[e.id] = "down";
+        else changes[e.id] = "same";
+      } else {
+        changes[e.id] = "same";
+      }
+    });
+    setRankChanges(changes);
+    // Update stored ranks
+    const newRanks: Record<string, number> = {};
+    entries.forEach(e => { newRanks[e.id] = e.rank; });
+    prevRanksRef.current = newRanks;
+
+    // Clear animations after 2s
+    if (Object.values(changes).some(c => c !== "same")) {
+      const timer = setTimeout(() => setRankChanges({}), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [entries]);
+
   const { data: previewData } = useTeamPreviewData(previewTeamId, matchId);
   const myEntry = entries.find(e => e.user_id === user?.id);
 
