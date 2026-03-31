@@ -15,7 +15,10 @@ const AdminSettings = () => {
   const [siteName, setSiteName] = useState("");
   const [slogan, setSlogan] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [cricketApiKey, setCricketApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const { isLoading } = useQuery({
