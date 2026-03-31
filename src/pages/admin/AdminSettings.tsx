@@ -50,6 +50,10 @@ const AdminSettings = () => {
       await saveSetting("site_name", siteName);
       await saveSetting("site_slogan", slogan);
       await saveSetting("banner_url", bannerUrl);
+      // Upsert cricket API key
+      const { error: upsertErr } = await (supabase.from("site_settings" as any) as any)
+        .upsert({ key: "cricket_api_key", value: cricketApiKey, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (upsertErr) throw upsertErr;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["site-settings"] });
