@@ -267,6 +267,7 @@ const AdminMatches = () => {
             </Button>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Status Filter Tabs */}
