@@ -126,6 +126,10 @@ const AdminContests = () => {
                 <input type="checkbox" checked={form.is_guaranteed} onChange={e => set("is_guaranteed", e.target.checked)} className="rounded" />
                 <Label className="text-xs">Guaranteed Contest</Label>
               </div>
+              <PrizeBreakdownEditor
+                value={form.prize_breakdown}
+                onChange={(rows) => setForm(p => ({ ...p, prize_breakdown: rows }))}
+              />
             </div>
             <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-full mt-4">
               {save.isPending ? "Saving..." : editId ? "Update" : "Create Contest"}
