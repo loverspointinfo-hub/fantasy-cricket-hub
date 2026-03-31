@@ -175,6 +175,8 @@ const ContestLeaderboard = () => {
   const [previewTeamId, setPreviewTeamId] = useState<string | null>(null);
   const matchId = contest?.matches?.id || null;
   const isLive = contest?.matches?.status === "live";
+  const isCompleted = contest?.matches?.status === "completed";
+  const hasWinners = entries.some(e => e.winnings > 0);
 
   const { data: previewData } = useTeamPreviewData(previewTeamId, matchId);
   const myEntry = entries.find(e => e.user_id === user?.id);
