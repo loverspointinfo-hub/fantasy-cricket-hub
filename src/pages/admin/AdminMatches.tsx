@@ -288,9 +288,13 @@ const AdminMatches = () => {
           <p className="text-xs text-muted-foreground mt-0.5">{matches.length} total matches</p>
         </div>
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={importIPL} disabled={importingIPL}>
+            {importingIPL ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {importingIPL ? "Importing..." : "Import IPL"}
+          </Button>
           <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={importMatches} disabled={importing}>
             {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            {importing ? "Importing..." : "Import from API"}
+            {importing ? "Importing..." : "Import All"}
           </Button>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
             <DialogTrigger asChild>
