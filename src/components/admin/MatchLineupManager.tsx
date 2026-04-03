@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Search, Users, Plus, X, UserCheck, UserX, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { importSquadForMatch, findApiMatchId } from "@/lib/squad-import";
 
 interface Props {
   match: any;
