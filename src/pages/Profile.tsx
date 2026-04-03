@@ -299,7 +299,8 @@ const Profile = () => {
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold">{mi.label}</p>
                 {mi.badge && (
-                  <Badge className="bg-[hsl(var(--neon-orange)/0.15)] text-[hsl(var(--neon-orange))] border-[hsl(var(--neon-orange)/0.25)] text-[9px] font-bold">
+                  <Badge className={`${(mi as any).badgeColor || "bg-secondary text-muted-foreground"} text-[9px] font-bold border-0`}>
+                    {mi.badge === "Verified" && <CheckCircle2 className="h-3 w-3 mr-0.5" />}
                     {mi.badge}
                   </Badge>
                 )}
