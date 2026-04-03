@@ -111,6 +111,37 @@ const AdminMatches = () => {
       toast.success(`Imported ${result.imported} matches, ${result.contests_created || 0} contests created (${result.skipped} skipped)`);
       qc.invalidateQueries({ queryKey: ["admin-matches"] });
       qc.invalidateQueries({ queryKey: ["matches"] });
+
+      // Auto-import squads for newly imported matches
+      if (result.imported > 0) {
+        toast.info("Auto-importing squads for new matches...");
+        let totalSquadAdded = 0;
+        let totalSquadCreated = 0;
+
+        // Fetch newly created matches to get their IDs
+        const { data: newMatches = [] } = await (supabase.from("matches") as any)
+          .select("id, team1_short, team2_short")
+          .eq("status", "upcoming")
+          .order("created_at", { ascending: false })
+          .limit(result.imported);
+
+        for (const m of newMatches) {
+          try {
+            const apiMatchId = await findApiMatchId(apiKey, m.team1_short, m.team2_short);
+            if (!apiMatchId) continue;
+            const squadResult = await importSquadForMatch(apiKey, apiMatchId, m.id, m.team1_short, m.team2_short);
+            totalSquadAdded += squadResult.playersAdded;
+            totalSquadCreated += squadResult.playersCreated;
+          } catch {
+            // Skip failed squad imports silently
+          }
+        }
+
+        if (totalSquadAdded > 0 || totalSquadCreated > 0) {
+          toast.success(`Squads: ${totalSquadAdded} players added to lineups, ${totalSquadCreated} new players created`);
+          qc.invalidateQueries({ queryKey: ["admin-players"] });
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || "Import failed");
     } finally {
