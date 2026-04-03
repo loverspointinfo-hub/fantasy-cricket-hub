@@ -336,7 +336,13 @@ const AdminLiveScoring = () => {
             Update player fantasy points during live matches
           </p>
         </div>
-        <PresetManager />
+        <div className="flex items-center gap-2">
+          <AutoScoreButton matchId={selectedMatchId} onComplete={() => {
+            qc.invalidateQueries({ queryKey: ["admin-match-players-scoring"] });
+            qc.invalidateQueries({ queryKey: ["contest-leaderboard"] });
+          }} />
+          <PresetManager />
+        </div>
       </div>
 
       {/* Match Selector */}
