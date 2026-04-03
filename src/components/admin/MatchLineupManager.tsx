@@ -130,174 +130,33 @@ const MatchLineupManager = ({ match, open, onOpenChange }: Props) => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // ── Import Lineup from CricketData.org API ──
+  // ── Import Lineup from CricketData.org API (using shared utility) ──
   const importLineupFromAPI = async () => {
     if (!match) return;
     setImportingLineup(true);
     try {
-      // Get API key
       const { data: settingsData } = await (supabase.from("site_settings" as any) as any)
         .select("value").eq("key", "cricket_api_key").maybeSingle();
       const apiKey = settingsData?.value || "";
       if (!apiKey) throw new Error("API key not configured. Go to Settings → API Keys.");
 
       toast.info("Searching for match squads from API...");
-
-      // Try currentMatches first to find the match
-      const searchRes = await fetch(`https://api.cricapi.com/v1/currentMatches?apikey=${apiKey}&offset=0`);
-      const searchData = await searchRes.json();
-
-      let apiMatchId: string | null = null;
-      let squadPlayers: any[] = [];
-
-      if (searchData.status === "success" && searchData.data) {
-        const apiMatch = searchData.data.find((am: any) => {
-          const t1 = (am.teamInfo?.[0]?.shortname || "").toUpperCase();
-          const t2 = (am.teamInfo?.[1]?.shortname || "").toUpperCase();
-          const m1 = match.team1_short.toUpperCase();
-          const m2 = match.team2_short.toUpperCase();
-          return (t1 === m1 && t2 === m2) || (t1 === m2 && t2 === m1);
-        });
-        if (apiMatch) apiMatchId = apiMatch.id;
-      }
-
-      // Also try matches endpoint
+      const apiMatchId = await findApiMatchId(apiKey, match.team1_short, match.team2_short);
       if (!apiMatchId) {
-        const matchRes = await fetch(`https://api.cricapi.com/v1/matches?apikey=${apiKey}&offset=0`);
-        const matchData = await matchRes.json();
-        if (matchData.status === "success" && matchData.data) {
-          const apiMatch = matchData.data.find((am: any) => {
-            const t1 = (am.teamInfo?.[0]?.shortname || "").toUpperCase();
-            const t2 = (am.teamInfo?.[1]?.shortname || "").toUpperCase();
-            const m1 = match.team1_short.toUpperCase();
-            const m2 = match.team2_short.toUpperCase();
-            return (t1 === m1 && t2 === m2) || (t1 === m2 && t2 === m1);
-          });
-          if (apiMatch) apiMatchId = apiMatch.id;
-        }
+        throw new Error(`No match found for ${match.team1_short} vs ${match.team2_short} in API.`);
       }
 
-      if (!apiMatchId) {
-        throw new Error(`No match found for ${match.team1_short} vs ${match.team2_short} in API. Try importing squad by team names instead.`);
-      }
-
-      // Fetch match info with squad
       toast.info("Fetching squad details...");
-      const infoRes = await fetch(`https://api.cricapi.com/v1/match_squad?apikey=${apiKey}&id=${apiMatchId}`);
-      const infoData = await infoRes.json();
+      const result = await importSquadForMatch(apiKey, apiMatchId, match.id, match.team1_short, match.team2_short);
 
-      if (infoData.status !== "success" || !infoData.data) {
-        // Fallback: try match_info
-        const info2Res = await fetch(`https://api.cricapi.com/v1/match_info?apikey=${apiKey}&id=${apiMatchId}`);
-        const info2Data = await info2Res.json();
-        if (info2Data.status === "success" && info2Data.data) {
-          // Extract players from teamInfo
-          for (const team of (info2Data.data.teamInfo || [])) {
-            for (const player of (team.players || [])) {
-              squadPlayers.push({
-                name: player.name || player,
-                role: mapApiRole(player.role || player.battingStyle || "batsman"),
-                team: team.shortname || team.name || match.team1_short,
-              });
-            }
-          }
-        }
-      } else {
-        // Parse squad data
-        for (const teamSquad of (infoData.data || [])) {
-          const teamName = teamSquad.teamName || teamSquad.shortname || "";
-          for (const player of (teamSquad.players || [])) {
-            squadPlayers.push({
-              name: player.name || "",
-              role: mapApiRole(player.role || player.battingStyle || "batsman"),
-              team: teamSquad.shortname || teamName,
-              photo_url: player.playerImg || null,
-            });
-          }
-        }
-      }
-
-      if (squadPlayers.length === 0) {
-        throw new Error("No squad data available for this match yet. The squad may not be announced.");
-      }
-
-      toast.info(`Found ${squadPlayers.length} players. Importing...`);
-
-      let playersCreated = 0;
-      let playersAdded = 0;
-      let playersSkipped = 0;
-
-      for (const sp of squadPlayers) {
-        if (!sp.name) continue;
-
-        // Check if player already exists in DB (fuzzy match by name)
-        let existingPlayer = allPlayers.find((p: any) =>
-          p.name.toLowerCase().trim() === sp.name.toLowerCase().trim()
-        );
-
-        if (!existingPlayer) {
-          // Also check by last name match
-          const spLast = sp.name.toLowerCase().trim().split(" ").pop() || "";
-          if (spLast.length > 2) {
-            existingPlayer = allPlayers.find((p: any) => {
-              const dbLast = p.name.toLowerCase().trim().split(" ").pop() || "";
-              return dbLast === spLast && p.team.toLowerCase() === (sp.team || "").toLowerCase();
-            });
-          }
-        }
-
-        let playerId: string;
-
-        if (existingPlayer) {
-          playerId = existingPlayer.id;
-        } else {
-          // Create new player
-          const displayRole = shortToDisplay[sp.role] || "batsman";
-          const { data: newPlayer, error: createErr } = await supabase
-            .from("players")
-            .insert({
-              name: sp.name,
-              role: sp.role,
-              team: sp.team || match.team1_short,
-              credit_value: 8.0,
-              photo_url: sp.photo_url || null,
-            })
-            .select("id")
-            .single();
-
-          if (createErr) {
-            console.error(`Failed to create player ${sp.name}:`, createErr.message);
-            playersSkipped++;
-            continue;
-          }
-          playerId = newPlayer.id;
-          playersCreated++;
-        }
-
-        // Check if already in lineup
-        if (assignedPlayerIds.has(playerId)) {
-          playersSkipped++;
-          continue;
-        }
-
-        // Add to match_players
-        const { error: addErr } = await (supabase.from("match_players" as any) as any)
-          .insert({ match_id: match.id, player_id: playerId, is_playing: true });
-
-        if (addErr) {
-          // Might be duplicate, skip
-          playersSkipped++;
-        } else {
-          playersAdded++;
-          assignedPlayerIds.add(playerId);
-        }
-      }
-
-      // Refresh data
       qc.invalidateQueries({ queryKey: ["admin-match-players", match.id] });
       qc.invalidateQueries({ queryKey: ["admin-players"] });
 
-      toast.success(`✅ ${playersAdded} players added to lineup, ${playersCreated} new players created, ${playersSkipped} skipped`);
+      if (result.playersAdded === 0 && result.playersCreated === 0) {
+        toast.info("No new players found to import. Squad may not be announced yet.");
+      } else {
+        toast.success(`✅ ${result.playersAdded} players added to lineup, ${result.playersCreated} new players created, ${result.playersSkipped} skipped`);
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to import lineup");
     } finally {
