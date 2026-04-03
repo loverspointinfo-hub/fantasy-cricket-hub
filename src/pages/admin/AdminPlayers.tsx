@@ -83,6 +83,23 @@ const AdminPlayers = () => {
 
   const roleColors: Record<string, string> = { BAT: "default", BOWL: "secondary", AR: "outline", WK: "destructive" };
 
+  const exportCSV = () => {
+    if (filtered.length === 0) { toast.error("No players to export"); return; }
+    const header = "name,role,team,credit_value,photo_url";
+    const rows = filtered.map((p: any) =>
+      [p.name, p.role, p.team, p.credit_value, p.photo_url || ""].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `players_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} players exported!`);
+  };
+
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
