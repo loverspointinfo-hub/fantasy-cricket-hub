@@ -21,18 +21,18 @@ const BottomNav = () => {
         <div
           className="h-8 pointer-events-none"
           style={{
-            background: "linear-gradient(to top, hsl(228 18% 5%), transparent)",
+            background: "linear-gradient(to top, hsl(0 0% 4%), transparent)",
           }}
         />
         <div
           className="mx-3 flex items-center justify-around rounded-[20px] py-1 px-1 relative overflow-hidden"
           style={{
             marginBottom: `max(12px, env(safe-area-inset-bottom, 12px))`,
-            background: "linear-gradient(145deg, hsl(228 16% 9% / 0.95), hsl(228 18% 6% / 0.92))",
+            background: "linear-gradient(145deg, hsl(0 0% 9% / 0.95), hsl(0 0% 5% / 0.92))",
             backdropFilter: "blur(30px) saturate(1.8)",
-            border: "1px solid hsl(228 12% 16% / 0.6)",
+            border: "1px solid hsl(0 0% 16% / 0.6)",
             boxShadow:
-              "0 -8px 40px hsl(228 18% 3% / 0.6), 0 0 0 0.5px hsl(0 0% 100% / 0.03) inset, 0 1px 0 hsl(0 0% 100% / 0.04) inset",
+              "0 -8px 40px hsl(0 0% 0% / 0.6), 0 0 0 0.5px hsl(0 0% 100% / 0.03) inset, 0 1px 0 hsl(0 0% 100% / 0.04) inset",
           }}
         >
           {/* Inner glow line at top */}
@@ -58,8 +58,8 @@ const BottomNav = () => {
                     className="absolute inset-0 rounded-2xl"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     style={{
-                      background: "linear-gradient(135deg, hsl(152 100% 50% / 0.12), hsl(195 100% 55% / 0.08))",
-                      boxShadow: "0 0 20px hsl(152 100% 50% / 0.08)",
+                      background: "linear-gradient(135deg, hsl(0 85% 50% / 0.15), hsl(0 70% 40% / 0.08))",
+                      boxShadow: "0 0 20px hsl(0 85% 50% / 0.1)",
                     }}
                   />
                 )}
@@ -71,8 +71,8 @@ const BottomNav = () => {
                     className="absolute -top-[1px] h-[2px] w-8 rounded-full"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     style={{
-                      background: "linear-gradient(90deg, hsl(152 100% 50%), hsl(195 100% 55%))",
-                      boxShadow: "0 0 8px hsl(152 100% 50% / 0.5)",
+                      background: "linear-gradient(90deg, hsl(0 85% 50%), hsl(0 70% 40%))",
+                      boxShadow: "0 0 8px hsl(0 85% 50% / 0.5)",
                     }}
                   />
                 )}
@@ -83,7 +83,7 @@ const BottomNav = () => {
                     className={cn(
                       "h-[22px] w-[22px] transition-all duration-300",
                       isActive
-                        ? "text-primary drop-shadow-[0_0_8px_hsl(152_100%_50%/0.4)]"
+                        ? "text-primary drop-shadow-[0_0_8px_hsl(0_85%_50%/0.4)]"
                         : "text-muted-foreground/60 group-hover:text-muted-foreground"
                     )}
                     strokeWidth={isActive ? 2.5 : 1.8}
