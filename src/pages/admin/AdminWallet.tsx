@@ -254,6 +254,7 @@ const AdminWallet = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate">{user?.username || t.user_id.slice(0, 8)}</p>
                     <p className="text-xs text-muted-foreground">
+                      {t.txn_id && <span className="font-mono text-primary font-semibold mr-1">{t.txn_id}</span>}
                       {t.type} • ₹{t.amount} • {t.created_at ? formatIST(t.created_at, "dd MMM h:mm a") : ""}
                     </p>
                     {t.description && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{t.description}</p>}

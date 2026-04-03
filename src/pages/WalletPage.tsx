@@ -296,6 +296,7 @@ const WalletPage = () => {
                         )}
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {(t as any).txn_id && <span className="font-mono text-primary/80 mr-1.5">{(t as any).txn_id}</span>}
                         {formatIST(t.created_at, "dd MMM, h:mm a")}
                       </p>
                     </div>

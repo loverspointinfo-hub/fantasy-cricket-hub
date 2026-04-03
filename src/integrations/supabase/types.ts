@@ -630,6 +630,7 @@ export type Database = {
           id: string
           reference_id: string | null
           status: string | null
+          txn_id: string | null
           type: string
           user_id: string
         }
@@ -640,6 +641,7 @@ export type Database = {
           id?: string
           reference_id?: string | null
           status?: string | null
+          txn_id?: string | null
           type: string
           user_id: string
         }
@@ -650,6 +652,7 @@ export type Database = {
           id?: string
           reference_id?: string | null
           status?: string | null
+          txn_id?: string | null
           type?: string
           user_id?: string
         }
