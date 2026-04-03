@@ -158,7 +158,7 @@ const Profile = () => {
 
   const menuItems = [
     { label: "My Performance", desc: "Win rate, ROI, captain stats", icon: TrendingUp, onClick: () => navigate("/performance") },
-    { label: "KYC Verification", desc: kycStatus === "verified" ? "Verified ✓" : kycStatus === "pending" ? "Under review" : "Complete to enable withdrawals", icon: Fingerprint, badge: kycStatus === "verified" ? undefined : kycStatus === "pending" ? "Pending" : "Required", onClick: () => navigate("/kyc") },
+    { label: "KYC Verification", desc: kycStatus === "verified" ? "Verified ✓" : kycStatus === "pending" ? "Under review" : "Complete to enable withdrawals", icon: kycStatus === "verified" ? CheckCircle2 : Fingerprint, badge: kycStatus === "verified" ? "Verified" : kycStatus === "pending" ? "Pending" : "Required", badgeColor: kycStatus === "verified" ? "bg-emerald-500/15 text-emerald-400" : kycStatus === "pending" ? "bg-amber-500/15 text-amber-400" : "bg-destructive/15 text-destructive", onClick: () => navigate("/kyc") },
     { label: "Transaction History", desc: "View all deposits & withdrawals", icon: History, onClick: () => navigate("/wallet") },
     { label: "My Referrals", desc: "Invite friends & earn ₹50 bonus", icon: Users, onClick: () => navigate("/referrals") },
     { label: "Settings", desc: "App preferences", icon: Settings, onClick: undefined },
@@ -237,10 +237,18 @@ const Profile = () => {
           </div>
           <Badge className={`text-[10px] font-bold flex-shrink-0 relative z-10 ${
             kycStatus === "verified"
-              ? "bg-primary/15 text-primary border-primary/25"
-              : "bg-[hsl(var(--neon-orange)/0.15)] text-[hsl(var(--neon-orange))] border-[hsl(var(--neon-orange)/0.25)]"
+              ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
+              : kycStatus === "pending"
+              ? "bg-amber-500/15 text-amber-400 border-amber-500/25 animate-pulse"
+              : "bg-destructive/15 text-destructive border-destructive/25"
           }`}>
-            <Shield className="mr-1 h-3 w-3" /> {kycStatus === "verified" ? "Verified" : "Unverified"}
+            {kycStatus === "verified" ? (
+              <><CheckCircle2 className="mr-1 h-3 w-3" /> Verified</>
+            ) : kycStatus === "pending" ? (
+              <><Shield className="mr-1 h-3 w-3" /> Pending</>
+            ) : (
+              <><Shield className="mr-1 h-3 w-3" /> Unverified</>
+            )}
           </Badge>
         </motion.div>
 
@@ -291,7 +299,8 @@ const Profile = () => {
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold">{mi.label}</p>
                 {mi.badge && (
-                  <Badge className="bg-[hsl(var(--neon-orange)/0.15)] text-[hsl(var(--neon-orange))] border-[hsl(var(--neon-orange)/0.25)] text-[9px] font-bold">
+                  <Badge className={`${(mi as any).badgeColor || "bg-secondary text-muted-foreground"} text-[9px] font-bold border-0`}>
+                    {mi.badge === "Verified" && <CheckCircle2 className="h-3 w-3 mr-0.5" />}
                     {mi.badge}
                   </Badge>
                 )}
