@@ -214,10 +214,99 @@ const PresetManager = () => {
   );
 };
 
-// ── Auto Score Button ──
+// ── Scoring Rules Reference Card ──
+const SCORING_RULES_DATA = [
+  { category: "Batting", rules: [
+    { label: "Per Run", value: "+1" },
+    { label: "Per Boundary (4s)", value: "+1" },
+    { label: "Per Six", value: "+2" },
+    { label: "Half Century (50)", value: "+8" },
+    { label: "Century (100)", value: "+16" },
+    { label: "Duck (BAT/WK/AR)", value: "-2" },
+  ]},
+  { category: "Bowling", rules: [
+    { label: "Per Wicket", value: "+25" },
+    { label: "LBW/Bowled Bonus", value: "+8" },
+    { label: "3 Wicket Haul", value: "+4" },
+    { label: "4 Wicket Haul", value: "+8" },
+    { label: "5 Wicket Haul", value: "+16" },
+    { label: "Maiden Over", value: "+12" },
+  ]},
+  { category: "Fielding", rules: [
+    { label: "Catch", value: "+8" },
+    { label: "Stumping", value: "+12" },
+    { label: "Run Out (Direct)", value: "+12" },
+    { label: "Run Out (Indirect)", value: "+6" },
+  ]},
+  { category: "Economy Rate (min 2 overs)", rules: [
+    { label: "Below 5", value: "+6" },
+    { label: "5 to 6", value: "+4" },
+    { label: "6 to 7", value: "+2" },
+    { label: "10 to 11", value: "-2" },
+    { label: "11 to 12", value: "-4" },
+    { label: "Above 12", value: "-6" },
+  ]},
+  { category: "Strike Rate (min 10 balls, BAT/WK/AR)", rules: [
+    { label: "Above 170", value: "+6" },
+    { label: "150 to 170", value: "+4" },
+    { label: "130 to 150", value: "+2" },
+    { label: "60 to 70", value: "-2" },
+    { label: "50 to 60", value: "-4" },
+    { label: "Below 50", value: "-6" },
+  ]},
+  { category: "Other", rules: [
+    { label: "Playing XI", value: "+4" },
+  ]},
+];
+
+const ScoringRulesCard = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-xl">
+          <BookOpen className="h-3.5 w-3.5" /> Scoring Rules
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-primary" /> Fantasy Scoring Rules
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          {SCORING_RULES_DATA.map((cat) => (
+            <div key={cat.category}>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1.5">{cat.category}</p>
+              <div className="rounded-xl border border-border/20 overflow-hidden">
+                {cat.rules.map((rule, i) => (
+                  <div key={rule.label} className={cn(
+                    "flex items-center justify-between px-3 py-2 text-xs",
+                    i % 2 === 0 ? "bg-secondary/10" : "bg-transparent"
+                  )}>
+                    <span className="text-foreground/80">{rule.label}</span>
+                    <span className={cn(
+                      "font-display font-bold tabular-nums",
+                      rule.value.startsWith("+") ? "text-primary" : "text-destructive"
+                    )}>{rule.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// ── Auto Score Button with Match Completion Detection ──
 const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState<string | null>(null);
+  const [matchEndedAlert, setMatchEndedAlert] = useState<{ status: string } | null>(null);
+  const qc = useQueryClient();
 
   const triggerAutoScore = async () => {
     if (!matchId) {
@@ -225,15 +314,14 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
       return;
     }
     setLoading(true);
+    setMatchEndedAlert(null);
     try {
-      // Get match details
       const { data: match } = await (supabase.from("matches") as any)
-        .select("team1_short, team2_short")
+        .select("team1_short, team2_short, status")
         .eq("id", matchId)
         .single();
       if (!match) throw new Error("Match not found");
 
-      // Get API key from site_settings
       const { data: apiKeySetting } = await (supabase.from("site_settings") as any)
         .select("value")
         .eq("key", "cricketdata_api_key")
@@ -243,7 +331,6 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
 
       toast.info("Fetching live scorecard from API...");
 
-      // Step 1: Fetch current matches from client side (bypasses edge function network restrictions)
       const searchRes = await fetch(`https://api.cricapi.com/v1/currentMatches?apikey=${apiKey}&offset=0`);
       const searchData = await searchRes.json();
 
@@ -251,7 +338,6 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
         throw new Error(`API error: ${searchData.info || "Failed to fetch current matches"}`);
       }
 
-      // Find matching match
       const apiMatch = searchData.data.find((am: any) => {
         const t1 = (am.teamInfo?.[0]?.shortname || "").toUpperCase();
         const t2 = (am.teamInfo?.[1]?.shortname || "").toUpperCase();
@@ -264,7 +350,6 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
         throw new Error(`No live match found for ${match.team1_short} vs ${match.team2_short} in API`);
       }
 
-      // Step 2: Fetch scorecard
       const scRes = await fetch(`https://api.cricapi.com/v1/match_scorecard?apikey=${apiKey}&id=${apiMatch.id}`);
       const scData = await scRes.json();
 
@@ -274,7 +359,6 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
 
       toast.info("Calculating fantasy points...");
 
-      // Step 3: Pass scorecard to edge function for processing
       const { data, error } = await supabase.functions.invoke("auto-score-matches", {
         body: {
           match_id: matchId,
@@ -292,6 +376,15 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
       if (result.errors?.length) {
         result.errors.forEach((e: string) => toast.warning(e));
       }
+
+      // Match completion detection
+      const matchEnded = apiMatch.matchEnded === true;
+      const statusIndicatesEnd = /won|drawn|tied|no result/i.test(apiMatch.status || "");
+      if ((matchEnded || statusIndicatesEnd) && match.status === "live") {
+        setMatchEndedAlert({ status: apiMatch.status || "Match ended" });
+        toast.warning("⚠️ This match appears to have ended! Consider completing & distributing winnings.", { duration: 8000 });
+      }
+
       onComplete();
     } catch (err: any) {
       toast.error(err.message || "Auto-score failed");
@@ -301,23 +394,71 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
     }
   };
 
+  const handleCompleteAndDistribute = async () => {
+    try {
+      await (supabase.from("matches") as any).update({ status: "completed" }).eq("id", matchId);
+      const { error: recalcErr } = await (supabase.rpc as any)("recalculate_team_points", { p_match_id: matchId });
+      if (recalcErr) throw recalcErr;
+      const { data: count, error: distErr } = await (supabase.rpc as any)("distribute_contest_winnings", { p_match_id: matchId });
+      if (distErr) throw distErr;
+      toast.success(`✅ Match completed & winnings distributed to ${count} winners!`);
+      setMatchEndedAlert(null);
+      qc.invalidateQueries({ queryKey: ["admin-live-matches"] });
+      qc.invalidateQueries({ queryKey: ["admin-match-players-scoring"] });
+      qc.invalidateQueries({ queryKey: ["contest-leaderboard"] });
+      onComplete();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to complete match");
+    }
+  };
+
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        onClick={triggerAutoScore}
-        disabled={loading}
-        variant="outline"
-        size="sm"
-        className="gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10"
-      >
-        {loading ? (
-          <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Scoring...</>
-        ) : (
-          <><Radio className="h-3.5 w-3.5" /> Auto Score (API)</>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <Button
+          onClick={triggerAutoScore}
+          disabled={loading}
+          variant="outline"
+          size="sm"
+          className="gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10"
+        >
+          {loading ? (
+            <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Scoring...</>
+          ) : (
+            <><Radio className="h-3.5 w-3.5" /> Auto Score (API)</>
+          )}
+        </Button>
+        {lastResult && (
+          <span className="text-[10px] text-muted-foreground max-w-[200px] truncate">{lastResult}</span>
         )}
-      </Button>
-      {lastResult && (
-        <span className="text-[10px] text-muted-foreground max-w-[200px] truncate">{lastResult}</span>
+      </div>
+
+      {matchEndedAlert && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 p-3 rounded-xl border"
+          style={{
+            background: "hsl(45 100% 50% / 0.08)",
+            borderColor: "hsl(45 100% 50% / 0.2)",
+          }}
+        >
+          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-amber-300">Match Ended</p>
+            <p className="text-[10px] text-amber-400/70 truncate">{matchEndedAlert.status}</p>
+          </div>
+          <Button
+            onClick={handleCompleteAndDistribute}
+            size="sm"
+            className="gap-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-xs h-7 shrink-0"
+          >
+            <Trophy className="h-3 w-3" /> Complete & Distribute
+          </Button>
+          <button onClick={() => setMatchEndedAlert(null)} className="p-1 hover:bg-secondary/50 rounded">
+            <X className="h-3 w-3 text-muted-foreground" />
+          </button>
+        </motion.div>
       )}
     </div>
   );
