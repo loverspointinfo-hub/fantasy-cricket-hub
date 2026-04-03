@@ -236,9 +236,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(228 12% 18%);
+  background: hsl(270 14% 18%);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(228 12% 25%);
+  background: hsl(270 14% 25%);
 }
