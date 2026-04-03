@@ -237,6 +237,9 @@ const AdminPlayers = () => {
           <Button variant="outline" size="sm" className="gap-1" onClick={() => csvRef.current?.click()} disabled={importing}>
             <Upload className="h-4 w-4" /> {importing ? "Importing..." : "CSV Import"}
           </Button>
+          <Button variant="outline" size="sm" className="gap-1" onClick={exportCSV}>
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
           <DialogTrigger asChild><Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> Add Player</Button></DialogTrigger>
           <DialogContent>
