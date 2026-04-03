@@ -49,15 +49,15 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
         disabled && !isJoined ? "opacity-50 cursor-default" : "cursor-pointer"
       )}
       style={{
-        background: "hsl(272 28% 7%)",
-        border: "1px solid hsl(272 22% 13%)",
+        background: "hsl(0 0% 7%)",
+        border: "1px solid hsl(0 0% 14%)",
       }}
     >
       {/* Contest name header */}
       <div className="px-4 pt-3 pb-2 flex items-center gap-2"
-        style={{ borderBottom: "1px solid hsl(272 22% 11%)" }}>
+        style={{ borderBottom: "1px solid hsl(0 0% 12%)" }}>
         <div className="h-8 w-8 rounded-full flex items-center justify-center"
-          style={{ background: "hsl(0 85% 50% / 0.12)" }}>
+          style={{ background: "hsl(0 85% 50% / 0.15)" }}>
           <config.icon className="h-4 w-4 text-[hsl(var(--neon-red))]" />
         </div>
         <div className="flex-1 min-w-0">
@@ -91,9 +91,9 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
                 : "text-white hover:opacity-90 active:scale-95"
             )}
             style={disabled && !isJoined ? undefined : {
-              background: "hsl(48 100% 45%)",
-              boxShadow: "0 2px 8px hsl(48 100% 45% / 0.3)",
-              color: "hsl(270 20% 4%)",
+              background: "hsl(0 85% 50%)",
+              boxShadow: "0 2px 8px hsl(0 85% 50% / 0.3)",
+              color: "hsl(0 0% 100%)",
             }}
             onClick={(e) => { e.stopPropagation(); if (!disabled || isJoined) onJoin(); }}
           >
@@ -128,7 +128,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
 
       {/* Footer stats row */}
       <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border/10"
-        style={{ background: "hsl(272 28% 5%)" }}>
+        style={{ background: "hsl(0 0% 5%)" }}>
         {firstPrize && (
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Info className="h-3 w-3 text-[hsl(var(--neon-red))]" />

@@ -33,12 +33,12 @@ const ContestCategoryTabs = ({ active, onChange, counts }: ContestCategoryTabsPr
               isActive ? "text-foreground" : "text-muted-foreground/50 hover:text-muted-foreground"
             )}
             style={isActive ? {
-              background: "linear-gradient(135deg, hsl(228 16% 14%), hsl(228 16% 10%))",
-              border: "1px solid hsl(228 12% 22%)",
-              boxShadow: "0 2px 8px hsl(228 18% 3% / 0.3)",
+              background: "linear-gradient(135deg, hsl(0 0% 14%), hsl(0 0% 10%))",
+              border: "1px solid hsl(0 85% 50% / 0.4)",
+              boxShadow: "0 2px 8px hsl(0 0% 0% / 0.3)",
             } : {
               background: "transparent",
-              border: "1px solid hsl(228 12% 16% / 0.3)",
+              border: "1px solid hsl(0 0% 16% / 0.3)",
             }}
           >
             <cat.icon className="h-3 w-3" />

@@ -6,55 +6,55 @@
 
 @layer base {
   :root {
-    --background: 272 30% 3%;
-    --foreground: 50 40% 96%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 272 28% 6%;
-    --card-foreground: 50 40% 96%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 272 28% 6%;
-    --popover-foreground: 50 40% 96%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 48 100% 50%;
-    --primary-foreground: 272 30% 3%;
+    --primary: 0 85% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 272 24% 10%;
-    --secondary-foreground: 50 40% 96%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 272 22% 8%;
-    --muted-foreground: 268 12% 45%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 280 100% 65%;
-    --accent-foreground: 50 100% 95%;
+    --accent: 0 0% 100%;
+    --accent-foreground: 0 0% 4%;
 
     --destructive: 0 85% 55%;
-    --destructive-foreground: 50 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 272 22% 12%;
-    --input: 272 22% 12%;
-    --ring: 48 100% 50%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 0 85% 50%;
 
     --radius: 0.875rem;
 
-    --sidebar-background: 272 28% 5%;
-    --sidebar-foreground: 50 40% 96%;
-    --sidebar-primary: 48 100% 50%;
-    --sidebar-primary-foreground: 272 30% 3%;
-    --sidebar-accent: 272 22% 8%;
-    --sidebar-accent-foreground: 50 40% 96%;
-    --sidebar-border: 272 22% 12%;
-    --sidebar-ring: 48 100% 50%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 0 85% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 0 85% 50%;
 
     /* Extended palette */
-    --neon-green: 48 100% 50%;
-    --neon-cyan: 280 100% 65%;
-    --neon-purple: 272 100% 65%;
-    --neon-orange: 38 100% 58%;
-    --neon-red: 0 100% 60%;
-    --neon-yellow: 48 100% 55%;
-    --glass: 272 28% 7%;
-    --glass-border: 272 22% 15%;
-    --gold: 48 100% 55%;
+    --neon-green: 0 85% 50%;
+    --neon-cyan: 0 0% 100%;
+    --neon-purple: 0 70% 40%;
+    --neon-orange: 15 90% 55%;
+    --neon-red: 0 85% 50%;
+    --neon-yellow: 0 85% 55%;
+    --glass: 0 0% 7%;
+    --glass-border: 0 0% 16%;
+    --gold: 0 85% 55%;
   }
 }
 
@@ -90,13 +90,13 @@
     @apply rounded-2xl;
     background: linear-gradient(
       135deg,
-      hsl(272 28% 8% / 0.85),
-      hsl(272 30% 5% / 0.65)
+      hsl(0 0% 8% / 0.9),
+      hsl(0 0% 5% / 0.7)
     );
     backdrop-filter: blur(24px) saturate(1.5);
-    border: 1px solid hsl(272 22% 15% / 0.5);
+    border: 1px solid hsl(0 0% 16% / 0.5);
     box-shadow:
-      0 8px 32px hsl(272 30% 2% / 0.6),
+      0 8px 32px hsl(0 0% 0% / 0.6),
       0 0 0 0.5px hsl(0 0% 100% / 0.03) inset,
       0 1px 0 hsl(0 0% 100% / 0.04) inset;
   }
@@ -105,9 +105,9 @@
     @apply glass-card transition-all duration-500 ease-out;
   }
   .glass-card-hover:hover {
-    border-color: hsl(48 100% 50% / 0.25);
+    border-color: hsl(0 85% 50% / 0.3);
     box-shadow:
-      0 12px 40px hsl(48 100% 50% / 0.08),
+      0 12px 40px hsl(0 85% 50% / 0.1),
       0 0 0 0.5px hsl(0 0% 100% / 0.05) inset,
       0 1px 0 hsl(0 0% 100% / 0.06) inset;
     transform: translateY(-2px);
@@ -117,57 +117,57 @@
     @apply rounded-2xl;
     background: linear-gradient(
       135deg,
-      hsl(272 28% 8% / 0.9),
-      hsl(272 32% 4% / 0.7)
+      hsl(0 0% 8% / 0.9),
+      hsl(0 0% 4% / 0.7)
     );
     backdrop-filter: blur(30px) saturate(1.8);
-    border: 1px solid hsl(48 100% 50% / 0.15);
+    border: 1px solid hsl(0 85% 50% / 0.2);
     box-shadow:
-      0 0 40px hsl(48 100% 50% / 0.05),
-      0 8px 32px hsl(272 30% 2% / 0.6),
+      0 0 40px hsl(0 85% 50% / 0.06),
+      0 8px 32px hsl(0 0% 0% / 0.6),
       0 1px 0 hsl(0 0% 100% / 0.05) inset;
   }
 
   .neon-glow {
     text-shadow:
-      0 0 7px hsl(48 100% 50% / 0.6),
-      0 0 20px hsl(48 100% 50% / 0.3),
-      0 0 42px hsl(48 100% 50% / 0.1);
+      0 0 7px hsl(0 85% 50% / 0.6),
+      0 0 20px hsl(0 85% 50% / 0.3),
+      0 0 42px hsl(0 85% 50% / 0.1);
   }
 
   .neon-glow-cyan {
     text-shadow:
-      0 0 7px hsl(280 100% 65% / 0.6),
-      0 0 20px hsl(280 100% 65% / 0.3);
+      0 0 7px hsl(0 0% 100% / 0.6),
+      0 0 20px hsl(0 0% 100% / 0.3);
   }
 
   .neon-border {
     box-shadow:
-      0 0 15px hsl(48 100% 50% / 0.15),
-      0 0 5px hsl(48 100% 50% / 0.1) inset;
+      0 0 15px hsl(0 85% 50% / 0.2),
+      0 0 5px hsl(0 85% 50% / 0.1) inset;
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(48 100% 50%), hsl(280 100% 65%));
+    background: linear-gradient(135deg, hsl(0 85% 50%), hsl(0 70% 35%));
   }
 
   .gradient-premium {
-    background: linear-gradient(135deg, hsl(48 100% 55%), hsl(38 100% 58%));
+    background: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 0% 100%));
   }
 
   .gradient-live {
-    background: linear-gradient(135deg, hsl(0 100% 60%), hsl(38 100% 58%));
+    background: linear-gradient(135deg, hsl(0 85% 50%), hsl(15 90% 55%));
   }
 
   .gradient-purple {
-    background: linear-gradient(135deg, hsl(270 100% 65%), hsl(280 100% 55%));
+    background: linear-gradient(135deg, hsl(0 70% 40%), hsl(0 85% 55%));
   }
 
   .gradient-mesh {
     background:
-      radial-gradient(ellipse at 20% 50%, hsl(48 100% 50% / 0.05) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, hsl(280 100% 65% / 0.04) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, hsl(272 100% 50% / 0.04) 0%, transparent 50%);
+      radial-gradient(ellipse at 20% 50%, hsl(0 85% 50% / 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(0 0% 100% / 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, hsl(0 70% 40% / 0.04) 0%, transparent 50%);
   }
 
   .shimmer {
@@ -199,12 +199,12 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(48 100% 50%), hsl(280 100% 65%));
+    background-image: linear-gradient(135deg, hsl(0 85% 50%), hsl(0 0% 100%));
   }
 
   .text-gradient-gold {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(48 100% 55%), hsl(38 100% 58%));
+    background-image: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 70% 40%));
   }
 
   .floating-orb {
@@ -236,9 +236,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(272 22% 15%);
+  background: hsl(0 0% 18%);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(272 22% 22%);
+  background: hsl(0 0% 25%);
 }
