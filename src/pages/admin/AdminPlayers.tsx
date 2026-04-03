@@ -83,6 +83,23 @@ const AdminPlayers = () => {
 
   const roleColors: Record<string, string> = { BAT: "default", BOWL: "secondary", AR: "outline", WK: "destructive" };
 
+  const exportCSV = () => {
+    if (filtered.length === 0) { toast.error("No players to export"); return; }
+    const header = "name,role,team,credit_value,photo_url";
+    const rows = filtered.map((p: any) =>
+      [p.name, p.role, p.team, p.credit_value, p.photo_url || ""].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `players_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} players exported!`);
+  };
+
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -219,6 +236,9 @@ const AdminPlayers = () => {
           </Button>
           <Button variant="outline" size="sm" className="gap-1" onClick={() => csvRef.current?.click()} disabled={importing}>
             <Upload className="h-4 w-4" /> {importing ? "Importing..." : "CSV Import"}
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1" onClick={exportCSV}>
+            <Download className="h-4 w-4" /> Export CSV
           </Button>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setForm(empty); setEditId(null); } }}>
           <DialogTrigger asChild><Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> Add Player</Button></DialogTrigger>
