@@ -165,9 +165,9 @@
 
   .gradient-mesh {
     background:
-      radial-gradient(ellipse at 20% 50%, hsl(48 100% 50% / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 50%, hsl(48 100% 50% / 0.05) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 20%, hsl(280 100% 65% / 0.04) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, hsl(270 100% 65% / 0.03) 0%, transparent 50%);
+      radial-gradient(ellipse at 50% 80%, hsl(272 100% 50% / 0.04) 0%, transparent 50%);
   }
 
   .shimmer {
