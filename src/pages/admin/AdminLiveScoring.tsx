@@ -360,18 +360,29 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
 
       const { data: apiKeySetting } = await (supabase.from("site_settings") as any)
         .select("value")
-        .eq("key", "cricketdata_api_key")
-        .single();
+        .eq("key", "cricket_api_key")
+        .maybeSingle();
       const apiKey = apiKeySetting?.value;
       if (!apiKey) throw new Error("CricketData API key not configured. Go to Settings to add it.");
 
       toast.info("Fetching live scorecard from API...");
 
-      const searchRes = await fetch(`https://api.cricapi.com/v1/currentMatches?apikey=${apiKey}&offset=0`);
-      const searchData = await searchRes.json();
+      // Try currentMatches first (live matches), fallback to matches endpoint
+      let searchData: any = null;
+      const currentRes = await fetch(`https://api.cricapi.com/v1/currentMatches?apikey=${apiKey}&offset=0`);
+      const currentData = await currentRes.json();
+      if (currentData.status === "success" && currentData.data?.length > 0) {
+        searchData = currentData;
+      } else {
+        const matchesRes = await fetch(`https://api.cricapi.com/v1/matches?apikey=${apiKey}&offset=0`);
+        const matchesData = await matchesRes.json();
+        if (matchesData.status === "success" && matchesData.data) {
+          searchData = matchesData;
+        }
+      }
 
-      if (searchData.status !== "success" || !searchData.data) {
-        throw new Error(`API error: ${searchData.info || "Failed to fetch current matches"}`);
+      if (!searchData?.data) {
+        throw new Error("No matches found in API. The match may not be tracked by CricketData.org.");
       }
 
       const apiMatch = searchData.data.find((am: any) => {
