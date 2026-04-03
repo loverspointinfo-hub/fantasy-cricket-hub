@@ -591,6 +591,7 @@ const AdminLiveScoring = () => {
             qc.invalidateQueries({ queryKey: ["admin-match-players-scoring"] });
             qc.invalidateQueries({ queryKey: ["contest-leaderboard"] });
           }} />
+          <ScoringRulesCard />
           <PresetManager />
         </div>
       </div>
