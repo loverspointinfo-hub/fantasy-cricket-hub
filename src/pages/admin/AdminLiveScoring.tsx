@@ -214,6 +214,57 @@ const PresetManager = () => {
   );
 };
 
+// ── Auto Score Button ──
+const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete: () => void }) => {
+  const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState<string | null>(null);
+
+  const triggerAutoScore = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-score-matches", {
+        body: matchId ? { match_id: matchId } : {},
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (result.error) throw new Error(result.error);
+      const msg = `✅ ${result.players_updated || 0} players updated, ${result.teams_recalculated || 0} teams recalculated`;
+      setLastResult(msg);
+      toast.success(msg);
+      if (result.errors?.length) {
+        result.errors.forEach((e: string) => toast.warning(e));
+      }
+      onComplete();
+    } catch (err: any) {
+      toast.error(err.message || "Auto-score failed");
+      setLastResult(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        onClick={triggerAutoScore}
+        disabled={loading}
+        variant="outline"
+        size="sm"
+        className="gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10"
+      >
+        {loading ? (
+          <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Scoring...</>
+        ) : (
+          <><Radio className="h-3.5 w-3.5" /> Auto Score (API)</>
+        )}
+      </Button>
+      {lastResult && (
+        <span className="text-[10px] text-muted-foreground max-w-[200px] truncate">{lastResult}</span>
+      )}
+    </div>
+  );
+};
+
 // ── Main Live Scoring Page ──
 const AdminLiveScoring = () => {
   const qc = useQueryClient();
