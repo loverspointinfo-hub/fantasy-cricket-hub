@@ -164,11 +164,15 @@ const AdminPlayers = () => {
               const name = player.name?.trim();
               if (!name || seenNames.has(name.toLowerCase()) || existingNames.has(name.toLowerCase())) continue;
               seenNames.add(name.toLowerCase());
+              // Smart credit value: WK/AR slightly higher, top-listed players get more
+              const role = mapApiRole(player.battingStyle || player.bowlingStyle || player.role || "");
+              const baseMap: Record<string, number> = { WK: 8.5, AR: 8.5, BAT: 8, BOWL: 7.5 };
+              const credit = baseMap[role] || 8;
               allPlayers.push({
                 name,
-                role: mapApiRole(player.battingStyle || player.bowlingStyle || player.role || ""),
+                role,
                 team: teamName,
-                credit_value: 8,
+                credit_value: credit,
                 photo_url: player.playerImg || null,
               });
             }
