@@ -130,21 +130,21 @@
 
   .neon-glow {
     text-shadow:
-      0 0 7px hsl(152 100% 50% / 0.6),
-      0 0 20px hsl(152 100% 50% / 0.3),
-      0 0 42px hsl(152 100% 50% / 0.1);
+      0 0 7px hsl(48 100% 50% / 0.6),
+      0 0 20px hsl(48 100% 50% / 0.3),
+      0 0 42px hsl(48 100% 50% / 0.1);
   }
 
   .neon-glow-cyan {
     text-shadow:
-      0 0 7px hsl(195 100% 55% / 0.6),
-      0 0 20px hsl(195 100% 55% / 0.3);
+      0 0 7px hsl(280 100% 65% / 0.6),
+      0 0 20px hsl(280 100% 65% / 0.3);
   }
 
   .neon-border {
     box-shadow:
-      0 0 15px hsl(152 100% 50% / 0.15),
-      0 0 5px hsl(152 100% 50% / 0.1) inset;
+      0 0 15px hsl(48 100% 50% / 0.15),
+      0 0 5px hsl(48 100% 50% / 0.1) inset;
   }
 
   .gradient-primary {
