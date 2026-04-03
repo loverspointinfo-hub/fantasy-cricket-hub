@@ -91,8 +91,9 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
                 : "text-white hover:opacity-90 active:scale-95"
             )}
             style={disabled && !isJoined ? undefined : {
-              background: "hsl(152 80% 40%)",
-              boxShadow: "0 2px 8px hsl(152 80% 40% / 0.3)",
+              background: "hsl(48 100% 45%)",
+              boxShadow: "0 2px 8px hsl(48 100% 45% / 0.3)",
+              color: "hsl(270 20% 4%)",
             }}
             onClick={(e) => { e.stopPropagation(); if (!disabled || isJoined) onJoin(); }}
           >
