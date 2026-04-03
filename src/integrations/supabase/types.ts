@@ -541,6 +541,36 @@ export type Database = {
         }
         Relationships: []
       }
+      scoring_rules: {
+        Row: {
+          category: string
+          id: string
+          label: string
+          rule_key: string
+          sort_order: number
+          updated_at: string | null
+          value: number
+        }
+        Insert: {
+          category?: string
+          id?: string
+          label: string
+          rule_key: string
+          sort_order?: number
+          updated_at?: string | null
+          value?: number
+        }
+        Update: {
+          category?: string
+          id?: string
+          label?: string
+          rule_key?: string
+          sort_order?: number
+          updated_at?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           key: string

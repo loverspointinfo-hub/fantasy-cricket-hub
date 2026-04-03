@@ -214,56 +214,62 @@ const PresetManager = () => {
   );
 };
 
-// ── Scoring Rules Reference Card ──
-const SCORING_RULES_DATA = [
-  { category: "Batting", rules: [
-    { label: "Per Run", value: "+1" },
-    { label: "Per Boundary (4s)", value: "+1" },
-    { label: "Per Six", value: "+2" },
-    { label: "Half Century (50)", value: "+8" },
-    { label: "Century (100)", value: "+16" },
-    { label: "Duck (BAT/WK/AR)", value: "-2" },
-  ]},
-  { category: "Bowling", rules: [
-    { label: "Per Wicket", value: "+25" },
-    { label: "LBW/Bowled Bonus", value: "+8" },
-    { label: "3 Wicket Haul", value: "+4" },
-    { label: "4 Wicket Haul", value: "+8" },
-    { label: "5 Wicket Haul", value: "+16" },
-    { label: "Maiden Over", value: "+12" },
-  ]},
-  { category: "Fielding", rules: [
-    { label: "Catch", value: "+8" },
-    { label: "Stumping", value: "+12" },
-    { label: "Run Out (Direct)", value: "+12" },
-    { label: "Run Out (Indirect)", value: "+6" },
-  ]},
-  { category: "Economy Rate (min 2 overs)", rules: [
-    { label: "Below 5", value: "+6" },
-    { label: "5 to 6", value: "+4" },
-    { label: "6 to 7", value: "+2" },
-    { label: "10 to 11", value: "-2" },
-    { label: "11 to 12", value: "-4" },
-    { label: "Above 12", value: "-6" },
-  ]},
-  { category: "Strike Rate (min 10 balls, BAT/WK/AR)", rules: [
-    { label: "Above 170", value: "+6" },
-    { label: "150 to 170", value: "+4" },
-    { label: "130 to 150", value: "+2" },
-    { label: "60 to 70", value: "-2" },
-    { label: "50 to 60", value: "-4" },
-    { label: "Below 50", value: "-6" },
-  ]},
-  { category: "Other", rules: [
-    { label: "Playing XI", value: "+4" },
-  ]},
-];
+// ── Scoring Rules Reference Card (DB-backed, editable) ──
+const useScoringRules = () => {
+  return useQuery({
+    queryKey: ["scoring-rules"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("scoring_rules" as any) as any)
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as { id: string; rule_key: string; label: string; category: string; value: number; sort_order: number }[];
+    },
+  });
+};
 
 const ScoringRulesCard = () => {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const qc = useQueryClient();
+  const { data: rules = [], isLoading } = useScoringRules();
+
+  const categories = rules.reduce((acc: Record<string, typeof rules>, r) => {
+    if (!acc[r.category]) acc[r.category] = [];
+    acc[r.category].push(r);
+    return acc;
+  }, {});
+
+  const startEditing = () => {
+    const vals: Record<string, string> = {};
+    rules.forEach(r => { vals[r.id] = String(r.value); });
+    setEditValues(vals);
+    setEditing(true);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      for (const rule of rules) {
+        const newVal = parseFloat(editValues[rule.id] || "0");
+        if (newVal !== rule.value) {
+          const { error } = await (supabase.from("scoring_rules" as any) as any)
+            .update({ value: newVal, updated_at: new Date().toISOString() })
+            .eq("id", rule.id);
+          if (error) throw error;
+        }
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["scoring-rules"] });
+      setEditing(false);
+      toast.success("Scoring rules updated!");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(false); }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5 rounded-xl">
           <BookOpen className="h-3.5 w-3.5" /> Scoring Rules
@@ -275,27 +281,57 @@ const ScoringRulesCard = () => {
             <BookOpen className="h-4 w-4 text-primary" /> Fantasy Scoring Rules
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 mt-2">
-          {SCORING_RULES_DATA.map((cat) => (
-            <div key={cat.category}>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1.5">{cat.category}</p>
-              <div className="rounded-xl border border-border/20 overflow-hidden">
-                {cat.rules.map((rule, i) => (
-                  <div key={rule.label} className={cn(
-                    "flex items-center justify-between px-3 py-2 text-xs",
-                    i % 2 === 0 ? "bg-secondary/10" : "bg-transparent"
-                  )}>
-                    <span className="text-foreground/80">{rule.label}</span>
-                    <span className={cn(
-                      "font-display font-bold tabular-nums",
-                      rule.value.startsWith("+") ? "text-primary" : "text-destructive"
-                    )}>{rule.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="flex justify-end gap-2 mb-1">
+          {editing ? (
+            <>
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)} className="h-7 text-xs rounded-lg">Cancel</Button>
+              <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="h-7 text-xs rounded-lg gap-1">
+                <Save className="h-3 w-3" /> {saveMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" variant="outline" onClick={startEditing} className="h-7 text-xs rounded-lg gap-1">
+              <Settings className="h-3 w-3" /> Edit Rules
+            </Button>
+          )}
         </div>
+        {isLoading ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Loading rules...</p>
+        ) : (
+          <div className="space-y-4">
+            {Object.entries(categories).map(([cat, catRules]) => (
+              <div key={cat}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1.5">{cat}</p>
+                <div className="rounded-xl border border-border/20 overflow-hidden">
+                  {catRules.map((rule, i) => (
+                    <div key={rule.id} className={cn(
+                      "flex items-center justify-between px-3 py-2 text-xs",
+                      i % 2 === 0 ? "bg-secondary/10" : "bg-transparent"
+                    )}>
+                      <span className="text-foreground/80">{rule.label}</span>
+                      {editing ? (
+                        <Input
+                          type="number"
+                          value={editValues[rule.id] || "0"}
+                          onChange={(e) => setEditValues(prev => ({ ...prev, [rule.id]: e.target.value }))}
+                          className="w-20 h-7 text-xs text-right font-display font-bold"
+                          step="1"
+                        />
+                      ) : (
+                        <span className={cn(
+                          "font-display font-bold tabular-nums",
+                          rule.value >= 0 ? "text-primary" : "text-destructive"
+                        )}>
+                          {rule.value >= 0 ? "+" : ""}{rule.value}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
