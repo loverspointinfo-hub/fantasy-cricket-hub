@@ -55,7 +55,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
     >
       {/* Contest name header */}
       <div className="px-4 pt-3 pb-2 flex items-center gap-2"
-        style={{ borderBottom: "1px solid hsl(270 14% 14%)" }}>
+        style={{ borderBottom: "1px solid hsl(272 22% 11%)" }}>
         <div className="h-8 w-8 rounded-full flex items-center justify-center"
           style={{ background: "hsl(0 85% 50% / 0.12)" }}>
           <config.icon className="h-4 w-4 text-[hsl(var(--neon-red))]" />
