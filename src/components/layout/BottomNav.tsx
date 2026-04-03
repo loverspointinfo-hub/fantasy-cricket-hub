@@ -21,7 +21,7 @@ const BottomNav = () => {
         <div
           className="h-8 pointer-events-none"
           style={{
-            background: "linear-gradient(to top, hsl(228 18% 5%), transparent)",
+            background: "linear-gradient(to top, hsl(0 0% 4%), transparent)",
           }}
         />
         <div
