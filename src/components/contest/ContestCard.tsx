@@ -152,7 +152,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
 
       {/* Leaderboard link */}
       {isJoined && onViewLeaderboard && (
-        <div className="px-4 py-2 border-t border-border/10 flex justify-center" style={{ background: "hsl(228 16% 6% / 0.3)" }}>
+        <div className="px-4 py-2 border-t border-border/10 flex justify-center" style={{ background: "hsl(270 18% 6% / 0.3)" }}>
           <button onClick={(e) => { e.stopPropagation(); onViewLeaderboard(); }}
             className="flex items-center gap-1 text-primary text-[11px] font-bold hover:underline">
             <BarChart3 className="h-3.5 w-3.5" /> View Leaderboard <ChevronRight className="h-3 w-3" />
