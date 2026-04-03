@@ -128,7 +128,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
 
       {/* Footer stats row */}
       <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border/10"
-        style={{ background: "hsl(270 18% 7%)" }}>
+        style={{ background: "hsl(272 28% 5%)" }}>
         {firstPrize && (
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Info className="h-3 w-3 text-[hsl(var(--neon-red))]" />
