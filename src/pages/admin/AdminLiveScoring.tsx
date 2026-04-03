@@ -220,10 +220,68 @@ const AutoScoreButton = ({ matchId, onComplete }: { matchId: string; onComplete:
   const [lastResult, setLastResult] = useState<string | null>(null);
 
   const triggerAutoScore = async () => {
+    if (!matchId) {
+      toast.error("Select a match first");
+      return;
+    }
     setLoading(true);
     try {
+      // Get match details
+      const { data: match } = await (supabase.from("matches") as any)
+        .select("team1_short, team2_short")
+        .eq("id", matchId)
+        .single();
+      if (!match) throw new Error("Match not found");
+
+      // Get API key from site_settings
+      const { data: apiKeySetting } = await (supabase.from("site_settings") as any)
+        .select("value")
+        .eq("key", "cricketdata_api_key")
+        .single();
+      const apiKey = apiKeySetting?.value;
+      if (!apiKey) throw new Error("CricketData API key not configured. Go to Settings to add it.");
+
+      toast.info("Fetching live scorecard from API...");
+
+      // Step 1: Fetch current matches from client side (bypasses edge function network restrictions)
+      const searchRes = await fetch(`https://api.cricapi.com/v1/currentMatches?apikey=${apiKey}&offset=0`);
+      const searchData = await searchRes.json();
+
+      if (searchData.status !== "success" || !searchData.data) {
+        throw new Error(`API error: ${searchData.info || "Failed to fetch current matches"}`);
+      }
+
+      // Find matching match
+      const apiMatch = searchData.data.find((am: any) => {
+        const t1 = (am.teamInfo?.[0]?.shortname || "").toUpperCase();
+        const t2 = (am.teamInfo?.[1]?.shortname || "").toUpperCase();
+        const m1 = match.team1_short.toUpperCase();
+        const m2 = match.team2_short.toUpperCase();
+        return (t1 === m1 && t2 === m2) || (t1 === m2 && t2 === m1);
+      });
+
+      if (!apiMatch) {
+        throw new Error(`No live match found for ${match.team1_short} vs ${match.team2_short} in API`);
+      }
+
+      // Step 2: Fetch scorecard
+      const scRes = await fetch(`https://api.cricapi.com/v1/match_scorecard?apikey=${apiKey}&id=${apiMatch.id}`);
+      const scData = await scRes.json();
+
+      if (scData.status !== "success" || !scData.data) {
+        throw new Error("Failed to fetch scorecard data");
+      }
+
+      toast.info("Calculating fantasy points...");
+
+      // Step 3: Pass scorecard to edge function for processing
       const { data, error } = await supabase.functions.invoke("auto-score-matches", {
-        body: matchId ? { match_id: matchId } : {},
+        body: {
+          match_id: matchId,
+          scorecard_data: scData.data,
+          api_match_status: apiMatch.status || "",
+          match_ended: apiMatch.matchEnded || false,
+        },
       });
       if (error) throw error;
       const result = data as any;
