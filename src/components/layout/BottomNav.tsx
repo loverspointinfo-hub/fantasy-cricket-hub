@@ -83,7 +83,7 @@ const BottomNav = () => {
                     className={cn(
                       "h-[22px] w-[22px] transition-all duration-300",
                       isActive
-                        ? "text-primary drop-shadow-[0_0_8px_hsl(152_100%_50%/0.4)]"
+                        ? "text-primary drop-shadow-[0_0_8px_hsl(0_85%_50%/0.4)]"
                         : "text-muted-foreground/60 group-hover:text-muted-foreground"
                     )}
                     strokeWidth={isActive ? 2.5 : 1.8}
