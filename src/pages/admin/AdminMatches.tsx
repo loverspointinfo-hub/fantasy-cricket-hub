@@ -15,6 +15,7 @@ import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import MatchLineupManager from "@/components/admin/MatchLineupManager";
+import { importSquadForMatch, findApiMatchId } from "@/lib/squad-import";
 
 interface MatchForm {
   team1_name: string; team1_short: string; team2_name: string; team2_short: string;
