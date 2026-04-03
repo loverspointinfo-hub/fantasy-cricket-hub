@@ -71,8 +71,8 @@ const BottomNav = () => {
                     className="absolute -top-[1px] h-[2px] w-8 rounded-full"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     style={{
-                      background: "linear-gradient(90deg, hsl(152 100% 50%), hsl(195 100% 55%))",
-                      boxShadow: "0 0 8px hsl(152 100% 50% / 0.5)",
+                      background: "linear-gradient(90deg, hsl(0 85% 50%), hsl(0 70% 40%))",
+                      boxShadow: "0 0 8px hsl(0 85% 50% / 0.5)",
                     }}
                   />
                 )}
