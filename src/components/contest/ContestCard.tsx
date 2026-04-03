@@ -49,13 +49,13 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
         disabled && !isJoined ? "opacity-50 cursor-default" : "cursor-pointer"
       )}
       style={{
-        background: "hsl(270 18% 10%)",
-        border: "1px solid hsl(270 14% 16%)",
+        background: "hsl(272 28% 7%)",
+        border: "1px solid hsl(272 22% 13%)",
       }}
     >
       {/* Contest name header */}
       <div className="px-4 pt-3 pb-2 flex items-center gap-2"
-        style={{ borderBottom: "1px solid hsl(270 14% 14%)" }}>
+        style={{ borderBottom: "1px solid hsl(272 22% 11%)" }}>
         <div className="h-8 w-8 rounded-full flex items-center justify-center"
           style={{ background: "hsl(0 85% 50% / 0.12)" }}>
           <config.icon className="h-4 w-4 text-[hsl(var(--neon-red))]" />
@@ -128,7 +128,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
 
       {/* Footer stats row */}
       <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border/10"
-        style={{ background: "hsl(270 18% 7%)" }}>
+        style={{ background: "hsl(272 28% 5%)" }}>
         {firstPrize && (
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Info className="h-3 w-3 text-[hsl(var(--neon-red))]" />
@@ -152,7 +152,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
 
       {/* Leaderboard link */}
       {isJoined && onViewLeaderboard && (
-        <div className="px-4 py-2 border-t border-border/10 flex justify-center" style={{ background: "hsl(270 18% 6% / 0.3)" }}>
+        <div className="px-4 py-2 border-t border-border/10 flex justify-center" style={{ background: "hsl(272 28% 4% / 0.3)" }}>
           <button onClick={(e) => { e.stopPropagation(); onViewLeaderboard(); }}
             className="flex items-center gap-1 text-primary text-[11px] font-bold hover:underline">
             <BarChart3 className="h-3.5 w-3.5" /> View Leaderboard <ChevronRight className="h-3 w-3" />
