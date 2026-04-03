@@ -49,8 +49,8 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
         disabled && !isJoined ? "opacity-50 cursor-default" : "cursor-pointer"
       )}
       style={{
-        background: "hsl(270 18% 10%)",
-        border: "1px solid hsl(270 14% 16%)",
+        background: "hsl(272 28% 7%)",
+        border: "1px solid hsl(272 22% 13%)",
       }}
     >
       {/* Contest name header */}
