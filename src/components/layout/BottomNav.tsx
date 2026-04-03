@@ -1,7 +1,7 @@
-import { Home, Trophy, Wallet, User, Zap } from "lucide-react";
+import { Home, Trophy, Wallet, User } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
@@ -17,7 +17,6 @@ const BottomNav = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom pointer-events-none">
       <div className="mx-auto max-w-lg pointer-events-auto">
-        {/* Gradient fade above nav */}
         <div
           className="h-8 pointer-events-none"
           style={{
@@ -25,82 +24,86 @@ const BottomNav = () => {
           }}
         />
         <div
-          className="mx-3 flex items-center justify-around rounded-[20px] py-1 px-1 relative overflow-hidden"
+          className="mx-3 flex items-center justify-around rounded-[20px] py-2 px-1 relative overflow-hidden"
           style={{
             marginBottom: `max(12px, env(safe-area-inset-bottom, 12px))`,
-            background: "linear-gradient(145deg, hsl(0 0% 9% / 0.95), hsl(0 0% 5% / 0.92))",
+            background: "hsl(0 0% 6% / 0.95)",
             backdropFilter: "blur(30px) saturate(1.8)",
-            border: "1px solid hsl(0 0% 16% / 0.6)",
+            border: "1px solid hsl(0 0% 14% / 0.6)",
             boxShadow:
-              "0 -8px 40px hsl(0 0% 0% / 0.6), 0 0 0 0.5px hsl(0 0% 100% / 0.03) inset, 0 1px 0 hsl(0 0% 100% / 0.04) inset",
+              "0 -4px 30px hsl(0 0% 0% / 0.5), 0 0 0 0.5px hsl(0 0% 100% / 0.03) inset",
           }}
         >
-          {/* Inner glow line at top */}
-          <div
-            className="absolute top-0 left-4 right-4 h-[1px]"
-            style={{
-              background: "linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.06), transparent)",
-            }}
-          />
-
           {navItems.map(({ to, icon: Icon, label }) => {
             const isActive = location.pathname === to;
             return (
               <NavLink
                 key={to}
                 to={to}
-                className="relative flex flex-col items-center gap-0.5 px-5 py-2 group"
+                className="relative flex flex-col items-center gap-1 px-5 py-1.5 group"
               >
-                {/* Active background glow */}
+                {/* Animated pill background */}
                 {isActive && (
                   <motion.div
-                    layoutId="nav-pill"
-                    className="absolute inset-0 rounded-2xl"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    layoutId="nav-bg"
+                    className="absolute inset-1 rounded-xl"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
                     style={{
-                      background: "linear-gradient(135deg, hsl(0 85% 50% / 0.15), hsl(0 70% 40% / 0.08))",
-                      boxShadow: "0 0 20px hsl(0 85% 50% / 0.1)",
+                      background: "hsl(0 85% 50% / 0.12)",
+                      border: "1px solid hsl(0 85% 50% / 0.2)",
                     }}
                   />
                 )}
 
-                {/* Active top accent */}
+                {/* Animated bottom dot indicator */}
                 {isActive && (
                   <motion.div
-                    layoutId="nav-accent"
-                    className="absolute -top-[1px] h-[2px] w-8 rounded-full"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    layoutId="nav-dot"
+                    className="absolute -bottom-0.5 h-[3px] w-5 rounded-full"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
                     style={{
-                      background: "linear-gradient(90deg, hsl(0 85% 50%), hsl(0 70% 40%))",
-                      boxShadow: "0 0 8px hsl(0 85% 50% / 0.5)",
+                      background: "hsl(0 85% 50%)",
+                      boxShadow: "0 0 10px hsl(0 85% 50% / 0.6), 0 0 20px hsl(0 85% 50% / 0.3)",
                     }}
                   />
                 )}
 
-                {/* Icon with glow */}
-                <div className="relative z-10">
+                {/* Icon with bounce on active */}
+                <motion.div
+                  className="relative z-10"
+                  animate={isActive ? { y: -2, scale: 1.15 } : { y: 0, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                >
                   <Icon
                     className={cn(
-                      "h-[22px] w-[22px] transition-all duration-300",
+                      "h-[22px] w-[22px] transition-colors duration-300",
                       isActive
-                        ? "text-primary drop-shadow-[0_0_8px_hsl(0_85%_50%/0.4)]"
-                        : "text-muted-foreground/60 group-hover:text-muted-foreground"
+                        ? "text-primary"
+                        : "text-muted-foreground/50 group-hover:text-muted-foreground"
                     )}
                     strokeWidth={isActive ? 2.5 : 1.8}
                   />
-                </div>
+                </motion.div>
 
-                {/* Label */}
-                <span
-                  className={cn(
-                    "text-[9px] font-semibold relative z-10 transition-all duration-300 tracking-wide",
-                    isActive
-                      ? "text-primary"
-                      : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
+                {/* Label with fade-in */}
+                <AnimatePresence>
+                  {isActive && (
+                    <motion.span
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-[9px] font-bold relative z-10 tracking-wider text-primary"
+                    >
+                      {label}
+                    </motion.span>
                   )}
-                >
-                  {label}
-                </span>
+                </AnimatePresence>
+                {!isActive && (
+                  <span className="text-[9px] font-semibold relative z-10 tracking-wide text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors duration-300">
+                    {label}
+                  </span>
+                )}
               </NavLink>
             );
           })}
