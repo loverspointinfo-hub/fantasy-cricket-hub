@@ -28,11 +28,11 @@ const BottomNav = () => {
           className="mx-3 flex items-center justify-around rounded-[20px] py-1 px-1 relative overflow-hidden"
           style={{
             marginBottom: `max(12px, env(safe-area-inset-bottom, 12px))`,
-            background: "linear-gradient(145deg, hsl(228 16% 9% / 0.95), hsl(228 18% 6% / 0.92))",
+            background: "linear-gradient(145deg, hsl(0 0% 9% / 0.95), hsl(0 0% 5% / 0.92))",
             backdropFilter: "blur(30px) saturate(1.8)",
-            border: "1px solid hsl(228 12% 16% / 0.6)",
+            border: "1px solid hsl(0 0% 16% / 0.6)",
             boxShadow:
-              "0 -8px 40px hsl(228 18% 3% / 0.6), 0 0 0 0.5px hsl(0 0% 100% / 0.03) inset, 0 1px 0 hsl(0 0% 100% / 0.04) inset",
+              "0 -8px 40px hsl(0 0% 0% / 0.6), 0 0 0 0.5px hsl(0 0% 100% / 0.03) inset, 0 1px 0 hsl(0 0% 100% / 0.04) inset",
           }}
         >
           {/* Inner glow line at top */}
