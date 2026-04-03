@@ -237,10 +237,18 @@ const Profile = () => {
           </div>
           <Badge className={`text-[10px] font-bold flex-shrink-0 relative z-10 ${
             kycStatus === "verified"
-              ? "bg-primary/15 text-primary border-primary/25"
-              : "bg-[hsl(var(--neon-orange)/0.15)] text-[hsl(var(--neon-orange))] border-[hsl(var(--neon-orange)/0.25)]"
+              ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
+              : kycStatus === "pending"
+              ? "bg-amber-500/15 text-amber-400 border-amber-500/25 animate-pulse"
+              : "bg-destructive/15 text-destructive border-destructive/25"
           }`}>
-            <Shield className="mr-1 h-3 w-3" /> {kycStatus === "verified" ? "Verified" : "Unverified"}
+            {kycStatus === "verified" ? (
+              <><CheckCircle2 className="mr-1 h-3 w-3" /> Verified</>
+            ) : kycStatus === "pending" ? (
+              <><Shield className="mr-1 h-3 w-3" /> Pending</>
+            ) : (
+              <><Shield className="mr-1 h-3 w-3" /> Unverified</>
+            )}
           </Badge>
         </motion.div>
 
