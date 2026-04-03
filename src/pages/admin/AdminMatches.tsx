@@ -15,6 +15,7 @@ import { formatIST, toIST, istToUTC, utcToISTInput } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import MatchLineupManager from "@/components/admin/MatchLineupManager";
+import { importSquadForMatch, findApiMatchId } from "@/lib/squad-import";
 
 interface MatchForm {
   team1_name: string; team1_short: string; team2_name: string; team2_short: string;
@@ -110,6 +111,37 @@ const AdminMatches = () => {
       toast.success(`Imported ${result.imported} matches, ${result.contests_created || 0} contests created (${result.skipped} skipped)`);
       qc.invalidateQueries({ queryKey: ["admin-matches"] });
       qc.invalidateQueries({ queryKey: ["matches"] });
+
+      // Auto-import squads for newly imported matches
+      if (result.imported > 0) {
+        toast.info("Auto-importing squads for new matches...");
+        let totalSquadAdded = 0;
+        let totalSquadCreated = 0;
+
+        // Fetch newly created matches to get their IDs
+        const { data: newMatches = [] } = await (supabase.from("matches") as any)
+          .select("id, team1_short, team2_short")
+          .eq("status", "upcoming")
+          .order("created_at", { ascending: false })
+          .limit(result.imported);
+
+        for (const m of newMatches) {
+          try {
+            const apiMatchId = await findApiMatchId(apiKey, m.team1_short, m.team2_short);
+            if (!apiMatchId) continue;
+            const squadResult = await importSquadForMatch(apiKey, apiMatchId, m.id, m.team1_short, m.team2_short);
+            totalSquadAdded += squadResult.playersAdded;
+            totalSquadCreated += squadResult.playersCreated;
+          } catch {
+            // Skip failed squad imports silently
+          }
+        }
+
+        if (totalSquadAdded > 0 || totalSquadCreated > 0) {
+          toast.success(`Squads: ${totalSquadAdded} players added to lineups, ${totalSquadCreated} new players created`);
+          qc.invalidateQueries({ queryKey: ["admin-players"] });
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || "Import failed");
     } finally {
@@ -141,9 +173,9 @@ const AdminMatches = () => {
       if (infoData.status !== "success") throw new Error(infoData.info || "Failed to fetch series info");
 
       const matchList = infoData.data?.matchList || [];
-      const upcomingMatches = matchList
-        .filter((m: any) => m.dateTimeGMT && !m.matchStarted)
-        .map((m: any) => ({
+      // Keep API match IDs for squad import
+      const upcomingMatchesRaw = matchList.filter((m: any) => m.dateTimeGMT && !m.matchStarted);
+      const upcomingMatches = upcomingMatchesRaw.map((m: any) => ({
           team1_name: m.teamInfo?.[0]?.name || m.teams?.[0] || "TBD",
           team2_name: m.teamInfo?.[1]?.name || m.teams?.[1] || "TBD",
           team1_short: m.teamInfo?.[0]?.shortname || (m.teams?.[0] || "TBD").substring(0, 3).toUpperCase(),
@@ -154,6 +186,7 @@ const AdminMatches = () => {
           entry_deadline: new Date(new Date(m.dateTimeGMT).getTime() - 30 * 60 * 1000).toISOString(),
           league: iplSeries.name || "IPL",
           venue: m.venue || null,
+          _apiMatchId: m.id || null,
         }));
 
       if (upcomingMatches.length === 0) {
@@ -170,6 +203,40 @@ const AdminMatches = () => {
       toast.success(`IPL: Imported ${res.data.imported} matches, ${res.data.contests_created || 0} contests (${res.data.skipped} skipped)`);
       qc.invalidateQueries({ queryKey: ["admin-matches"] });
       qc.invalidateQueries({ queryKey: ["matches"] });
+
+      // Auto-import squads for newly imported IPL matches
+      if (res.data.imported > 0) {
+        toast.info("Auto-importing IPL squads...");
+        let totalSquadAdded = 0;
+        let totalSquadCreated = 0;
+
+        const { data: newMatches = [] } = await (supabase.from("matches") as any)
+          .select("id, team1_short, team2_short")
+          .eq("status", "upcoming")
+          .order("created_at", { ascending: false })
+          .limit(res.data.imported);
+
+        for (const m of newMatches) {
+          try {
+            // Try to find API match ID from our payload
+            const payloadMatch = upcomingMatches.find((um: any) =>
+              um.team1_short === m.team1_short && um.team2_short === m.team2_short
+            );
+            const apiMatchId = payloadMatch?._apiMatchId || await findApiMatchId(apiKey, m.team1_short, m.team2_short);
+            if (!apiMatchId) continue;
+            const squadResult = await importSquadForMatch(apiKey, apiMatchId, m.id, m.team1_short, m.team2_short);
+            totalSquadAdded += squadResult.playersAdded;
+            totalSquadCreated += squadResult.playersCreated;
+          } catch {
+            // Skip failed squad imports
+          }
+        }
+
+        if (totalSquadAdded > 0 || totalSquadCreated > 0) {
+          toast.success(`IPL Squads: ${totalSquadAdded} players added, ${totalSquadCreated} new players created`);
+          qc.invalidateQueries({ queryKey: ["admin-players"] });
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || "IPL import failed");
     } finally {
