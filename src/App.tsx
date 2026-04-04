@@ -76,6 +76,10 @@ const App = () => (
             <Route path="kyc" element={<Suspense fallback={<div />}><AdminKYC /></Suspense>} />
             <Route path="settings" element={<Suspense fallback={<div />}><AdminSettings /></Suspense>} />
             <Route path="revenue" element={<Suspense fallback={<div />}><AdminRevenue /></Suspense>} />
+            <Route path="monitor" element={<Suspense fallback={<div />}><AdminPlatformMonitor /></Suspense>} />
+            <Route path="feature-flags" element={<Suspense fallback={<div />}><AdminFeatureFlags /></Suspense>} />
+            <Route path="audit-log" element={<Suspense fallback={<div />}><AdminAuditLog /></Suspense>} />
+            <Route path="suspensions" element={<Suspense fallback={<div />}><AdminSuspensions /></Suspense>} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
