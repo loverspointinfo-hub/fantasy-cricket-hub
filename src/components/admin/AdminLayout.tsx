@@ -12,14 +12,18 @@ import { useNavigate } from "react-router-dom";
 
 const pageTitles: Record<string, string> = {
   "/admin": "Dashboard",
+  "/admin/monitor": "Platform Monitor",
   "/admin/matches": "Match Management",
   "/admin/players": "Player Database",
   "/admin/contests": "Contest Management",
   "/admin/users": "User Management",
+  "/admin/suspensions": "Ban / Suspend & Fraud",
   "/admin/wallet": "Wallet & Transactions",
   "/admin/notifications": "Notifications",
   "/admin/live-scoring": "Live Scoring",
   "/admin/kyc": "KYC Verification",
+  "/admin/feature-flags": "Feature Flags",
+  "/admin/audit-log": "Audit Log",
   "/admin/settings": "Site Settings",
 };
 
