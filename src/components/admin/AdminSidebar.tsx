@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Trophy, Users, Swords, Bell, Wallet, UserCog,
-  ChevronLeft, Shield, LogOut, Zap, Settings, ShieldCheck, DollarSign, Upload
+  ChevronLeft, Shield, LogOut, Zap, Settings, ShieldCheck, DollarSign, Upload,
+  Activity, ToggleLeft, ScrollText, ShieldBan
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,15 +15,19 @@ import { Separator } from "@/components/ui/separator";
 
 const items = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Platform Monitor", url: "/admin/monitor", icon: Activity },
   { title: "Matches", url: "/admin/matches", icon: Swords },
   { title: "Players", url: "/admin/players", icon: Users },
   { title: "Contests", url: "/admin/contests", icon: Trophy },
   { title: "Users", url: "/admin/users", icon: UserCog },
+  { title: "Ban / Suspend", url: "/admin/suspensions", icon: ShieldBan },
   { title: "Wallet / Txns", url: "/admin/wallet", icon: Wallet },
   { title: "Revenue", url: "/admin/revenue", icon: DollarSign },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Live Scoring", url: "/admin/live-scoring", icon: Zap },
   { title: "KYC Review", url: "/admin/kyc", icon: ShieldCheck },
+  { title: "Feature Flags", url: "/admin/feature-flags", icon: ToggleLeft },
+  { title: "Audit Log", url: "/admin/audit-log", icon: ScrollText },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
