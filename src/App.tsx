@@ -31,6 +31,10 @@ const AdminLiveScoring = lazy(() => import("./pages/admin/AdminLiveScoring"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminKYC = lazy(() => import("./pages/admin/AdminKYC"));
 const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
+const AdminPlatformMonitor = lazy(() => import("./pages/admin/AdminPlatformMonitor"));
+const AdminFeatureFlags = lazy(() => import("./pages/admin/AdminFeatureFlags"));
+const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
+const AdminSuspensions = lazy(() => import("./pages/admin/AdminSuspensions"));
 const KYCVerification = lazy(() => import("./pages/KYCVerification"));
 const PerformanceDashboard = lazy(() => import("./pages/PerformanceDashboard"));
 
