@@ -46,7 +46,7 @@ const ContestCard = ({ contest, onJoin, isJoined, disabled, onViewLeaderboard }:
       variants={item}
       className={cn(
         "group relative rounded-2xl overflow-hidden transition-all duration-300",
-        disabled && !isJoined ? "opacity-50 cursor-default" : "cursor-pointer"
+        disabled && !isJoined ? "cursor-default" : "cursor-pointer"
       )}
       style={{
         background: "hsl(0 0% 7%)",
