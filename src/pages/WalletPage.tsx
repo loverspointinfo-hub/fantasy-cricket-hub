@@ -222,7 +222,7 @@ const WalletPage = () => {
             <div className="flex gap-3 mt-5 justify-center">
               <motion.div whileTap={{ scale: 0.95 }}>
                 <Button
-                  className="gradient-primary font-bold rounded-xl px-6 h-11 text-sm relative overflow-hidden"
+                  variant="gradient" className="font-bold rounded-xl px-6 h-11 text-sm relative overflow-hidden"
                   onClick={() => { setAmount(""); setAddCashOpen(true); }}
                 >
                   <span className="shimmer absolute inset-0" />

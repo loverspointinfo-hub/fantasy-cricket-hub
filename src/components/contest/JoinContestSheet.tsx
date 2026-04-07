@@ -157,10 +157,8 @@ const JoinContestSheet = ({
               </p>
               <Button
                 onClick={() => { onOpenChange(false); onCreateTeam(); }}
+                variant="gradient"
                 className="font-bold rounded-xl h-10 px-6 text-sm border-0"
-                style={{
-                  background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))",
-                }}
               >
                 Create Team
               </Button>
@@ -238,11 +236,11 @@ const JoinContestSheet = ({
               className="w-full font-bold rounded-2xl h-13 text-base disabled:opacity-30 relative overflow-hidden border-0"
               style={{
                 background: (!selectedTeamId || hasInsufficientBalance)
-                  ? "hsl(228 14% 15%)"
-                  : "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
+                  ? "hsl(0 10% 15%)"
+                  : "linear-gradient(135deg, hsl(0 75% 42%), hsl(0 60% 30%), hsl(42 85% 55%))",
                 boxShadow: (!selectedTeamId || hasInsufficientBalance)
                   ? "none"
-                  : "0 4px 24px hsl(152 100% 50% / 0.25)",
+                  : "0 4px 24px hsl(0 75% 42% / 0.25)",
               }}
             >
               <span className="shimmer absolute inset-0" />

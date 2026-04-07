@@ -175,7 +175,7 @@ const Signup = () => {
               </div>
             </div>
             <motion.div whileTap={{ scale: 0.98 }}>
-              <Button type="submit" className="w-full h-12 gradient-primary font-bold text-sm rounded-xl relative overflow-hidden" disabled={loading}>
+              <Button type="submit" variant="gradient" className="w-full h-12 font-bold text-sm rounded-xl relative overflow-hidden" disabled={loading}>
                 <span className="shimmer absolute inset-0" />
                 <span className="relative z-10">{loading ? "Creating account..." : "Create Account"}</span>
               </Button>
