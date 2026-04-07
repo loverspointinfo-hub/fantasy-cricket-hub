@@ -467,7 +467,7 @@ const MatchDetail = () => {
                 <p className="text-xs text-muted-foreground/50 mt-1">Create a team to join contests</p>
                 {canManageTeams && (
                   <Button onClick={() => navigate(`/match/${matchId}/create-team`)}
-                    className="gradient-primary font-bold rounded-xl px-6 h-10 mt-4 text-sm">
+                    variant="gradient" className="font-bold rounded-xl px-6 h-10 mt-4 text-sm">
                     <Plus className="h-4 w-4 mr-1.5" /> Create Team
                   </Button>
                 )}
@@ -504,11 +504,8 @@ const MatchDetail = () => {
           >
             <Button
               onClick={() => navigate(`/match/${matchId}/create-team`)}
+              variant="gradient"
               className="font-bold rounded-2xl h-12 px-6 text-sm relative overflow-hidden shadow-xl"
-              style={{
-                background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))",
-                boxShadow: "0 4px 24px hsl(152 100% 50% / 0.3), 0 0 0 1px hsl(152 100% 50% / 0.3) inset",
-              }}
             >
               <span className="shimmer absolute inset-0" />
               <span className="relative z-10 flex items-center gap-2 text-primary-foreground">
