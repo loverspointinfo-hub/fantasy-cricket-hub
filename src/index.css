@@ -7,54 +7,54 @@
 @layer base {
   :root {
     --background: 0 0% 4%;
-    --foreground: 0 0% 95%;
+    --foreground: 40 20% 95%;
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 12% 7%;
+    --card-foreground: 40 20% 95%;
 
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 12% 7%;
+    --popover-foreground: 40 20% 95%;
 
-    --primary: 0 85% 50%;
+    --primary: 0 75% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 10% 10%;
+    --secondary-foreground: 40 20% 92%;
 
-    --muted: 0 0% 8%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 8% 9%;
+    --muted-foreground: 30 10% 48%;
 
-    --accent: 0 0% 100%;
+    --accent: 42 85% 55%;
     --accent-foreground: 0 0% 4%;
 
-    --destructive: 0 85% 55%;
+    --destructive: 0 80% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 0 85% 50%;
+    --border: 0 10% 15%;
+    --input: 0 10% 15%;
+    --ring: 42 85% 55%;
 
     --radius: 0.875rem;
 
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 0 85% 50%;
+    --sidebar-background: 0 12% 5%;
+    --sidebar-foreground: 40 20% 95%;
+    --sidebar-primary: 0 75% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 0 85% 50%;
+    --sidebar-accent: 0 10% 11%;
+    --sidebar-accent-foreground: 40 20% 92%;
+    --sidebar-border: 0 10% 15%;
+    --sidebar-ring: 42 85% 55%;
 
     /* Extended palette */
-    --neon-green: 0 85% 50%;
+    --neon-green: 42 85% 55%;
     --neon-cyan: 0 0% 100%;
-    --neon-purple: 0 70% 40%;
-    --neon-orange: 15 90% 55%;
-    --neon-red: 0 85% 50%;
-    --neon-yellow: 0 85% 55%;
-    --glass: 0 0% 7%;
-    --glass-border: 0 0% 16%;
-    --gold: 0 85% 55%;
+    --neon-purple: 0 60% 30%;
+    --neon-orange: 18 85% 50%;
+    --neon-red: 0 75% 42%;
+    --neon-yellow: 42 85% 55%;
+    --glass: 0 12% 7%;
+    --glass-border: 0 10% 17%;
+    --gold: 42 85% 55%;
   }
 }
 
@@ -90,26 +90,26 @@
     @apply rounded-2xl;
     background: linear-gradient(
       135deg,
-      hsl(0 0% 8% / 0.9),
-      hsl(0 0% 5% / 0.7)
+      hsl(0 12% 9% / 0.9),
+      hsl(0 10% 5% / 0.7)
     );
     backdrop-filter: blur(24px) saturate(1.5);
-    border: 1px solid hsl(0 0% 16% / 0.5);
+    border: 1px solid hsl(0 10% 17% / 0.5);
     box-shadow:
       0 8px 32px hsl(0 0% 0% / 0.6),
-      0 0 0 0.5px hsl(0 0% 100% / 0.03) inset,
-      0 1px 0 hsl(0 0% 100% / 0.04) inset;
+      0 0 0 0.5px hsl(42 85% 55% / 0.03) inset,
+      0 1px 0 hsl(42 85% 55% / 0.04) inset;
   }
 
   .glass-card-hover {
     @apply glass-card transition-all duration-500 ease-out;
   }
   .glass-card-hover:hover {
-    border-color: hsl(0 85% 50% / 0.3);
+    border-color: hsl(0 75% 42% / 0.3);
     box-shadow:
-      0 12px 40px hsl(0 85% 50% / 0.1),
-      0 0 0 0.5px hsl(0 0% 100% / 0.05) inset,
-      0 1px 0 hsl(0 0% 100% / 0.06) inset;
+      0 12px 40px hsl(0 75% 42% / 0.1),
+      0 0 0 0.5px hsl(42 85% 55% / 0.05) inset,
+      0 1px 0 hsl(42 85% 55% / 0.06) inset;
     transform: translateY(-2px);
   }
 
@@ -117,57 +117,57 @@
     @apply rounded-2xl;
     background: linear-gradient(
       135deg,
-      hsl(0 0% 8% / 0.9),
-      hsl(0 0% 4% / 0.7)
+      hsl(0 12% 9% / 0.9),
+      hsl(0 10% 4% / 0.7)
     );
     backdrop-filter: blur(30px) saturate(1.8);
-    border: 1px solid hsl(0 85% 50% / 0.2);
+    border: 1px solid hsl(42 85% 55% / 0.2);
     box-shadow:
-      0 0 40px hsl(0 85% 50% / 0.06),
+      0 0 40px hsl(42 85% 55% / 0.06),
       0 8px 32px hsl(0 0% 0% / 0.6),
-      0 1px 0 hsl(0 0% 100% / 0.05) inset;
+      0 1px 0 hsl(42 85% 55% / 0.05) inset;
   }
 
   .neon-glow {
     text-shadow:
-      0 0 7px hsl(0 85% 50% / 0.6),
-      0 0 20px hsl(0 85% 50% / 0.3),
-      0 0 42px hsl(0 85% 50% / 0.1);
+      0 0 7px hsl(0 75% 42% / 0.6),
+      0 0 20px hsl(0 75% 42% / 0.3),
+      0 0 42px hsl(0 75% 42% / 0.1);
   }
 
   .neon-glow-cyan {
     text-shadow:
-      0 0 7px hsl(0 0% 100% / 0.6),
-      0 0 20px hsl(0 0% 100% / 0.3);
+      0 0 7px hsl(42 85% 55% / 0.6),
+      0 0 20px hsl(42 85% 55% / 0.3);
   }
 
   .neon-border {
     box-shadow:
-      0 0 15px hsl(0 85% 50% / 0.2),
-      0 0 5px hsl(0 85% 50% / 0.1) inset;
+      0 0 15px hsl(0 75% 42% / 0.2),
+      0 0 5px hsl(0 75% 42% / 0.1) inset;
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(0 85% 50%), hsl(0 70% 35%));
+    background: linear-gradient(135deg, hsl(0 75% 42%), hsl(0 60% 30%));
   }
 
   .gradient-premium {
-    background: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 0% 100%));
+    background: linear-gradient(135deg, hsl(42 85% 55%), hsl(0 75% 42%));
   }
 
   .gradient-live {
-    background: linear-gradient(135deg, hsl(0 85% 50%), hsl(15 90% 55%));
+    background: linear-gradient(135deg, hsl(0 75% 42%), hsl(18 85% 50%));
   }
 
   .gradient-purple {
-    background: linear-gradient(135deg, hsl(0 70% 40%), hsl(0 85% 55%));
+    background: linear-gradient(135deg, hsl(0 60% 30%), hsl(0 75% 42%));
   }
 
   .gradient-mesh {
     background:
-      radial-gradient(ellipse at 20% 50%, hsl(0 85% 50% / 0.05) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, hsl(0 0% 100% / 0.03) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, hsl(0 70% 40% / 0.04) 0%, transparent 50%);
+      radial-gradient(ellipse at 20% 50%, hsl(0 75% 42% / 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(42 85% 55% / 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, hsl(0 60% 30% / 0.04) 0%, transparent 50%);
   }
 
   .shimmer {
@@ -199,12 +199,12 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(0 85% 50%), hsl(0 0% 100%));
+    background-image: linear-gradient(135deg, hsl(0 75% 42%), hsl(42 85% 55%));
   }
 
   .text-gradient-gold {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 70% 40%));
+    background-image: linear-gradient(135deg, hsl(42 85% 55%), hsl(42 70% 40%));
   }
 
   .floating-orb {
