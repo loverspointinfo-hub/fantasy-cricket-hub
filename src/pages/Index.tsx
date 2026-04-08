@@ -203,45 +203,65 @@ const Index = () => {
       <div className="floating-orb w-96 h-96 bg-[hsl(var(--neon-cyan))] top-1/3 -right-32" style={{ animationDelay: "3s" }} />
 
       {/* Header */}
-      <header className="sticky top-0 z-40 relative" style={{
-        background: "linear-gradient(180deg, hsl(228 18% 5% / 0.97), hsl(228 18% 5% / 0.88))",
-        backdropFilter: "blur(24px) saturate(1.8)",
-      }}>
+      <header className="sticky top-0 z-40 relative overflow-hidden">
+        {/* Gradient background */}
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(135deg, hsl(0 12% 6% / 0.98) 0%, hsl(0 8% 4% / 0.98) 50%, hsl(0 12% 6% / 0.98) 100%)",
+          backdropFilter: "blur(30px) saturate(2)",
+        }} />
+        {/* Animated accent line at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-[1px]"
-          style={{ background: "linear-gradient(90deg, transparent, hsl(228 12% 18% / 0.6), hsl(152 100% 50% / 0.15), hsl(228 12% 18% / 0.6), transparent)" }}
+          style={{ background: "linear-gradient(90deg, transparent 5%, hsl(0 75% 42% / 0.5) 30%, hsl(42 85% 55% / 0.4) 50%, hsl(0 75% 42% / 0.5) 70%, transparent 95%)" }}
         />
-        <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl relative overflow-hidden"
-                style={{ background: "linear-gradient(135deg, hsl(152 100% 50%), hsl(195 100% 55%))", boxShadow: "0 2px 12px hsl(152 100% 50% / 0.3)" }}>
-                <span className="shimmer absolute inset-0" />
-                <Trophy className="h-5 w-5 text-primary-foreground relative z-10" />
-              </div>
-            </div>
-            <div>
-              <h1 className="font-display text-xl font-bold leading-none tracking-tight">
+        {/* Subtle red glow */}
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[300px] h-[60px] pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, hsl(0 75% 42% / 0.08), transparent 70%)" }}
+        />
+
+        <div className="relative mx-auto flex max-w-lg items-center justify-between px-4 py-3.5">
+          {/* Site name - text only, no logo */}
+          <div>
+            <h1 className="font-display text-[22px] font-black leading-none tracking-tight">
+              <span style={{
+                background: "linear-gradient(135deg, hsl(0 85% 60%), hsl(0 75% 42%), hsl(42 85% 55%))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}>
                 {siteSettings?.site_name || "FANTASY11"}
-              </h1>
-              <p className="text-[8px] text-muted-foreground/50 tracking-[0.25em] uppercase font-medium mt-0.5">
-                {siteSettings?.site_slogan || "Play • Predict • Win"}
-              </p>
-            </div>
+              </span>
+            </h1>
+            <p className="text-[8px] text-muted-foreground/40 tracking-[0.3em] uppercase font-semibold mt-0.5">
+              {siteSettings?.site_slogan || "Play • Predict • Win"}
+            </p>
           </div>
+
+          {/* Right actions */}
           <div className="flex items-center gap-2">
             <button onClick={() => navigate("/wallet")}
-              className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 transition-all hover:scale-105 active:scale-95"
-              style={{ background: "linear-gradient(135deg, hsl(228 16% 12%), hsl(228 16% 9%))", border: "1px solid hsl(228 12% 18% / 0.6)" }}>
-              <Wallet className="h-3.5 w-3.5 text-primary" />
+              className="flex items-center gap-1.5 rounded-xl px-3 py-2 transition-all hover:scale-105 active:scale-95"
+              style={{
+                background: "linear-gradient(135deg, hsl(0 10% 12%), hsl(0 8% 8%))",
+                border: "1px solid hsl(0 75% 42% / 0.2)",
+                boxShadow: "0 2px 8px hsl(0 0% 0% / 0.3)",
+              }}>
+              <Wallet className="h-3.5 w-3.5 text-[hsl(42,85%,55%)]" />
               <span className="text-[11px] font-bold text-foreground">₹{totalBalance.toFixed(0)}</span>
             </button>
             <button onClick={() => navigate("/notifications")}
               className="relative h-9 w-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-              style={{ background: "hsl(228 16% 11%)", border: "1px solid hsl(228 12% 18% / 0.5)" }}>
+              style={{
+                background: "hsl(0 8% 10%)",
+                border: "1px solid hsl(0 75% 42% / 0.15)",
+              }}>
               <Bell className="h-4 w-4 text-muted-foreground" />
               {unreadCount > 0 && (
                 <div className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full flex items-center justify-center px-1"
-                  style={{ background: "linear-gradient(135deg, hsl(var(--neon-red)), hsl(var(--neon-orange)))", boxShadow: "0 0 8px hsl(var(--neon-red) / 0.5)", fontSize: "9px", fontWeight: 700, color: "white" }}>
+                  style={{
+                    background: "linear-gradient(135deg, hsl(0 75% 42%), hsl(0 60% 30%))",
+                    boxShadow: "0 0 10px hsl(0 75% 42% / 0.5)",
+                    fontSize: "9px", fontWeight: 800, color: "white",
+                  }}>
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </div>
               )}
