@@ -250,6 +250,7 @@ const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, 
             team1Short={team1Short}
             team2Short={team2Short}
             teamName={team.name || undefined}
+            matchTitle={matchTitle}
             onClose={() => setPreviewOpen(false)}
           />
         </DialogContent>
