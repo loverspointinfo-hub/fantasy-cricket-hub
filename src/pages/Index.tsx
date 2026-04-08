@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -173,12 +173,24 @@ type TabKey = "upcoming" | "live" | "completed";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
+  const [scrollY, setScrollY] = useState(0);
   const { data: matches = [], isLoading } = useMatches(activeTab);
   const { data: liveMatches = [] } = useMatches("live");
   const { data: wallet } = useWallet();
   const { data: playerCounts = {} } = useMatchPlayerCounts();
   const { data: siteSettings } = useSiteSettings();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const headerProgress = Math.min(scrollY / 80, 1);
+  const headerPy = 14 - headerProgress * 6; // 3.5 -> ~2
+  const titleSize = 22 - headerProgress * 4; // 22px -> 18px
+  const sloganOpacity = 1 - headerProgress;
 
   const totalBalance = (wallet?.deposit_balance ?? 0) + (wallet?.winning_balance ?? 0) + (wallet?.bonus_balance ?? 0);
   const unreadCount = useUnreadCount();
@@ -218,10 +230,12 @@ const Index = () => {
           style={{ background: "radial-gradient(ellipse, hsl(0 75% 42% / 0.08), transparent 70%)" }}
         />
 
-        <div className="relative mx-auto flex max-w-lg items-center justify-between px-4 py-3.5">
+        <div className="relative mx-auto flex max-w-lg items-center justify-between px-4 transition-all duration-200"
+          style={{ paddingTop: `${headerPy}px`, paddingBottom: `${headerPy}px` }}>
           {/* Site name - text only, no logo */}
           <div>
-            <h1 className="font-display text-[22px] font-black leading-none tracking-tight">
+            <h1 className="font-display font-black leading-none tracking-tight transition-all duration-200"
+              style={{ fontSize: `${titleSize}px` }}>
               <span style={{
                 background: "linear-gradient(135deg, hsl(0 85% 60%), hsl(0 75% 42%), hsl(42 85% 55%))",
                 WebkitBackgroundClip: "text",
@@ -231,7 +245,8 @@ const Index = () => {
                 {siteSettings?.site_name || "FANTASY11"}
               </span>
             </h1>
-            <p className="text-[8px] text-muted-foreground/40 tracking-[0.3em] uppercase font-semibold mt-0.5">
+            <p className="text-[8px] text-muted-foreground/40 tracking-[0.3em] uppercase font-semibold mt-0.5 transition-all duration-200"
+              style={{ opacity: sloganOpacity, maxHeight: sloganOpacity > 0.1 ? "20px" : "0px", overflow: "hidden" }}>
               {siteSettings?.site_slogan || "Play • Predict • Win"}
             </p>
           </div>
