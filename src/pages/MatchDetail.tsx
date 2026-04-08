@@ -484,6 +484,7 @@ const MatchDetail = () => {
                       deleting={deleteTeam.isPending}
                       team1Short={match.team1_short}
                       team2Short={match.team2_short}
+                      matchTitle={`${match.team1_short} vs ${match.team2_short}`}
                     />
                   </motion.div>
                 ))}

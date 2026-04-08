@@ -1,4 +1,4 @@
-import { Crown, Star, Trash2, Edit3, ChevronDown, ChevronUp, Eye, Pencil, Copy } from "lucide-react";
+import { Crown, Star, Trash2, Edit3, ChevronDown, ChevronUp, Eye, Pencil, Copy, Share2 } from "lucide-react";
 import { UserTeam } from "@/hooks/useUserTeams";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -30,9 +30,10 @@ interface SavedTeamCardProps {
   deleting?: boolean;
   team1Short?: string;
   team2Short?: string;
+  matchTitle?: string;
 }
 
-const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short }: SavedTeamCardProps) => {
+const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short, matchTitle }: SavedTeamCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editNameOpen, setEditNameOpen] = useState(false);
@@ -130,7 +131,16 @@ const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, 
           </div>
 
           <div className="flex items-center gap-1">
-            {/* Preview button */}
+            {/* Share button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.stopPropagation(); setPreviewOpen(true); }}
+              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.1)]"
+              title="Share team"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -240,6 +250,7 @@ const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, 
             team1Short={team1Short}
             team2Short={team2Short}
             teamName={team.name || undefined}
+            matchTitle={matchTitle}
             onClose={() => setPreviewOpen(false)}
           />
         </DialogContent>
