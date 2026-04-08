@@ -25,6 +25,7 @@ interface TeamPreviewProps {
   team1Short?: string;
   team2Short?: string;
   teamName?: string;
+  matchTitle?: string;
   onClose?: () => void;
 }
 
@@ -153,6 +154,7 @@ const TeamPreview = ({
   team1Short,
   team2Short,
   teamName,
+  matchTitle,
   onClose,
 }: TeamPreviewProps) => {
   const previewRef = useRef<HTMLDivElement>(null);
