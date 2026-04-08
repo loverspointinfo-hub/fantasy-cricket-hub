@@ -446,15 +446,22 @@ const TeamPreview = ({
           </div>
         </div>
 
-        {/* Watermark footer with site name */}
-        <div className="px-4 py-2.5 flex items-center justify-center gap-2 border-t border-white/5" style={{
+        {/* Watermark footer with site name & match info */}
+        <div className="px-4 py-3 flex flex-col items-center gap-1.5 border-t border-white/5" style={{
           background: "linear-gradient(135deg, hsl(228,18%,7%) 0%, hsl(228,22%,10%) 100%)",
         }}>
-          <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
-          <span className="text-[10px] text-white/30 font-bold tracking-[0.25em] uppercase font-display">
-            {siteName}
-          </span>
-          <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+          {matchTitle && (
+            <span className="text-[9px] text-white/25 font-semibold tracking-wide uppercase truncate max-w-[90%]">
+              {matchTitle}
+            </span>
+          )}
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+            <span className="text-[10px] text-white/30 font-bold tracking-[0.25em] uppercase font-display">
+              {siteName}
+            </span>
+            <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+          </div>
         </div>
       </div>
     </motion.div>
