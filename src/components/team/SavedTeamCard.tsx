@@ -33,7 +33,7 @@ interface SavedTeamCardProps {
   matchTitle?: string;
 }
 
-const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short }: SavedTeamCardProps) => {
+const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short, matchTitle }: SavedTeamCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editNameOpen, setEditNameOpen] = useState(false);
@@ -131,7 +131,16 @@ const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, 
           </div>
 
           <div className="flex items-center gap-1">
-            {/* Preview button */}
+            {/* Share button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.stopPropagation(); setPreviewOpen(true); }}
+              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.1)]"
+              title="Share team"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
