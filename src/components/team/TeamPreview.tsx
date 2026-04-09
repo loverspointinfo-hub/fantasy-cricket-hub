@@ -218,6 +218,13 @@ const TeamPreview = ({
   const captainPlayer = players.find((p) => p.player_id === captainId);
   const vcPlayer = players.find((p) => p.player_id === viceCaptainId);
 
+  // Calculate total fantasy points with C/VC multipliers
+  const totalFantasyPoints = players.reduce((sum, mp) => {
+    const multiplier = mp.player_id === captainId ? 2 : mp.player_id === viceCaptainId ? 1.5 : 1;
+    return sum + (mp.fantasy_points || 0) * multiplier;
+  }, 0);
+  const hasLivePoints = totalFantasyPoints > 0;
+
   return (
     <motion.div
       variants={staggerContainer}
