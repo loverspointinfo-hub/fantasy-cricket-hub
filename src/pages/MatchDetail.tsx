@@ -40,6 +40,7 @@ const MatchDetail = () => {
   const { data: userTeams = [] } = useUserTeams(matchId || "");
   const { data: myEntries = [] } = useMyContestEntries(matchId || "");
   const { data: matchPlayers = [] } = useMatchPlayers(matchId || "");
+  const { data: allMatchTeams = [] } = useAllMatchTeams(matchId || "");
   const deleteTeam = useDeleteTeam();
 
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
@@ -51,6 +52,7 @@ const MatchDetail = () => {
   const [privateContestOpen, setPrivateContestOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [filteredContests, setFilteredContests] = useState<Contest[] | null>(null);
+  const [teamCompareOpen, setTeamCompareOpen] = useState(false);
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
