@@ -5,8 +5,9 @@ import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam, UserTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
 import { useMatchPlayers } from "@/hooks/useMatchPlayers";
+import { useAllMatchTeams } from "@/hooks/useAllMatchTeams";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle, Lock, ArrowLeftRight,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle, Lock, ArrowLeftRight, GitCompareArrows,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/Mat
 import LiveScoreTracker from "@/components/match/LiveScoreTracker";
 import PlayerComparisonSheet from "@/components/match/PlayerComparisonSheet";
 import ContestFilters from "@/components/contest/ContestFilters";
+import TeamComparisonSheet from "@/components/team/TeamComparisonSheet";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useCountdown } from "@/hooks/useCountdown";
 
@@ -38,6 +40,7 @@ const MatchDetail = () => {
   const { data: userTeams = [] } = useUserTeams(matchId || "");
   const { data: myEntries = [] } = useMyContestEntries(matchId || "");
   const { data: matchPlayers = [] } = useMatchPlayers(matchId || "");
+  const { data: allMatchTeams = [] } = useAllMatchTeams(matchId || "");
   const deleteTeam = useDeleteTeam();
 
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
@@ -49,6 +52,7 @@ const MatchDetail = () => {
   const [privateContestOpen, setPrivateContestOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [filteredContests, setFilteredContests] = useState<Contest[] | null>(null);
+  const [teamCompareOpen, setTeamCompareOpen] = useState(false);
 
   const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
     queryKeys: [
@@ -474,6 +478,18 @@ const MatchDetail = () => {
               </motion.div>
             ) : (
               <div className="space-y-2.5">
+                {/* Compare Teams Button */}
+                {userTeams.length >= 1 && allMatchTeams.length >= 2 && (
+                  <motion.div variants={item}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setTeamCompareOpen(true)}
+                      className="w-full rounded-xl border-border/30 text-xs h-9"
+                    >
+                      <GitCompareArrows className="h-3.5 w-3.5 mr-1.5" /> Compare Teams Side by Side
+                    </Button>
+                  </motion.div>
+                )}
                 {userTeams.map((team) => (
                   <motion.div key={team.id} variants={item}>
                     <SavedTeamCard
@@ -550,6 +566,14 @@ const MatchDetail = () => {
         open={comparisonOpen}
         onOpenChange={setComparisonOpen}
         players={matchPlayers}
+      />
+
+      {/* Team Comparison Sheet */}
+      <TeamComparisonSheet
+        open={teamCompareOpen}
+        onOpenChange={setTeamCompareOpen}
+        userTeams={userTeams}
+        allTeams={allMatchTeams}
       />
     </div>
   );
