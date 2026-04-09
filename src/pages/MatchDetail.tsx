@@ -478,6 +478,18 @@ const MatchDetail = () => {
               </motion.div>
             ) : (
               <div className="space-y-2.5">
+                {/* Compare Teams Button */}
+                {userTeams.length >= 1 && allMatchTeams.length >= 2 && (
+                  <motion.div variants={item}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setTeamCompareOpen(true)}
+                      className="w-full rounded-xl border-border/30 text-xs h-9"
+                    >
+                      <GitCompareArrows className="h-3.5 w-3.5 mr-1.5" /> Compare Teams Side by Side
+                    </Button>
+                  </motion.div>
+                )}
                 {userTeams.map((team) => (
                   <motion.div key={team.id} variants={item}>
                     <SavedTeamCard
