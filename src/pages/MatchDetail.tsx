@@ -5,8 +5,9 @@ import { useContests, Contest } from "@/hooks/useContests";
 import { useUserTeams, useDeleteTeam, UserTeam } from "@/hooks/useUserTeams";
 import { useMyContestEntries } from "@/hooks/useContestEntries";
 import { useMatchPlayers } from "@/hooks/useMatchPlayers";
+import { useAllMatchTeams } from "@/hooks/useAllMatchTeams";
 import {
-  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle, Lock, ArrowLeftRight,
+  ArrowLeft, Clock, MapPin, Trophy, Plus, Sparkles, RefreshCw, Timer, BarChart3, HelpCircle, Lock, ArrowLeftRight, GitCompareArrows,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
