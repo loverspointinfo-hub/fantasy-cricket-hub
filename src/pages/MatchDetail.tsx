@@ -567,6 +567,14 @@ const MatchDetail = () => {
         onOpenChange={setComparisonOpen}
         players={matchPlayers}
       />
+
+      {/* Team Comparison Sheet */}
+      <TeamComparisonSheet
+        open={teamCompareOpen}
+        onOpenChange={setTeamCompareOpen}
+        userTeams={userTeams}
+        allTeams={allMatchTeams}
+      />
     </div>
   );
 };
