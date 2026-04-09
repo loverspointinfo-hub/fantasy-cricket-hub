@@ -31,9 +31,10 @@ interface SavedTeamCardProps {
   team1Short?: string;
   team2Short?: string;
   matchTitle?: string;
+  matchPlayers?: MatchPlayer[];
 }
 
-const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short, matchTitle }: SavedTeamCardProps) => {
+const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, team2Short, matchTitle, matchPlayers = [] }: SavedTeamCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editNameOpen, setEditNameOpen] = useState(false);
@@ -72,23 +73,27 @@ const SavedTeamCard = ({ team, onDelete, onEdit, onClone, deleting, team1Short, 
     return acc;
   }, {});
 
-  // Convert UserTeam players to MatchPlayer format for TeamPreview
-  const previewPlayers: MatchPlayer[] = team.team_players.map((tp) => ({
-    id: tp.player_id,
-    match_id: team.match_id,
-    player_id: tp.player_id,
-    is_playing: true,
-    fantasy_points: 0,
-    selected_by_percent: 0,
-    player: {
-      id: tp.player.id,
-      name: tp.player.name,
-      role: tp.player.role,
-      team: tp.player.team,
-      credit_value: tp.player.credit_value,
-      photo_url: (tp.player as any).photo_url ?? null,
-    },
-  }));
+  // Convert UserTeam players to MatchPlayer format for TeamPreview, using live fantasy points
+  const matchPlayerMap = new Map(matchPlayers.map(mp => [mp.player_id, mp]));
+  const previewPlayers: MatchPlayer[] = team.team_players.map((tp) => {
+    const liveData = matchPlayerMap.get(tp.player_id);
+    return {
+      id: liveData?.id || tp.player_id,
+      match_id: team.match_id,
+      player_id: tp.player_id,
+      is_playing: liveData?.is_playing ?? true,
+      fantasy_points: liveData?.fantasy_points ?? 0,
+      selected_by_percent: liveData?.selected_by_percent ?? 0,
+      player: {
+        id: tp.player.id,
+        name: tp.player.name,
+        role: tp.player.role,
+        team: tp.player.team,
+        credit_value: tp.player.credit_value,
+        photo_url: liveData?.player?.photo_url ?? (tp.player as any).photo_url ?? null,
+      },
+    };
+  });
 
   return (
     <>
