@@ -330,23 +330,24 @@ const TeamPreview = ({
             </div>
           </div>
 
-          {/* Credits bar */}
+          {/* Credits & Points bar */}
           <div className="flex items-center justify-between px-4 py-1.5 bg-black/20 border-t border-white/5">
-            <span className="text-[9px] text-white/40 font-semibold uppercase tracking-wider">Credits Used</span>
-            <div className="flex items-center gap-2">
-              <div className="w-24 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${(totalCredits / 100) * 100}%`,
-                    background: totalCredits > 95
-                      ? "linear-gradient(90deg, hsl(0,85%,55%), hsl(28,100%,58%))"
-                      : "linear-gradient(90deg, hsl(152,100%,50%), hsl(195,100%,55%))",
-                  }}
-                />
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[9px] text-white/40 font-semibold uppercase tracking-wider">Credits</span>
               <span className="text-[10px] font-black text-white">
                 {totalCredits}<span className="text-white/30">/100</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {hasLivePoints && (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
+              )}
+              <span className="text-[9px] text-white/40 font-semibold uppercase tracking-wider">Points</span>
+              <span className={cn(
+                "text-[10px] font-black",
+                hasLivePoints ? "text-primary" : "text-white/30"
+              )}>
+                {totalFantasyPoints}
               </span>
             </div>
           </div>
