@@ -24,6 +24,7 @@ import ContestCard from "@/components/contest/ContestCard";
 import ContestCategoryTabs from "@/components/contest/ContestCategoryTabs";
 import { MatchDetailSkeleton, ContestCardSkeleton } from "@/components/match/MatchDetailSkeleton";
 import LiveScoreTracker from "@/components/match/LiveScoreTracker";
+import PointEventTicker from "@/components/match/PointEventTicker";
 import PlayerComparisonSheet from "@/components/match/PlayerComparisonSheet";
 import ContestFilters from "@/components/contest/ContestFilters";
 import TeamComparisonSheet from "@/components/team/TeamComparisonSheet";
@@ -295,9 +296,14 @@ const MatchDetail = () => {
           <>
             {/* Live Score Tracker for live matches */}
             {isLive && (
-              <motion.div variants={item}>
-                <LiveScoreTracker matchId={matchId!} team1Short={match.team1_short} team2Short={match.team2_short} />
-              </motion.div>
+              <>
+                <motion.div variants={item}>
+                  <LiveScoreTracker matchId={matchId!} team1Short={match.team1_short} team2Short={match.team2_short} />
+                </motion.div>
+                <motion.div variants={item}>
+                  <PointEventTicker matchId={matchId!} />
+                </motion.div>
+              </>
             )}
 
             {/* Action buttons row */}
