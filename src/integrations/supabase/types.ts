@@ -368,6 +368,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          cricket_api_match_id: string | null
           entry_deadline: string
           id: string
           league: string
@@ -387,6 +388,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          cricket_api_match_id?: string | null
           entry_deadline: string
           id?: string
           league: string
@@ -406,6 +408,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          cricket_api_match_id?: string | null
           entry_deadline?: string
           id?: string
           league?: string
@@ -486,6 +489,47 @@ export type Database = {
           team?: string
         }
         Relationships: []
+      }
+      point_events: {
+        Row: {
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          match_id: string
+          player_name: string
+          player_team: string | null
+          points_change: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_type?: string
+          id?: string
+          match_id: string
+          player_name: string
+          player_team?: string | null
+          points_change?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          match_id?: string
+          player_name?: string
+          player_team?: string | null
+          points_change?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_events_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
