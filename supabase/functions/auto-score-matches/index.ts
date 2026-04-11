@@ -26,6 +26,14 @@ interface PlayerScorecard {
   run_outs?: number;
 }
 
+interface ApiResult {
+  provider: string;
+  scorecard: any;
+  matchEnded: boolean;
+  success: boolean;
+  error?: string;
+}
+
 const DEFAULT_RULES: ScoringRules = {
   run: 1, boundary_bonus: 1, six_bonus: 2, half_century: 8, century: 16, duck: -2,
   wicket: 25, lbw_bowled_bonus: 8, three_wicket_haul: 4, four_wicket_haul: 8,
@@ -103,23 +111,159 @@ function parseOvers(overs: string | number | undefined): number {
   return (parseInt(parts[0]) || 0) + (parseInt(parts[1]) || 0) / 6;
 }
 
-// Fetch live scorecard from CricketData API
-async function fetchCricketDataScorecard(apiMatchId: string, apiKey: string): Promise<any> {
-  const url = `https://api.cricapi.com/v1/match_scorecard?apikey=${apiKey}&id=${apiMatchId}`;
-  const resp = await fetch(url);
-  if (!resp.ok) {
-    console.error(`CricketData API error: ${resp.status}`);
-    return null;
+// ─── MULTI-API PROVIDERS ───────────────────────────────────────
+
+// Provider 1: CricketData (Primary)
+async function fetchFromCricketData(apiMatchId: string, apiKey: string): Promise<ApiResult> {
+  try {
+    const url = `https://api.cricapi.com/v1/match_scorecard?apikey=${apiKey}&id=${apiMatchId}`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      return { provider: "CricketData", scorecard: null, matchEnded: false, success: false, error: `HTTP ${resp.status}` };
+    }
+    const json = await resp.json();
+    if (json.status !== "success") {
+      return { provider: "CricketData", scorecard: null, matchEnded: false, success: false, error: `API status: ${json.status}` };
+    }
+    const data = json.data;
+    const matchEnded = !!(data?.matchEnded || data?.status?.toLowerCase().includes("won") || data?.status?.toLowerCase().includes("drawn"));
+    const scorecard = data?.scorecard || data?.score || [];
+    if (!scorecard || (Array.isArray(scorecard) && scorecard.length === 0)) {
+      return { provider: "CricketData", scorecard: null, matchEnded, success: false, error: "Empty scorecard data" };
+    }
+    return { provider: "CricketData", scorecard: { scorecard }, matchEnded, success: true };
+  } catch (e: any) {
+    return { provider: "CricketData", scorecard: null, matchEnded: false, success: false, error: e.message };
   }
-  const json = await resp.json();
-  if (json.status !== "success") {
-    console.error("CricketData API returned non-success:", json.status);
-    return null;
-  }
-  return json.data;
 }
 
-// Generate point event descriptions from scorecard changes
+// Provider 2: CricAPI Backup
+async function fetchFromCricAPIBackup(apiMatchId: string, apiKey: string): Promise<ApiResult> {
+  try {
+    const url = `https://api.cricapi.com/v1/match_scorecard?apikey=${apiKey}&id=${apiMatchId}`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      return { provider: "CricAPI-Backup", scorecard: null, matchEnded: false, success: false, error: `HTTP ${resp.status}` };
+    }
+    const json = await resp.json();
+    if (json.status !== "success") {
+      return { provider: "CricAPI-Backup", scorecard: null, matchEnded: false, success: false, error: `API status: ${json.status}` };
+    }
+    const data = json.data;
+    const matchEnded = !!(data?.matchEnded || data?.status?.toLowerCase().includes("won") || data?.status?.toLowerCase().includes("drawn"));
+    const scorecard = data?.scorecard || data?.score || [];
+    if (!scorecard || (Array.isArray(scorecard) && scorecard.length === 0)) {
+      return { provider: "CricAPI-Backup", scorecard: null, matchEnded, success: false, error: "Empty scorecard" };
+    }
+    return { provider: "CricAPI-Backup", scorecard: { scorecard }, matchEnded, success: true };
+  } catch (e: any) {
+    return { provider: "CricAPI-Backup", scorecard: null, matchEnded: false, success: false, error: e.message };
+  }
+}
+
+// Provider 3: SportMonks
+async function fetchFromSportMonks(apiMatchId: string, apiKey: string): Promise<ApiResult> {
+  try {
+    const url = `https://cricket.sportmonks.com/api/v2.0/fixtures/${apiMatchId}?api_token=${apiKey}&include=scoreboards,batting,bowling`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      return { provider: "SportMonks", scorecard: null, matchEnded: false, success: false, error: `HTTP ${resp.status}` };
+    }
+    const json = await resp.json();
+    const fixture = json.data;
+    if (!fixture) {
+      return { provider: "SportMonks", scorecard: null, matchEnded: false, success: false, error: "No fixture data" };
+    }
+    
+    const matchEnded = fixture.status === "Finished" || fixture.status === "Aban.";
+    
+    // Transform SportMonks format to our standard scorecard format
+    const batting = fixture.batting?.data || [];
+    const bowling = fixture.bowling?.data || [];
+    
+    if (batting.length === 0 && bowling.length === 0) {
+      return { provider: "SportMonks", scorecard: null, matchEnded, success: false, error: "Empty scorecard" };
+    }
+    
+    // Group by innings
+    const inningsMap: Record<number, { batting: any[]; bowling: any[] }> = {};
+    for (const b of batting) {
+      const inn = b.scoreboard || 1;
+      if (!inningsMap[inn]) inningsMap[inn] = { batting: [], bowling: [] };
+      inningsMap[inn].batting.push({
+        name: b.batsman?.fullname || b.batsman?.lastname || "",
+        r: b.score ?? 0,
+        b: b.ball ?? 0,
+        fours: b.four_x ?? 0,
+        sixes: b.six_x ?? 0,
+        dismissal: b.catch_stump_player_id ? `c ${b.catching?.fullname || ""} b ${b.bowler?.fullname || ""}` : "",
+      });
+    }
+    for (const b of bowling) {
+      const inn = b.scoreboard || 1;
+      if (!inningsMap[inn]) inningsMap[inn] = { batting: [], bowling: [] };
+      inningsMap[inn].bowling.push({
+        name: b.bowler?.fullname || b.bowler?.lastname || "",
+        w: b.wickets ?? 0,
+        o: b.overs ?? 0,
+        r: b.runs ?? 0,
+        m: b.medians ?? 0,
+      });
+    }
+    
+    const scorecard = Object.values(inningsMap);
+    return { provider: "SportMonks", scorecard: { scorecard }, matchEnded, success: true };
+  } catch (e: any) {
+    return { provider: "SportMonks", scorecard: null, matchEnded: false, success: false, error: e.message };
+  }
+}
+
+// Main fallback orchestrator
+async function fetchScorecardWithFallback(
+  apiMatchId: string,
+  keys: { cricketdata: string; cricapiBackup: string; sportmonks: string }
+): Promise<ApiResult> {
+  const attempts: { provider: string; error: string }[] = [];
+
+  // Try Provider 1: CricketData (primary)
+  if (keys.cricketdata) {
+    const result = await fetchFromCricketData(apiMatchId, keys.cricketdata);
+    if (result.success) {
+      console.log(`✅ ${result.provider} returned data successfully`);
+      return result;
+    }
+    console.warn(`⚠️ ${result.provider} failed: ${result.error}`);
+    attempts.push({ provider: result.provider, error: result.error || "unknown" });
+  }
+
+  // Try Provider 2: CricAPI Backup
+  if (keys.cricapiBackup) {
+    const result = await fetchFromCricAPIBackup(apiMatchId, keys.cricapiBackup);
+    if (result.success) {
+      console.log(`✅ ${result.provider} returned data successfully (fallback)`);
+      return result;
+    }
+    console.warn(`⚠️ ${result.provider} failed: ${result.error}`);
+    attempts.push({ provider: result.provider, error: result.error || "unknown" });
+  }
+
+  // Try Provider 3: SportMonks
+  if (keys.sportmonks) {
+    const result = await fetchFromSportMonks(apiMatchId, keys.sportmonks);
+    if (result.success) {
+      console.log(`✅ ${result.provider} returned data successfully (fallback)`);
+      return result;
+    }
+    console.warn(`⚠️ ${result.provider} failed: ${result.error}`);
+    attempts.push({ provider: result.provider, error: result.error || "unknown" });
+  }
+
+  console.error(`❌ All API providers failed:`, JSON.stringify(attempts));
+  return { provider: "none", scorecard: null, matchEnded: false, success: false, error: `All providers failed: ${JSON.stringify(attempts)}` };
+}
+
+// ─── POINT EVENTS ───────────────────────────────────────────────
+
 function generatePointEvents(
   stats: PlayerScorecard,
   role: string,
@@ -148,20 +292,89 @@ function generatePointEvents(
   return events;
 }
 
-async function processMatch(supabase: any, matchId: string, RULES: ScoringRules, scorecardData?: any, apiKey?: string) {
-  // Get match info
+// ─── SCORECARD PARSER ───────────────────────────────────────────
+
+function parseScorecardToStats(scorecardData: any): Record<string, PlayerScorecard> {
+  const playerStats: Record<string, PlayerScorecard> = {};
+  const scoreData = scorecardData?.scorecard || scorecardData?.batting || [];
+
+  if (!Array.isArray(scoreData)) return playerStats;
+
+  for (const innings of scoreData) {
+    const battingData = innings.batting || [];
+    for (const bat of battingData) {
+      const name = bat.batsman?.name || bat.name || "";
+      if (!name) continue;
+      if (!playerStats[name]) playerStats[name] = { name };
+      playerStats[name].runs = bat.r ?? bat.runs ?? 0;
+      playerStats[name].balls_faced = bat.b ?? bat.balls ?? 0;
+      playerStats[name].fours = bat.fours ?? bat["4s"] ?? 0;
+      playerStats[name].sixes = bat.sixes ?? bat["6s"] ?? 0;
+    }
+    const bowlingData = innings.bowling || [];
+    for (const bowl of bowlingData) {
+      const name = bowl.bowler?.name || bowl.name || "";
+      if (!name) continue;
+      if (!playerStats[name]) playerStats[name] = { name };
+      playerStats[name].wickets = bowl.w ?? bowl.wickets ?? 0;
+      playerStats[name].overs_bowled = parseOvers(bowl.o ?? bowl.overs);
+      playerStats[name].runs_conceded = bowl.r ?? bowl.runs ?? 0;
+      playerStats[name].maidens = bowl.m ?? bowl.maidens ?? 0;
+    }
+    // Parse fielding from dismissals
+    for (const bat of battingData) {
+      const dismissal = bat.dismissal || bat["dismissal-text"] || "";
+      const catchMatch = dismissal.match(/c\s+(.+?)\s+b\s+/i);
+      if (catchMatch) {
+        const fielder = catchMatch[1].trim();
+        if (!playerStats[fielder]) playerStats[fielder] = { name: fielder };
+        playerStats[fielder].catches = (playerStats[fielder].catches || 0) + 1;
+      }
+      const stumpMatch = dismissal.match(/st\s+(.+?)\s+b\s+/i);
+      if (stumpMatch) {
+        const keeper = stumpMatch[1].trim();
+        if (!playerStats[keeper]) playerStats[keeper] = { name: keeper };
+        playerStats[keeper].stumpings = (playerStats[keeper].stumpings || 0) + 1;
+      }
+      const runOutMatch = dismissal.match(/run out\s*\((.+?)\)/i);
+      if (runOutMatch) {
+        const fielders = runOutMatch[1].split("/");
+        for (const f of fielders) {
+          const fielder = f.trim();
+          if (!playerStats[fielder]) playerStats[fielder] = { name: fielder };
+          playerStats[fielder].run_outs = (playerStats[fielder].run_outs || 0) + 1;
+        }
+      }
+    }
+  }
+
+  return playerStats;
+}
+
+// ─── PROCESS MATCH ──────────────────────────────────────────────
+
+async function processMatch(
+  supabase: any,
+  matchId: string,
+  RULES: ScoringRules,
+  apiKeys: { cricketdata: string; cricapiBackup: string; sportmonks: string },
+  scorecardData?: any
+) {
   const { data: matchInfo } = await supabase.from("matches").select("cricket_api_match_id").eq("id", matchId).single();
 
-  // If no scorecard data provided, fetch from API
-  if (!scorecardData && matchInfo?.cricket_api_match_id && apiKey) {
-    const apiData = await fetchCricketDataScorecard(matchInfo.cricket_api_match_id, apiKey);
-    if (apiData) {
-      scorecardData = { scorecard: apiData.scorecard || apiData.score || [] };
-      
-      // Check if match is completed from API
-      if (apiData.matchEnded || apiData.status?.toLowerCase().includes("won") || apiData.status?.toLowerCase().includes("drawn")) {
-        console.log(`Match ${matchId} appears completed from API`);
+  let usedProvider = "manual";
+
+  // If no scorecard data provided, fetch from APIs with fallback
+  if (!scorecardData && matchInfo?.cricket_api_match_id) {
+    const apiResult = await fetchScorecardWithFallback(matchInfo.cricket_api_match_id, apiKeys);
+    if (apiResult.success) {
+      scorecardData = apiResult.scorecard;
+      usedProvider = apiResult.provider;
+      if (apiResult.matchEnded) {
+        console.log(`Match ${matchId} appears completed (via ${usedProvider})`);
       }
+    } else {
+      console.warn(`No scorecard data available for match ${matchId}: ${apiResult.error}`);
     }
   }
 
@@ -171,61 +384,9 @@ async function processMatch(supabase: any, matchId: string, RULES: ScoringRules,
     .eq("match_id", matchId);
 
   if (mpErr) throw mpErr;
-  if (!matchPlayers || matchPlayers.length === 0) return { players_updated: 0, events_created: 0 };
+  if (!matchPlayers || matchPlayers.length === 0) return { players_updated: 0, events_created: 0, provider: usedProvider };
 
-  // Parse scorecard
-  const playerStats: Record<string, PlayerScorecard> = {};
-  if (scorecardData) {
-    const scoreData = scorecardData.scorecard || scorecardData.batting || [];
-    if (Array.isArray(scoreData)) {
-      for (const innings of scoreData) {
-        const battingData = innings.batting || [];
-        for (const bat of battingData) {
-          const name = bat.batsman?.name || bat.name || "";
-          if (!name) continue;
-          if (!playerStats[name]) playerStats[name] = { name };
-          playerStats[name].runs = bat.r ?? bat.runs ?? 0;
-          playerStats[name].balls_faced = bat.b ?? bat.balls ?? 0;
-          playerStats[name].fours = bat.fours ?? bat["4s"] ?? 0;
-          playerStats[name].sixes = bat.sixes ?? bat["6s"] ?? 0;
-        }
-        const bowlingData = innings.bowling || [];
-        for (const bowl of bowlingData) {
-          const name = bowl.bowler?.name || bowl.name || "";
-          if (!name) continue;
-          if (!playerStats[name]) playerStats[name] = { name };
-          playerStats[name].wickets = bowl.w ?? bowl.wickets ?? 0;
-          playerStats[name].overs_bowled = parseOvers(bowl.o ?? bowl.overs);
-          playerStats[name].runs_conceded = bowl.r ?? bowl.runs ?? 0;
-          playerStats[name].maidens = bowl.m ?? bowl.maidens ?? 0;
-        }
-        for (const bat of battingData) {
-          const dismissal = bat.dismissal || bat["dismissal-text"] || "";
-          const catchMatch = dismissal.match(/c\s+(.+?)\s+b\s+/i);
-          if (catchMatch) {
-            const fielder = catchMatch[1].trim();
-            if (!playerStats[fielder]) playerStats[fielder] = { name: fielder };
-            playerStats[fielder].catches = (playerStats[fielder].catches || 0) + 1;
-          }
-          const stumpMatch = dismissal.match(/st\s+(.+?)\s+b\s+/i);
-          if (stumpMatch) {
-            const keeper = stumpMatch[1].trim();
-            if (!playerStats[keeper]) playerStats[keeper] = { name: keeper };
-            playerStats[keeper].stumpings = (playerStats[keeper].stumpings || 0) + 1;
-          }
-          const runOutMatch = dismissal.match(/run out\s*\((.+?)\)/i);
-          if (runOutMatch) {
-            const fielders = runOutMatch[1].split("/");
-            for (const f of fielders) {
-              const fielder = f.trim();
-              if (!playerStats[fielder]) playerStats[fielder] = { name: fielder };
-              playerStats[fielder].run_outs = (playerStats[fielder].run_outs || 0) + 1;
-            }
-          }
-        }
-      }
-    }
-  }
+  const playerStats = parseScorecardToStats(scorecardData);
 
   let totalUpdated = 0;
   const pointEvents: any[] = [];
@@ -247,14 +408,13 @@ async function processMatch(supabase: any, matchId: string, RULES: ScoringRules,
     if (stats) {
       const oldPoints = mp.fantasy_points || 0;
       const fantasyPoints = calculateFantasyPoints(stats, role, RULES);
-      
+
       const { error: updateErr } = await supabase
         .from("match_players")
         .update({ fantasy_points: fantasyPoints })
         .eq("id", mp.id);
       if (!updateErr) totalUpdated++;
 
-      // Generate point events only if points changed
       if (fantasyPoints !== oldPoints) {
         const events = generatePointEvents(stats, role, RULES);
         for (const ev of events) {
@@ -271,9 +431,7 @@ async function processMatch(supabase: any, matchId: string, RULES: ScoringRules,
     }
   }
 
-  // Insert point events (latest batch only, avoid duplicates by clearing old ones for this cycle)
   if (pointEvents.length > 0) {
-    // Keep only events from last 5 minutes to avoid duplicates
     await supabase
       .from("point_events")
       .delete()
@@ -283,11 +441,12 @@ async function processMatch(supabase: any, matchId: string, RULES: ScoringRules,
     await supabase.from("point_events").insert(pointEvents);
   }
 
-  // Recalculate team points
   await supabase.rpc("recalculate_team_points", { p_match_id: matchId });
 
-  return { players_updated: totalUpdated, events_created: pointEvents.length };
+  return { players_updated: totalUpdated, events_created: pointEvents.length, provider: usedProvider };
 }
+
+// ─── MAIN SERVER ────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -305,14 +464,27 @@ serve(async (req) => {
     const matchId = body?.match_id;
     const scorecardData = body?.scorecard_data;
 
-    // Fetch scoring rules and API key
     const RULES = await fetchScoringRules(supabase);
+
+    // Gather all API keys (primary + backups)
     const { data: apiKeySetting } = await supabase
       .from("site_settings")
       .select("value")
       .eq("key", "cricketdata_api_key")
       .single();
-    const apiKey = apiKeySetting?.value || Deno.env.get("CRICKETDATA_API_KEY") || "";
+
+    const apiKeys = {
+      cricketdata: apiKeySetting?.value || Deno.env.get("CRICKETDATA_API_KEY") || "",
+      cricapiBackup: Deno.env.get("CRICAPI_BACKUP_KEY") || "",
+      sportmonks: Deno.env.get("SPORTMONKS_API_KEY") || "",
+    };
+
+    const configuredProviders = [
+      apiKeys.cricketdata ? "CricketData" : null,
+      apiKeys.cricapiBackup ? "CricAPI-Backup" : null,
+      apiKeys.sportmonks ? "SportMonks" : null,
+    ].filter(Boolean);
+    console.log(`🔑 Configured API providers: ${configuredProviders.join(", ") || "none"}`);
 
     // If no match_id provided, auto-discover all live matches
     if (!matchId) {
@@ -324,38 +496,42 @@ serve(async (req) => {
       if (liveErr) throw liveErr;
       if (!liveMatches || liveMatches.length === 0) {
         return new Response(
-          JSON.stringify({ success: true, message: "No live matches found", matches_processed: 0 }),
+          JSON.stringify({ success: true, message: "No live matches found", matches_processed: 0, providers: configuredProviders }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      let totalResults = { matches_processed: 0, total_players_updated: 0, total_events: 0 };
+      const totalResults = { matches_processed: 0, total_players_updated: 0, total_events: 0, providers_used: [] as string[] };
       for (const m of liveMatches) {
         try {
-          const result = await processMatch(supabase, m.id, RULES, undefined, apiKey);
+          const result = await processMatch(supabase, m.id, RULES, apiKeys);
           totalResults.matches_processed++;
           totalResults.total_players_updated += result.players_updated;
           totalResults.total_events += result.events_created;
+          if (result.provider && !totalResults.providers_used.includes(result.provider)) {
+            totalResults.providers_used.push(result.provider);
+          }
         } catch (e: any) {
           console.error(`Error processing match ${m.id}:`, e.message);
         }
       }
 
       return new Response(
-        JSON.stringify({ success: true, ...totalResults }),
+        JSON.stringify({ success: true, ...totalResults, configured_providers: configuredProviders }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Single match mode
-    const result = await processMatch(supabase, matchId, RULES, scorecardData, apiKey);
+    const result = await processMatch(supabase, matchId, RULES, apiKeys, scorecardData);
 
     return new Response(
       JSON.stringify({
         success: true,
         players_updated: result.players_updated,
         events_created: result.events_created,
-        scorecard_players_found: Object.keys(result).length,
+        provider_used: result.provider,
+        configured_providers: configuredProviders,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
