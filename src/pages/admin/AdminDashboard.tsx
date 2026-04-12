@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import ApiHealthWidget from "@/components/admin/ApiHealthWidget";
 
 const CHART_COLORS = [
   "hsl(152, 100%, 50%)",
