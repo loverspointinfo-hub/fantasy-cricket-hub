@@ -420,6 +420,9 @@ const AdminDashboard = () => {
         </motion.div>
       </div>
 
+      {/* API Health Monitor */}
+      <ApiHealthWidget />
+
       {/* Bottom Section: Recent Activity & Users */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Transactions */}
