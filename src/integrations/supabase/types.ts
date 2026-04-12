@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_health_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          match_id: string
+          provider: string
+          response_time_ms: number | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          match_id: string
+          provider: string
+          response_time_ms?: number | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          match_id?: string
+          provider?: string
+          response_time_ms?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string

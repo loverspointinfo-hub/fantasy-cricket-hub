@@ -366,7 +366,23 @@ async function processMatch(
 
   // If no scorecard data provided, fetch from APIs with fallback
   if (!scorecardData && matchInfo?.cricket_api_match_id) {
+    const startTime = Date.now();
     const apiResult = await fetchScorecardWithFallback(matchInfo.cricket_api_match_id, apiKeys);
+    const responseTime = Date.now() - startTime;
+
+    // Log API health to api_health_log table
+    try {
+      await supabase.from("api_health_log").insert({
+        match_id: matchId,
+        provider: apiResult.provider,
+        status: apiResult.success ? "success" : "failed",
+        response_time_ms: responseTime,
+        error_message: apiResult.error || null,
+      });
+    } catch (logErr: any) {
+      console.warn("Failed to log API health:", logErr.message);
+    }
+
     if (apiResult.success) {
       scorecardData = apiResult.scorecard;
       usedProvider = apiResult.provider;

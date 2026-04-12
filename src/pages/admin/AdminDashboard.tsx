@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import ApiHealthWidget from "@/components/admin/ApiHealthWidget";
 
 const CHART_COLORS = [
   "hsl(152, 100%, 50%)",
@@ -418,6 +419,9 @@ const AdminDashboard = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* API Health Monitor */}
+      <ApiHealthWidget />
 
       {/* Bottom Section: Recent Activity & Users */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
